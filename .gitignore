@@ -50,4 +50,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-Sr_Project_Ws
+Sr_Project_Ws/
+**/Debug/

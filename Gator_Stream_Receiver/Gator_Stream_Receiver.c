@@ -3629,9 +3629,11 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
                   for(Index=0;(Index<GAP_Inquiry_Event_Data->Number_Devices) && (Index<MAX_INQUIRY_RESULTS);Index++)
                   {
                      InquiryResultList[Index] = GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR;
-                     BD_ADDRToStr(GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR, Callback_BoardStr);
+                     // BD_ADDRToStr(GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR, Callback_BoardStr);
 
-                     Display(("Result: %d,%s.\r\n", (Index+1), Callback_BoardStr));
+                     // Display(("Result: %d,%s.\r\n", (Index+1), Callback_BoardStr));
+                     /* Query each discovered device's name            */
+                     GAP_Query_Remote_Device_Name(BluetoothStackID, InquiryResultList[Index], GAP_Event_Callback, (unsigned long)0);
                   }
 
                   NumberofValidResponses = GAP_Inquiry_Event_Data->Number_Devices;
@@ -3889,7 +3891,7 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
                /* Inform the user of the Result.                        */
                BD_ADDRToStr(GAP_Remote_Name_Event_Data->Remote_Device, Callback_BoardStr);
 
-               Display(("\r\n"));
+               // Display(("\r\n"));
                Display(("BD_ADDR: %s.\r\n", Callback_BoardStr));
 
                if(GAP_Remote_Name_Event_Data->Remote_Name)
@@ -3897,7 +3899,6 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
                else
                   Display(("Name: NULL.\r\n"));
             }
-            DisplayPrompt();
             break;
          case etEncryption_Change_Result:
             BD_ADDRToStr(GAP_Event_Data->Event_Data.GAP_Encryption_Mode_Event_Data->Remote_Device, Callback_BoardStr);
