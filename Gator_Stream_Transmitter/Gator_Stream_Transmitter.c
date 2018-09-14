@@ -1482,7 +1482,7 @@ static int ReconfigureA3DPStream(AUD_Stream_Format_t *Format)
 
    Display(("Initialize audio with sampling frequency: %lu\r\n", Format->SampleFrequency));
 
-   HAL_EnableAudioCodec(BluetoothStackID, aucA3DPSource, Format->SampleFrequency, Format->NumberChannels);
+   // HAL_EnableAudioCodec(BluetoothStackID, aucA3DPSource, Format->SampleFrequency, Format->NumberChannels);
 
    Display(("Stream Format: \r\n"));
    Display(("   Frequency: %lu\r\n", Format->SampleFrequency));
