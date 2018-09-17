@@ -3633,7 +3633,7 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
 
                      // Display(("Result: %d,%s.\r\n", (Index+1), Callback_BoardStr));
                      /* Query each discovered device's name            */
-                     GAP_Query_Remote_Device_Name(BluetoothStackID, InquiryResultList[Index], GAP_Event_Callback, (unsigned long)0);
+                    GAP_Query_Remote_Device_Name(BluetoothStackID, InquiryResultList[Index], GAP_Event_Callback, (unsigned long)0);
                   }
 
                   NumberofValidResponses = GAP_Inquiry_Event_Data->Number_Devices;

@@ -58,61 +58,71 @@ static void PollErrorFlags(void);
    /* the user console.                                                 */
 static void ProcessCharactersTask(void *UserParameter)
 {
+   static Boolean_t initialCmd = TRUE;
    char      Char;
    Boolean_t CompleteLine;
 
-   /* Initialize the variable indicating a complete line has been parsed*/
-   /* to false.                                                         */
-   CompleteLine = FALSE;
-
-   /* Attempt to read data from the console.                            */
-   while((!CompleteLine) && (HAL_ConsoleRead(1, &Char)))
+   if(initialCmd)
    {
-      switch(Char)
-      {
-         case '\r':
-         case '\n':
-            if(InputIndex > 0)
-            {
-               /* We have received an end of line character, set the    */
-               /* complete line variable to true.                       */
-               CompleteLine = TRUE;
-            }
-            else
-            {
-               /* The user pressed 'Enter' without typing a command,    */
-               /* display the application's prompt.                     */
-               DisplayPrompt();
-            }
-            break;
-         case 0x08:
-            /* Backspace has been pressed, so now decrement the number  */
-            /* of bytes in the buffer (if there are bytes in the        */
-            /* buffer).                                                 */
-            if(InputIndex)
-            {
-               InputIndex--;
-               HAL_ConsoleWrite(3, "\b \b");
-            }
-            break;
-         default:
-            /* Accept any other printable characters.                   */
-            if((Char >= ' ') && (Char <= '~'))
-            {
-               /* Add the Data Byte to the Input Buffer, and make sure  */
-               /* that we do not overwrite the Input Buffer.            */
-               Input[InputIndex++] = Char;
-               HAL_ConsoleWrite(1, &Char);
+      BTPS_StringCopy(Input, "Inquiry\r\n\0\0");
+      ProcessCommandLine(Input);
+      initialCmd = FALSE;
+   }
+   else
+   {
+      /* Initialize the variable indicating a complete line has been parsed*/
+      /* to false.                                                         */
+      CompleteLine = FALSE;
 
-               /* Check to see if we have reached the end of the buffer.*/
-               if(InputIndex >= MAX_COMMAND_LENGTH)
+      /* Attempt to read data from the console.                            */
+      while((!CompleteLine) && (HAL_ConsoleRead(1, &Char)))
+      {
+         switch(Char)
+         {
+            case '\r':
+            case '\n':
+               if(InputIndex > 0)
                {
-                  /* We have received all of the data that we can       */
-                  /* handle, set the complete line variable to true.    */
+                  /* We have received an end of line character, set the    */
+                  /* complete line variable to true.                       */
                   CompleteLine = TRUE;
                }
-            }
-            break;
+               else
+               {
+                  /* The user pressed 'Enter' without typing a command,    */
+                  /* display the application's prompt.                     */
+                  DisplayPrompt();
+               }
+               break;
+            case 0x08:
+               /* Backspace has been pressed, so now decrement the number  */
+               /* of bytes in the buffer (if there are bytes in the        */
+               /* buffer).                                                 */
+               if(InputIndex)
+               {
+                  InputIndex--;
+                  HAL_ConsoleWrite(3, "\b \b");
+               }
+               break;
+            default:
+               /* Accept any other printable characters.                   */
+               if((Char >= ' ') && (Char <= '~'))
+               {
+                  /* Add the Data Byte to the Input Buffer, and make sure  */
+                  /* that we do not overwrite the Input Buffer.            */
+                  Input[InputIndex++] = Char;
+                  HAL_ConsoleWrite(1, &Char);
+
+                  /* Check to see if we have reached the end of the buffer.*/
+                  if(InputIndex >= MAX_COMMAND_LENGTH)
+                  {
+                     /* We have received all of the data that we can       */
+                     /* handle, set the complete line variable to true.    */
+                     CompleteLine = TRUE;
+                  }
+               }
+               break;
+         }
       }
    }
 
