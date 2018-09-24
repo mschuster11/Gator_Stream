@@ -154,7 +154,7 @@ static void ConfigureControllerAudioCodec(unsigned int BluetoothStackID, unsigne
    u.WriteCodecConfigParams.CH2DataOutOffset      = Channel2Offset;
    u.WriteCodecConfigParams.CH2DataInSize         = 16;
    u.WriteCodecConfigParams.CH2DataInOffset       = Channel2Offset;
-   u.WriteCodecConfigParams.CH2InEdge             = 1;
+   u.WriteCodecConfigParams.CH2InEdge             = 0;
    VS_Write_Codec_Config(BluetoothStackID, &u.WriteCodecConfigParams);
 
    /* Set the codec config enhanced parameters.                         */
@@ -614,7 +614,7 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
    }
 
    /* Initialize the local audio codec.                                 */
-   CodecInit(InputLine, OutputLine);
+   // CodecInit(InputLine, OutputLine);
 
    /* Flag that the local audio codec is enabled.                       */
    AudioCodecEnabled = TRUE;
