@@ -487,6 +487,7 @@ void InitMcbspbGpio(void)
     // GPIO84
     //
     GpioCtrlRegs.GPAMUX2.bit.GPIO24 = 3;
+    GpioCtrlRegs.GPAINV.bit.GPIO24 = 1;
     // GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
     // GpioCtrlRegs.GPCMUX2.bit.GPIO84 = 2;
 

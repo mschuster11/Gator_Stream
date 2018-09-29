@@ -54,3 +54,5 @@ Sr_Project_Ws/
 **/Debug/
 **.settings/
 *.mk
+*.launch
+*_linkinfo.xml

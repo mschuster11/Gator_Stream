@@ -110,13 +110,13 @@ static Boolean_t LEDOn;
    /*  The following variable flags if the system is being initialized. */
 static Boolean_t SysInit;
 
-#if __SUPPORT_AUDIO_CODEC__
+//#if __SUPPORT_AUDIO_CODEC__
 
    /* The following variable is used to determine if the audio codec is */
    /* currently enabled.                                                */
 static volatile Boolean_t AudioCodecEnabled;
 
-#endif
+//#endif
 
    /*********************************************************************/
    /* Local/Static Functions                                            */
@@ -140,7 +140,7 @@ static void ConfigureControllerAudioCodec(unsigned int BluetoothStackID, unsigne
    /* the BCLK/WCLK ratio expected by the CC3200AUDBOOST's audio codec  */
    /* (the TLV320AIC3254).                                              */
    Channel1Offset = (NumChannels == 1) ? 17 : 1;
-   Channel2Offset = Channel1Offset + 16;
+   Channel2Offset = Channel1Offset;
    BTPS_MemInitialize(&u.WriteCodecConfigParams, 0, sizeof(u.WriteCodecConfigParams));
    u.WriteCodecConfigParams.PCMClockRate_KHz      = (SamplingFrequency / 100) * 8;
    u.WriteCodecConfigParams.FrameSyncFrequency_Hz = (DWord_t)SamplingFrequency;
@@ -154,7 +154,7 @@ static void ConfigureControllerAudioCodec(unsigned int BluetoothStackID, unsigne
    u.WriteCodecConfigParams.CH2DataOutOffset      = Channel2Offset;
    u.WriteCodecConfigParams.CH2DataInSize         = 16;
    u.WriteCodecConfigParams.CH2DataInOffset       = Channel2Offset;
-   u.WriteCodecConfigParams.CH2InEdge             = 0;
+   u.WriteCodecConfigParams.CH2InEdge             = 1;
    VS_Write_Codec_Config(BluetoothStackID, &u.WriteCodecConfigParams);
 
    /* Set the codec config enhanced parameters.                         */

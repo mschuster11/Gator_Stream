@@ -86,6 +86,7 @@
    /* Debug UART Pin Definitions                                        */
    /*********************************************************************/
 
+// To PC
 #define HRDWCFG_DEBUG_UART_MODULE         EUSCI_A0_BASE
 #define HRDWCFG_DEBUG_UART_INT_NUM        INT_EUSCIA0
 
@@ -94,6 +95,16 @@
 
 #define HRDWCFG_DEBUG_UART_RX_PORT_NUM    GPIO_PORT_P1
 #define HRDWCFG_DEBUG_UART_RX_PIN_NUM     GPIO_PIN2
+
+// To DSC
+// #define HRDWCFG_DEBUG_UART_MODULE         EUSCI_A3_BASE
+// #define HRDWCFG_DEBUG_UART_INT_NUM        INT_EUSCIA3
+
+// #define HRDWCFG_DEBUG_UART_TX_PORT_NUM    GPIO_PORT_P9
+// #define HRDWCFG_DEBUG_UART_TX_PIN_NUM     GPIO_PIN7
+
+// #define HRDWCFG_DEBUG_UART_RX_PORT_NUM    GPIO_PORT_P9
+// #define HRDWCFG_DEBUG_UART_RX_PIN_NUM     GPIO_PIN6
 
    /*********************************************************************/
    /* LED Pin Definitions                                               */

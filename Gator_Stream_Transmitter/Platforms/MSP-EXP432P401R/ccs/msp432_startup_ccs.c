@@ -102,7 +102,7 @@ void (* const interruptVectors[])(void) =
 	Debug_UART_eUSCI_A_ISR,                 /* EUSCIA0 ISR               */
     defaultISR,                             /* EUSCIA1 ISR               */
 	HCI_UART_eUSCI_A_ISR,                   /* EUSCIA2 ISR               */
-    defaultISR,                             /* EUSCIA3 ISR               */
+    Debug_UART_eUSCI_A_ISR,                 /* EUSCIA3 ISR               */
     defaultISR,                             /* EUSCIB0 ISR               */
     defaultISR,                             /* EUSCIB1 ISR               */
     defaultISR,                             /* EUSCIB2 ISR               */
