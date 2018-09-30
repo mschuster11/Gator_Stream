@@ -80,6 +80,51 @@
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Main.c</locationURI>
 		</link>
+		<link>
+			<name>cmdline.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/utils/cmdline.c</locationURI>
+		</link>
+		<link>
+			<name>ff.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/fatfs/src/ff.c</locationURI>
+		</link>
+		<link>
+			<name>interrupt.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/driverlib/interrupt.c</locationURI>
+		</link>
+		<link>
+			<name>mmc_F2837x.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/fatfs/port/mmc_F2837x.c</locationURI>
+		</link>
+		<link>
+			<name>sysctl.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/driverlib/sysctl.c</locationURI>
+		</link>
+		<link>
+			<name>systick.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/driverlib/systick.c</locationURI>
+		</link>
+		<link>
+			<name>uart.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/driverlib/uart.c</locationURI>
+		</link>
+		<link>
+			<name>uartstdio.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/utils/uartstdio.c</locationURI>
+		</link>
+		<link>
+			<name>ustdlib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/utils/ustdlib.c</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>

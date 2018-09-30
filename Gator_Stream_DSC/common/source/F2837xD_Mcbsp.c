@@ -76,8 +76,7 @@ void clkg_delay_loop(void); // Delay function used for CLKG initialization
 //
 // InitMcbsp - This function initializes the McBSP to a known state.
 //
-void InitMcbspa(void)
-{
+void InitMcbspa(void) {
     //
     // Reset the McBSP
     // Disable all interrupts
@@ -159,8 +158,7 @@ void InitMcbspa(void)
 //
 // InitMcbspaInt - Enable TX and RX interrupts
 //
-void InitMcbspaInt(void)
-{
+void InitMcbspaInt(void) {
     // Reset TX and RX
     // Enable interrupts for TX and RX
     // Release TX and RX
@@ -175,8 +173,7 @@ void InitMcbspaInt(void)
 //
 // InitMcbspa8bit - McBSP uses an 8-bit word for both TX and RX
 //
-void InitMcbspa8bit(void)
-{
+void InitMcbspa8bit(void) {
     McbspaRegs.RCR1.bit.RWDLEN1 = 0;
     McbspaRegs.XCR1.bit.XWDLEN1 = 0;
 }
@@ -184,8 +181,7 @@ void InitMcbspa8bit(void)
 //
 // InitMcbspa12bit - McBSP uses an 12-bit word for both TX and RX
 //
-void InitMcbspa12bit(void)
-{
+void InitMcbspa12bit(void) {
     McbspaRegs.RCR1.bit.RWDLEN1 = 1;
     McbspaRegs.XCR1.bit.XWDLEN1 = 1;
 }
@@ -193,8 +189,7 @@ void InitMcbspa12bit(void)
 //
 // InitMcbspa16bit - McBSP uses an 16-bit word for both TX and RX
 //
-void InitMcbspa16bit(void)
-{
+void InitMcbspa16bit(void) {
     McbspaRegs.RCR1.bit.RWDLEN1 = 2;
     McbspaRegs.XCR1.bit.XWDLEN1 = 2;
 }
@@ -202,8 +197,7 @@ void InitMcbspa16bit(void)
 //
 // InitMcbspa20bit - McBSP uses an 20-bit word for both TX and RX
 //
-void InitMcbspa20bit(void)
-{
+void InitMcbspa20bit(void) {
     McbspaRegs.RCR1.bit.RWDLEN1 = 3;
     McbspaRegs.XCR1.bit.XWDLEN1 = 3;
 }
@@ -211,8 +205,7 @@ void InitMcbspa20bit(void)
 //
 // InitMcbspa24bit - McBSP uses an 24-bit word for both TX and RX
 //
-void InitMcbspa24bit(void)
-{
+void InitMcbspa24bit(void) {
     McbspaRegs.RCR1.bit.RWDLEN1 = 4;
     McbspaRegs.XCR1.bit.XWDLEN1 = 4;
 }
@@ -220,8 +213,7 @@ void InitMcbspa24bit(void)
 //
 // InitMcbspa32bit - McBSP uses an 32-bit word for both TX and RX
 //
-void InitMcbspa32bit(void)
-{
+void InitMcbspa32bit(void) {
     McbspaRegs.RCR1.bit.RWDLEN1 = 5;
     McbspaRegs.XCR1.bit.XWDLEN1 = 5;
 }
@@ -230,8 +222,7 @@ void InitMcbspa32bit(void)
 // InitMcbspaGpio - Assign GPIO pins to the McBSP peripheral
 //                 (Note: This function must be called from CPU1.)
 //
-void InitMcbspaGpio(void)
-{
+void InitMcbspaGpio(void) {
 #ifdef CPU1
     EALLOW;
 
@@ -313,8 +304,7 @@ void InitMcbspaGpio(void)
 //
 // InitMcbspb - McBSPB initialization routine for examples
 //
-void InitMcbspb(void)
-{
+void InitMcbspb(void) {
     //
     // Reset the McBSP
     // Disable all interrupts
@@ -396,8 +386,7 @@ void InitMcbspb(void)
 //
 // InitMcbspbInt - Enable TX and RX interrupts
 //
-void InitMcbspbInt(void)
-{
+void InitMcbspbInt(void) {
     //
     // Reset TX and RX
     // Enable interrupts for TX and RX
@@ -414,8 +403,7 @@ void InitMcbspbInt(void)
 //
 // InitMcbspb8bit - McBSPB uses an 8-bit word for both TX and RX
 //
-void InitMcbspb8bit(void)
-{
+void InitMcbspb8bit(void) {
     McbspbRegs.RCR1.bit.RWDLEN1 = 0;
     McbspbRegs.XCR1.bit.XWDLEN1 = 0;
 }
@@ -423,8 +411,7 @@ void InitMcbspb8bit(void)
 //
 // IniMcbspb12bit - McBSPB uses an 12-bit word for both TX and RX
 //
-void IniMcbspb12bit(void)
-{
+void IniMcbspb12bit(void) {
     McbspbRegs.RCR1.bit.RWDLEN1 = 1;
     McbspbRegs.XCR1.bit.XWDLEN1 = 1;
 }
@@ -432,8 +419,7 @@ void IniMcbspb12bit(void)
 //
 // InitMcbspb16bit - McBSPB uses an 16-bit word for both TX and RX
 //
-void InitMcbspb16bit(void)
-{
+void InitMcbspb16bit(void) {
     McbspbRegs.RCR1.bit.RWDLEN1 = 2;
     McbspbRegs.XCR1.bit.XWDLEN1 = 2;
 }
@@ -441,8 +427,7 @@ void InitMcbspb16bit(void)
 //
 // InitMcbspb20bit - McBSPB uses an 20-bit word for both TX and RX
 //
-void InitMcbspb20bit(void)
-{
+void InitMcbspb20bit(void) {
     McbspbRegs.RCR1.bit.RWDLEN1 = 3;
     McbspbRegs.XCR1.bit.XWDLEN1 = 3;
 }
@@ -450,8 +435,7 @@ void InitMcbspb20bit(void)
 //
 // InitMcbspb24bit - McBSPB uses an 24-bit word for both TX and RX
 //
-void InitMcbspb24bit(void)
-{
+void InitMcbspb24bit(void) {
     McbspbRegs.RCR1.bit.RWDLEN1 = 4;
     McbspbRegs.XCR1.bit.XWDLEN1 = 4;
 }
@@ -459,8 +443,7 @@ void InitMcbspb24bit(void)
 //
 // InitMcbspb32bit - McBSPB uses an 32-bit word for both TX and RX
 //
-void InitMcbspb32bit(void)
-{
+void InitMcbspb32bit(void) {
     McbspbRegs.RCR1.bit.RWDLEN1 = 5;
     McbspbRegs.XCR1.bit.XWDLEN1 = 5;
 }
@@ -469,8 +452,7 @@ void InitMcbspb32bit(void)
 // InitMcbspbGpio - Assign GPIO pins to the McBSP peripheral
 //                 (Note: This function must be called from CPU1.)
 //
-void InitMcbspbGpio(void)
-{
+void InitMcbspbGpio(void) {
 #ifdef CPU1
     EALLOW;
 
@@ -564,8 +546,7 @@ void InitMcbspbGpio(void)
 // delay_loop - Delay function (at least 2 SRG cycles)
 //              Required in McBSP initialization
 //
-void delay_loop(void)
-{
+void delay_loop(void) {
     long i;
     for (i = 0; i < MCBSP_INIT_DELAY; i++) {}
 }
@@ -574,8 +555,7 @@ void delay_loop(void)
 // clkg_delay_loop - Delay function (at least 2 CLKG cycles)
 //                   Required in McBSP init
 //
-void clkg_delay_loop(void)
-{
+void clkg_delay_loop(void) {
     long i;
     for (i = 0; i < MCBSP_CLKG_DELAY; i++) {}
 }

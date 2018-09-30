@@ -84,8 +84,7 @@ using std::memcpy;
 //
 // InitSysCtrl - Initialization of system resources.
 //
-void InitSysCtrl(void)
-{
+void InitSysCtrl(void) {
     //
     // Disable the watchdog
     //
@@ -138,7 +137,7 @@ void InitSysCtrl(void)
     //
     // Check if device is trimmed
     //
-    if(*((Uint16 *)0x5D1B6) == 0x0000){
+    if(*((Uint16 *)0x5D1B6) == 0x0000) {
         //
         // Device is not trimmed--apply static calibration values
         //
@@ -168,7 +167,7 @@ void InitSysCtrl(void)
 #ifdef _LAUNCHXL_F28379D
     InitSysPll(XTAL_OSC,IMULT_40,FMULT_0,PLLCLK_BY_2);
 #else
-    InitSysPll(XTAL_OSC, IMULT_20, FMULT_0, PLLCLK_BY_1);
+    InitSysPll(XTAL_OSC, IMULT_20, FMULT_0, PLLCLK_BY_2);
 #endif // _LAUNCHXL_F28379D
 
 #endif // CPU1
@@ -186,8 +185,7 @@ void InitSysCtrl(void)
 // peripheral that is not specified for your part-number or is not used in the
 // application
 //
-void InitPeripheralClocks(void)
-{
+void InitPeripheralClocks(void) {
     EALLOW;
 
     CpuSysRegs.PCLKCR0.bit.CLA1 = 1;
@@ -282,8 +280,7 @@ void InitPeripheralClocks(void)
 //
 // DisablePeripheralClocks - Gates-off all peripheral clocks.
 //
-void DisablePeripheralClocks(void)
-{
+void DisablePeripheralClocks(void) {
     EALLOW;
 
     CpuSysRegs.PCLKCR0.all = 0;
@@ -321,8 +318,7 @@ void DisablePeripheralClocks(void)
         #endif
     #endif
 #endif
-void InitFlash(void)
-{
+void InitFlash(void) {
     EALLOW;
 
     //
@@ -412,8 +408,7 @@ void InitFlash(void)
         #endif
     #endif
 #endif
-void FlashOff(void)
-{
+void FlashOff(void) {
     EALLOW;
 
     //
@@ -438,17 +433,14 @@ void FlashOff(void)
 // SeizeFlashPump - Wait until the flash pump is available. Then take control
 //                  of it using the flash pump Semaphore.
 //
-void SeizeFlashPump(void)
-{
+void SeizeFlashPump(void) {
     EALLOW;
     #ifdef CPU1
-        while (FlashPumpSemaphoreRegs.PUMPREQUEST.bit.PUMP_OWNERSHIP != 0x2)
-        {
+        while (FlashPumpSemaphoreRegs.PUMPREQUEST.bit.PUMP_OWNERSHIP != 0x2) {
             FlashPumpSemaphoreRegs.PUMPREQUEST.all = IPC_PUMP_KEY | 0x2;
         }
     #elif defined(CPU2)
-        while (FlashPumpSemaphoreRegs.PUMPREQUEST.bit.PUMP_OWNERSHIP != 0x1)
-        {
+        while (FlashPumpSemaphoreRegs.PUMPREQUEST.bit.PUMP_OWNERSHIP != 0x1) {
             FlashPumpSemaphoreRegs.PUMPREQUEST.all = IPC_PUMP_KEY | 0x1;
         }
     #endif
@@ -459,8 +451,7 @@ void SeizeFlashPump(void)
 // ReleaseFlashPump - Release control of the flash pump using the flash pump
 //                    semaphore.
 //
-void ReleaseFlashPump(void)
-{
+void ReleaseFlashPump(void) {
     EALLOW;
     FlashPumpSemaphoreRegs.PUMPREQUEST.all = IPC_PUMP_KEY | 0x0;
     EDIS;
@@ -471,8 +462,7 @@ void ReleaseFlashPump(void)
 //
 // Enable this function for using ServiceDog in the application.
 //
-void ServiceDog(void)
-{
+void ServiceDog(void) {
     EALLOW;
     WdRegs.WDKEY.bit.WDKEY = 0x0055;
     WdRegs.WDKEY.bit.WDKEY = 0x00AA;
@@ -482,8 +472,7 @@ void ServiceDog(void)
 //
 // DisableDog - This function disables the watchdog timer.
 //
-void DisableDog(void)
-{
+void DisableDog(void) {
     volatile Uint16 temp;
 
     //
@@ -513,8 +502,7 @@ void DisableDog(void)
 //          o CPU Timer 1
 //          o CPU Timer 2
 //
-void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
-{
+void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel) {
     Uint16 SCSR, WDCR, WDWCR, intStatus,  t1TCR, t1TPR, t1TPRH;
     Uint16 t2TCR, t2TPR, t2TPRH, t2SRC, t2Prescale;
     Uint32 t1PRD, t2PRD, ctr1;
@@ -524,18 +512,15 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     if((clock_source == ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL)    &&
        (imult        == ClkCfgRegs.SYSPLLMULT.bit.IMULT)           &&
        (fmult        == ClkCfgRegs.SYSPLLMULT.bit.FMULT)           &&
-       (divsel       == ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV))
-    {
+       (divsel       == ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV)) {
         //
         // Everything is set as required, so just return
         //
         return;
     }
 
-    if(clock_source != ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL)
-    {
-        switch (clock_source)
-        {
+    if(clock_source != ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL) {
+        switch (clock_source) {
             case INT_OSC1:
                 SysIntOsc1Sel();
                 break;
@@ -552,15 +537,13 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
 
     EALLOW;
     if(imult != ClkCfgRegs.SYSPLLMULT.bit.IMULT ||
-       fmult != ClkCfgRegs.SYSPLLMULT.bit.FMULT)
-    {
+       fmult != ClkCfgRegs.SYSPLLMULT.bit.FMULT) {
         Uint16 i;
 
         //
         // This bit is reset only by POR
         //
-        if(DevCfgRegs.SYSDBGCTL.bit.BIT_0 == 1)
-        {
+        if(DevCfgRegs.SYSDBGCTL.bit.BIT_0 == 1) {
             //
             // The user can optionally insert handler code here. This will only
             // be executed if a watchdog reset occurred after a failed system
@@ -592,8 +575,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
         // Five is the minimum recommended number. The user can increase this
         // number according to allotted system initialization time.
         //
-        for(i = 0; i < 5; i++)
-        {
+        for(i = 0; i < 5; i++) {
             //
             // Turn off PLL
             //
@@ -608,8 +590,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
             //
             // Wait for the SYSPLL lock counter
             //
-            while(ClkCfgRegs.SYSPLLSTS.bit.LOCKS != 1)
-            {
+            while(ClkCfgRegs.SYSPLLSTS.bit.LOCKS != 1) {
                 //
                 // Uncomment to service the watchdog
                 //
@@ -621,8 +602,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     //
     // Set divider to produce slower output frequency to limit current increase
     //
-    if(divsel != PLLCLK_BY_126)
-    {
+    if(divsel != PLLCLK_BY_126) {
          ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = divsel + 1;
     }
     else
@@ -695,10 +675,8 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     // aborted by watchdog reset.
     //
     EALLOW;
-    while(sysclkInvalidFreq == true)
-    {
-        if(ClkCfgRegs.SYSPLLSTS.bit.SLIPS == 1)
-        {
+    while(sysclkInvalidFreq == true) {
+        if(ClkCfgRegs.SYSPLLSTS.bit.SLIPS == 1) {
             //
             // Bypass PLL
             //
@@ -760,8 +738,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
         //
         // Configure timer2 to count Input clock cycles
         //
-        switch(clock_source)
-        {
+        switch(clock_source) {
             case INT_OSC1:
                 // Clk Src = INT_OSC1
                 CpuSysRegs.TMR2CLKCTL.bit.TMR2CLKSRCSEL = 0x1;
@@ -856,8 +833,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     // Restore state of ST1[INTM]. This was set by the __disable_interrupts()
     // intrinsic previously.
     //
-    if(!(intStatus & 0x1))
-    {
+    if(!(intStatus & 0x1)) {
         EINT;
     }
 
@@ -865,8 +841,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     // Restore state of ST1[DBGM]. This was set by the __disable_interrupts()
     // intrinsic previously.
     //
-    if(!(intStatus & 0x2))
-    {
+    if(!(intStatus & 0x2)) {
         asm(" CLRC DBGM");
     }
 
@@ -894,8 +869,7 @@ void InitSysPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
 // This function will use CPU Timer 2 to monitor a successful lock of the
 // AUXPLL.
 //
-void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
-{
+void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel) {
     Uint16 i;
     Uint16 counter = 0;
     Uint16 started = 0;
@@ -905,16 +879,14 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     if((clock_source == ClkCfgRegs.CLKSRCCTL2.bit.AUXOSCCLKSRCSEL) &&
        (imult        == ClkCfgRegs.AUXPLLMULT.bit.IMULT)           &&
        (fmult        == ClkCfgRegs.AUXPLLMULT.bit.FMULT)           &&
-       (divsel       == ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV))
-    {
+       (divsel       == ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV)) {
         //
         // Everything is set as required, so just return
         //
         return;
     }
 
-    switch (clock_source)
-    {
+    switch (clock_source) {
         case INT_OSC2:
             AuxIntOsc2Sel();
             break;
@@ -958,8 +930,7 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV = 0x3;
     EDIS;
 
-    while((counter < 5) && (started == 0))
-    {
+    while((counter < 5) && (started == 0)) {
         EALLOW;
         ClkCfgRegs.AUXPLLCTL1.bit.PLLEN = 0;    // Turn off AUXPLL
         asm(" RPT #20 || NOP");                 // Small delay for power down
@@ -979,8 +950,7 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
         //
         // Wait for the AUXPLL lock counter
         //
-        while(ClkCfgRegs.AUXPLLSTS.bit.LOCKS != 1)
-        {
+        while(ClkCfgRegs.AUXPLLSTS.bit.LOCKS != 1) {
             //
             // Uncomment to service the watchdog
             //
@@ -1004,13 +974,11 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
         //
         // Check to see timer is counting properly
         //
-        for(i = 0; i < 1000; i++)
-        {
+        for(i = 0; i < 1000; i++) {
             //
             // Check overflow flag
             //
-            if(CpuTimer2Regs.TCR.bit.TIF)
-            {
+            if(CpuTimer2Regs.TCR.bit.TIF) {
                 //
                 // Clear overflow flag
                 //
@@ -1032,8 +1000,7 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
         EDIS;
     }
 
-    if(started == 0)
-    {
+    if(started == 0) {
         //
         // AUX PLL may not have started. Reset multiplier to 0 (bypass PLL).
         //
@@ -1053,8 +1020,7 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
     // Re-lock routine for SLIP condition
     //
     attempts = 0;
-    while(ClkCfgRegs.AUXPLLSTS.bit.SLIPS && (attempts < 10))
-    {
+    while(ClkCfgRegs.AUXPLLSTS.bit.SLIPS && (attempts < 10)) {
         EALLOW;
         //
         // Bypass AUXPLL
@@ -1116,8 +1082,7 @@ void InitAuxPll(Uint16 clock_source, Uint16 imult, Uint16 fmult, Uint16 divsel)
 // CsmUnlock - This function unlocks the CSM. User must replace 0xFFFF's with
 //             current password for the DSP. Returns 1 if unlock is successful.
 //
-Uint16 CsmUnlock(void)
-{
+Uint16 CsmUnlock(void) {
     volatile Uint16 temp;
 
     //
@@ -1143,8 +1108,7 @@ Uint16 CsmUnlock(void)
 //
 // SysIntOsc1Sel - This function switches to Internal Oscillator 1.
 //
-void SysIntOsc1Sel(void)
-{
+void SysIntOsc1Sel(void) {
     EALLOW;
     ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL = 2;     // Clk Src = INTOSC1
     ClkCfgRegs.CLKSRCCTL1.bit.XTALOFF=1;            // Turn off XTALOSC
@@ -1154,8 +1118,7 @@ void SysIntOsc1Sel(void)
 //
 // SysIntOsc2Sel - This function switches to Internal oscillator 2.
 //
-void SysIntOsc2Sel(void)
-{
+void SysIntOsc2Sel(void) {
     EALLOW;
     ClkCfgRegs.CLKSRCCTL1.bit.INTOSC2OFF=0;         // Turn on INTOSC2
     ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL = 0;     // Clk Src = INTOSC2
@@ -1166,8 +1129,7 @@ void SysIntOsc2Sel(void)
 //
 // SysXtalOscSel - This function switches to External CRYSTAL oscillator.
 //
-void SysXtalOscSel(void)
-{
+void SysXtalOscSel(void) {
     EALLOW;
     ClkCfgRegs.CLKSRCCTL1.bit.XTALOFF=0;            // Turn on XTALOSC
     ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL = 1;     // Clk Src = XTAL
@@ -1177,8 +1139,7 @@ void SysXtalOscSel(void)
 //
 // AuxIntOsc2Sel - This function switches to Internal oscillator 2.
 //
-void AuxIntOsc2Sel(void)
-{
+void AuxIntOsc2Sel(void) {
     EALLOW;
     ClkCfgRegs.CLKSRCCTL1.bit.INTOSC2OFF=0;         // Turn on INTOSC2
     ClkCfgRegs.CLKSRCCTL2.bit.AUXOSCCLKSRCSEL = 0;  // Clk Src = INTOSC2
@@ -1188,8 +1149,7 @@ void AuxIntOsc2Sel(void)
 //
 // AuxXtalOscSel - This function switches to External CRYSTAL oscillator.
 //
-void AuxXtalOscSel(void)
-{
+void AuxXtalOscSel(void) {
     EALLOW;
     ClkCfgRegs.CLKSRCCTL1.bit.XTALOFF=0;            // Turn on XTALOSC
     ClkCfgRegs.CLKSRCCTL2.bit.AUXOSCCLKSRCSEL = 1;  // Clk Src = XTAL
@@ -1199,8 +1159,7 @@ void AuxXtalOscSel(void)
 //
 // AuxAUXCLKOscSel - This function switches to AUXCLKIN (from a GPIO).
 //
-void AuxAuxClkSel(void)
-{
+void AuxAuxClkSel(void) {
     EALLOW;
     ClkCfgRegs.CLKSRCCTL2.bit.AUXOSCCLKSRCSEL = 2; // Clk Src = XTAL
     EDIS;
@@ -1209,8 +1168,7 @@ void AuxAuxClkSel(void)
 //
 // IDLE - Enter IDLE mode (single CPU).
 //
-void IDLE(void)
-{
+void IDLE(void) {
     EALLOW;
     CpuSysRegs.LPMCR.bit.LPM = LPM_IDLE;
     EDIS;
@@ -1220,8 +1178,7 @@ void IDLE(void)
 //
 // STANDBY - Enter STANDBY mode (single CPU).
 //
-void STANDBY(void)
-{
+void STANDBY(void) {
     EALLOW;
     CpuSysRegs.LPMCR.bit.LPM = LPM_STANDBY;
     EDIS;
@@ -1231,8 +1188,7 @@ void STANDBY(void)
 //
 // HALT - Enter HALT mode (dual CPU). Puts CPU2 in IDLE mode first.
 //
-void HALT(void)
-{
+void HALT(void) {
 #if defined(CPU2)
     IDLE();
 #elif defined(CPU1)
@@ -1253,8 +1209,7 @@ void HALT(void)
 //
 // HIB - Enter HIB mode (dual CPU). Puts CPU2 in STANDBY first. Alternately,
 //       CPU2 may be in reset.
-void HIB(void)
-{
+void HIB(void) {
 #if defined(CPU2)
     STANDBY();
 #elif defined(CPU1)
