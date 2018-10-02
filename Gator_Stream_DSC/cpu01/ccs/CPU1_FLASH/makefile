@@ -21,6 +21,7 @@ ORDERED_OBJS += \
 "./F2837xD_SysCtrl.obj" \
 "./F2837xD_usDelay.obj" \
 "./Main.obj" \
+"./audio_effects.obj" \
 "./cmdline.obj" \
 "./ff.obj" \
 "./interrupt.obj" \
@@ -175,8 +176,8 @@ Gator_Stream_DSC.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "F2837xD_CodeStartBranch.obj" "F2837xD_DefaultISR.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_Ipc.obj" "F2837xD_Mcbsp.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "Main.obj" "cmdline.obj" "ff.obj" "interrupt.obj" "mmc_F2837x.obj" "sd_utils.obj" "sysctl.obj" "systick.obj" "uart.obj" "uartstdio.obj" "ustdlib.obj" 
-	-$(RM) "F2837xD_DefaultISR.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_Ipc.d" "F2837xD_Mcbsp.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "Main.d" "cmdline.d" "ff.d" "interrupt.d" "mmc_F2837x.d" "sd_utils.d" "sysctl.d" "systick.d" "uart.d" "uartstdio.d" "ustdlib.d" 
+	-$(RM) "F2837xD_CodeStartBranch.obj" "F2837xD_DefaultISR.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_Ipc.obj" "F2837xD_Mcbsp.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "Main.obj" "audio_effects.obj" "cmdline.obj" "ff.obj" "interrupt.obj" "mmc_F2837x.obj" "sd_utils.obj" "sysctl.obj" "systick.obj" "uart.obj" "uartstdio.obj" "ustdlib.obj" 
+	-$(RM) "F2837xD_DefaultISR.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_Ipc.d" "F2837xD_Mcbsp.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "Main.d" "audio_effects.d" "cmdline.d" "ff.d" "interrupt.d" "mmc_F2837x.d" "sd_utils.d" "sysctl.d" "systick.d" "uart.d" "uartstdio.d" "ustdlib.d" 
 	-$(RM) "F2837xD_CodeStartBranch.d" "F2837xD_usDelay.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

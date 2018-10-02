@@ -130,6 +130,11 @@
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/personal/source/sd_utils.c</locationURI>
 		</link>
+		<link>
+			<name>audio_effects.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/audio_effects.c</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>

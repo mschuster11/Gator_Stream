@@ -12,6 +12,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //###########################################################################
 
+#ifndef _SD_UTILS_H_
+#define _SD_UTILS_H_
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Includes-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -76,3 +78,5 @@ FRESULT initMMC(void);
 const char* StringFromFresult(FRESULT fresult);
 interrupt void SysTickHandler(void);
 extern void UARTStdioIntHandler(void);
+
+#endif
