@@ -125,6 +125,11 @@
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/utils/ustdlib.c</locationURI>
 		</link>
+		<link>
+			<name>sd_utils.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/sd_utils.c</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>
