@@ -1252,7 +1252,7 @@ FRESULT f_readdir (
 
 
     res = validate(fs, dirobj->id);            /* Check validity of the object */
-    if (res) return res;
+    if (res) return (FRESULT)res;
 
     finfo->fname[0] = 0;
     while (dirobj->sect) {

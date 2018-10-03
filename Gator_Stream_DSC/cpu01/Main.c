@@ -19,7 +19,7 @@
 #include "F28x_Project.h"
 #include "personal/headers/audio_effects.h"
 #include "personal/headers/sd_utils.h"
-
+#include "personal/headers/wav.h"
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -87,12 +87,14 @@ int main(void) {
   EDIS;
 
   initMMC();
+  WaveFile* wf = wave_open("New Song.wav", "wb+x");
 
   // Enter an (almost) infinite loop for reading and processing commands from
   // the user.
   int nStatus;
   while(1) {
     // Print a prompt to the console.  Show the CWD.
+//     UARTprintf("\n>Wav file: %s", wf->fp->);
     UARTprintf("\n%s> ", g_cCwdBuf);
 
     // Get a line of text from the user.

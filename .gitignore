@@ -56,5 +56,6 @@ Sr_Project_Ws/
 *.mk
 *.launch
 *_linkinfo.xml
-makefile
-ccsObjs.opt
+*makefile
+*ccsObjs.opt
+*.LOG
