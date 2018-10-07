@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "fatfs/src/ff.h"
 
 #include "personal/headers/wav_defs.h"
 
@@ -84,10 +85,8 @@ struct _WaveMasterChunk {
     WaveDataChunk       data_chunk;
 };
 
-//#pragma pack(pop)
-
 struct _WaveFile {
-    FILE*               fp;
+    FIL*               fp;
     char*               mode;
     WaveError           error_code;
     WaveMasterChunk     chunk;

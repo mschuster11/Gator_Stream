@@ -118,30 +118,30 @@ typedef struct _DIR {
 
 /* File object structure */
 typedef struct _FIL {
-    WORD    id;                /* Owner file system mount ID */
-    BYTE    flag;            /* File status flags */
-    BYTE    sect_clust;        /* Left sectors in cluster */
-    FATFS*    fs;                /* Pointer to the owner file system object */
-    DWORD    fptr;            /* File R/W pointer */
-    DWORD    fsize;            /* File size */
-    DWORD    org_clust;        /* File start cluster */
-    DWORD    curr_clust;        /* Current cluster */
-    DWORD    curr_sect;        /* Current sector */
+    WORD id;                  /* Owner file system mount ID */
+    BYTE flag;                /* File status flags */
+    BYTE sect_clust;          /* Left sectors in cluster */
+    FATFS* fs;                /* Pointer to the owner file system object */
+    DWORD fptr;               /* File R/W pointer */
+    DWORD fsize;              /* File size */
+    DWORD org_clust;          /* File start cluster */
+    DWORD curr_clust;         /* Current cluster */
+    DWORD curr_sect;          /* Current sector */
 #if _FS_READONLY == 0
-    DWORD    dir_sect;        /* Sector containing the directory entry */
-    BYTE*    dir_ptr;        /* Ponter to the directory entry in the window */
+    DWORD dir_sect;           /* Sector containing the directory entry */
+    BYTE* dir_ptr;            /* Ponter to the directory entry in the window */
 #endif
-    BYTE    buffer[S_MAX_SIZ];    /* File R/W buffer */
+    BYTE buffer[S_MAX_SIZ];   /* File R/W buffer */
 } FIL;
 
 
 /* File status structure */
 typedef struct _FILINFO {
-    DWORD fsize;            /* Size */
-    WORD fdate;                /* Date */
-    WORD ftime;                /* Time */
-    BYTE fattrib;            /* Attribute */
-    char fname[8+1+3+1];    /* Name (8.3 format) */
+    DWORD fsize;              /* Size */
+    WORD fdate;               /* Date */
+    WORD ftime;               /* Time */
+    BYTE fattrib;             /* Attribute */
+    char fname[8+1+3+1];      /* Name (8.3 format) */
 } FILINFO;
 
 
@@ -171,19 +171,19 @@ const PARTITION Drives[];            /* Logical drive# to physical location conv
 
 typedef enum {
     FR_OK = 0,            /* 0 */
-    FR_NOT_READY,        /* 1 */
-    FR_NO_FILE,            /* 2 */
-    FR_NO_PATH,            /* 3 */
-    FR_INVALID_NAME,    /* 4 */
-    FR_INVALID_DRIVE,    /* 5 */
+    FR_NOT_READY,         /* 1 */
+    FR_NO_FILE,           /* 2 */
+    FR_NO_PATH,           /* 3 */
+    FR_INVALID_NAME,      /* 4 */
+    FR_INVALID_DRIVE,     /* 5 */
     FR_DENIED,            /* 6 */
-    FR_EXIST,            /* 7 */
-    FR_RW_ERROR,        /* 8 */
-    FR_WRITE_PROTECTED,    /* 9 */
-    FR_NOT_ENABLED,        /* 10 */
-    FR_NO_FILESYSTEM,    /* 11 */
+    FR_EXIST,             /* 7 */
+    FR_RW_ERROR,          /* 8 */
+    FR_WRITE_PROTECTED,   /* 9 */
+    FR_NOT_ENABLED,       /* 10 */
+    FR_NO_FILESYSTEM,     /* 11 */
     FR_INVALID_OBJECT,    /* 12 */
-    FR_MKFS_ABORTED        /* 13 */
+    FR_MKFS_ABORTED       /* 13 */
 } FRESULT;
 
 
@@ -209,6 +209,11 @@ FRESULT f_rename (const char*, const char*);        /* Rename/Move a file or dir
 FRESULT f_mkfs (BYTE, BYTE, BYTE);                    /* Create a file system on the drive */
 
 
+#define f_eof(fp) ((int)((fp)->fptr == (fp)->fsize))
+#define f_error(fp) ((fp)->flag & FA__ERROR)
+#define f_tell(fp) ((fp)->fptr)
+
+
 /* User defined function to give a current time to fatfs module */
 
 DWORD get_fattime (void);    /* 31-25: Year(0-127 org.1980), 24-21: Month(1-12), 20-16: Day(1-31) */
@@ -218,17 +223,17 @@ DWORD get_fattime (void);    /* 31-25: Year(0-127 org.1980), 24-21: Month(1-12),
 
 /* File access control and file status flags (FIL.flag) */
 
-#define    FA_READ                0x01
-#define    FA_OPEN_EXISTING    0x00
+#define FA_READ                 0x01
+#define FA_OPEN_EXISTING        0x00
 #if _FS_READONLY == 0
-#define    FA_WRITE            0x02
-#define    FA_CREATE_NEW        0x04
-#define    FA_CREATE_ALWAYS    0x08
-#define    FA_OPEN_ALWAYS        0x10
-#define FA__WRITTEN            0x20
-#define FA__DIRTY            0x40
+#define FA_WRITE                0x02
+#define FA_CREATE_NEW           0x04
+#define FA_CREATE_ALWAYS        0x08
+#define FA_OPEN_ALWAYS          0x10
+#define FA__WRITTEN             0x20
+#define FA__DIRTY               0x40
 #endif
-#define FA__ERROR            0x80
+#define FA__ERROR               0x80
 
 
 /* FAT sub type (FATFS.fs_type) */
@@ -240,10 +245,10 @@ DWORD get_fattime (void);    /* 31-25: Year(0-127 org.1980), 24-21: Month(1-12),
 
 /* File attribute bits for directory entry */
 
-#define    AM_RDO    0x01    /* Read only */
-#define    AM_HID    0x02    /* Hidden */
-#define    AM_SYS    0x04    /* System */
-#define    AM_VOL    0x08    /* Volume label */
+#define AM_RDO    0x01    /* Read only */
+#define AM_HID    0x02    /* Hidden */
+#define AM_SYS    0x04    /* System */
+#define AM_VOL    0x08    /* Volume label */
 #define AM_LFN    0x0F    /* LFN entry */
 #define AM_DIR    0x10    /* Directory */
 #define AM_ARC    0x20    /* Archive */
@@ -257,68 +262,68 @@ DWORD get_fattime (void);    /* 31-25: Year(0-127 org.1980), 24-21: Month(1-12),
 #define BPB_BytsPerSec        11
 #define BPB_SecPerClus        13
 #define BPB_RsvdSecCnt        14
-#define BPB_NumFATs            16
+#define BPB_NumFATs           16
 #define BPB_RootEntCnt        17
-#define BPB_TotSec16        19
-#define BPB_Media            21
-#define BPB_FATSz16            22
-#define BPB_SecPerTrk        24
-#define BPB_NumHeads        26
-#define BPB_HiddSec            28
-#define BPB_TotSec32        32
-#define BS_55AA                510
+#define BPB_TotSec16          19
+#define BPB_Media             21
+#define BPB_FATSz16           22
+#define BPB_SecPerTrk         24
+#define BPB_NumHeads          26
+#define BPB_HiddSec           28
+#define BPB_TotSec32          32
+#define BS_55AA               510
 
-#define BS_DrvNum            36
+#define BS_DrvNum             36
 #define BS_BootSig            38
-#define BS_VolID            39
-#define BS_VolLab            43
-#define BS_FilSysType        54
+#define BS_VolID              39
+#define BS_VolLab             43
+#define BS_FilSysType         54
 
-#define BPB_FATSz32            36
-#define BPB_ExtFlags        40
-#define BPB_FSVer            42
-#define BPB_RootClus        44
+#define BPB_FATSz32           36
+#define BPB_ExtFlags          40
+#define BPB_FSVer             42
+#define BPB_RootClus          44
 #define BPB_FSInfo            48
-#define BPB_BkBootSec        50
-#define BS_DrvNum32            64
-#define BS_BootSig32        66
+#define BPB_BkBootSec         50
+#define BS_DrvNum32           64
+#define BS_BootSig32          66
 #define BS_VolID32            67
-#define BS_VolLab32            71
-#define BS_FilSysType32        82
+#define BS_VolLab32           71
+#define BS_FilSysType32       82
 
-#define    FSI_LeadSig            0
-#define    FSI_StrucSig        484
-#define    FSI_Free_Count        488
-#define    FSI_Nxt_Free        492
+#define FSI_LeadSig           0
+#define FSI_StrucSig          484
+#define FSI_Free_Count        488
+#define FSI_Nxt_Free          492
 
-#define MBR_Table            446
+#define MBR_Table             446
 
-#define    DIR_Name            0
-#define    DIR_Attr            11
-#define    DIR_NTres            12
-#define    DIR_CrtTime            14
-#define    DIR_CrtDate            16
-#define    DIR_FstClusHI        20
-#define    DIR_WrtTime            22
-#define    DIR_WrtDate            24
-#define    DIR_FstClusLO        26
-#define    DIR_FileSize        28
+#define DIR_Name              0
+#define DIR_Attr              11
+#define DIR_NTres             12
+#define DIR_CrtTime           14
+#define DIR_CrtDate           16
+#define DIR_FstClusHI         20
+#define DIR_WrtTime           22
+#define DIR_WrtDate           24
+#define DIR_FstClusLO         26
+#define DIR_FileSize          28
 
 
 
 /* Multi-byte word access macros  */
 
 #if _MCU_ENDIAN == 1    /* Use word access */
-#define    LD_WORD(ptr)        (WORD)(*(WORD*)(BYTE*)(ptr))
-#define    LD_DWORD(ptr)        (DWORD)(*(DWORD*)(BYTE*)(ptr))
-#define    ST_WORD(ptr,val)    *(WORD*)(BYTE*)(ptr)=(WORD)(val)
-#define    ST_DWORD(ptr,val)    *(DWORD*)(BYTE*)(ptr)=(DWORD)(val)
+#define LD_WORD(ptr)        (WORD)(*(WORD*)(BYTE*)(ptr))
+#define LD_DWORD(ptr)       (DWORD)(*(DWORD*)(BYTE*)(ptr))
+#define ST_WORD(ptr,val)    *(WORD*)(BYTE*)(ptr)=(WORD)(val)
+#define ST_DWORD(ptr,val)   *(DWORD*)(BYTE*)(ptr)=(DWORD)(val)
 #else
 #if _MCU_ENDIAN == 2    /* Use byte-by-byte access */
-#define    LD_WORD(ptr)        (WORD)(((WORD)*(BYTE*)((ptr)+1)<<8)|(WORD)*(BYTE*)(ptr))
-#define    LD_DWORD(ptr)        (DWORD)(((DWORD)*(BYTE*)((ptr)+3)<<24)|((DWORD)*(BYTE*)((ptr)+2)<<16)|((WORD)*(BYTE*)((ptr)+1)<<8)|*(BYTE*)(ptr))
-#define    ST_WORD(ptr,val)    *(BYTE*)(ptr)=(BYTE)(val); *(BYTE*)((ptr)+1)=(BYTE)((WORD)(val)>>8)
-#define    ST_DWORD(ptr,val)    *(BYTE*)(ptr)=(BYTE)(val); *(BYTE*)((ptr)+1)=(BYTE)((WORD)(val)>>8); *(BYTE*)((ptr)+2)=(BYTE)((DWORD)(val)>>16); *(BYTE*)((ptr)+3)=(BYTE)((DWORD)(val)>>24)
+#define LD_WORD(ptr)        (WORD)(((WORD)*(BYTE*)((ptr)+1)<<8)|(WORD)*(BYTE*)(ptr))
+#define LD_DWORD(ptr)       (DWORD)(((DWORD)*(BYTE*)((ptr)+3)<<24)|((DWORD)*(BYTE*)((ptr)+2)<<16)|((WORD)*(BYTE*)((ptr)+1)<<8)|*(BYTE*)(ptr))
+#define ST_WORD(ptr,val)    *(BYTE*)(ptr)=(BYTE)(val); *(BYTE*)((ptr)+1)=(BYTE)((WORD)(val)>>8)
+#define ST_DWORD(ptr,val)   *(BYTE*)(ptr)=(BYTE)(val); *(BYTE*)((ptr)+1)=(BYTE)((WORD)(val)>>8); *(BYTE*)((ptr)+2)=(BYTE)((DWORD)(val)>>16); *(BYTE*)((ptr)+3)=(BYTE)((DWORD)(val)>>24)
 #else
 #error Do not forget to set _MCU_ENDIAN properly!
 #endif
