@@ -73,23 +73,6 @@ GenerateClassCluster=0
 DocumentUniqueId=IFXJKATE
 
 [Document3]
-DocumentPath=Gator Stream Transmitter Sheet.SchDoc
-AnnotationEnabled=1
-AnnotateStartValue=1
-AnnotationIndexControlEnabled=0
-AnnotateSuffix=
-AnnotateScope=All
-AnnotateOrder=0
-DoLibraryUpdate=1
-DoDatabaseUpdate=1
-ClassGenCCAutoEnabled=1
-ClassGenCCAutoRoomEnabled=1
-ClassGenNCAutoScope=None
-DItemRevisionGUID=
-GenerateClassCluster=0
-DocumentUniqueId=ALTAMQEG
-
-[Document4]
 DocumentPath=Audio input ADC.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -106,7 +89,41 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=TFHSGURX
 
+[Document4]
+DocumentPath=Gator Stream Transmitter Sheet.SchDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=0
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=ALTAMQEG
+
 [Document5]
+DocumentPath=Transmitter Power.SchDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=TCGVFRKE
+
+[Document6]
 DocumentPath=MSP432.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -123,7 +140,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=FFWHSARA
 
-[Document6]
+[Document7]
 DocumentPath=TMS320F28379D.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -140,7 +157,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=DSVLPUER
 
-[Document7]
+[Document8]
 DocumentPath=Gator Stream Transmitter.PcbDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
