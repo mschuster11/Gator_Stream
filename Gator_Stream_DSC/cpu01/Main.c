@@ -17,6 +17,7 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 #include "F28x_Project.h"
+#include "F28x_Project.h"
 #include "personal/headers/audio_effects.h"
 #include "personal/headers/sd_utils.h"
 #include "personal/headers/wav.h"
@@ -29,6 +30,11 @@
 char g_uartRemoteRxBuf[100];
 bool_t newRemoteCmd = FALSE;
 static uint16_t uartRemoteRxBufIndex = 0;
+
+char g_uartMspRxBuf[100];
+bool_t newMspCmd = FALSE;
+static uint16_t uartMspRxBufIndex = 0;
+
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -44,57 +50,129 @@ extern char g_cCmdBuf[CMD_BUF_SIZE];
 
 interrupt void audio_ISR(void);
 interrupt void remoteUartRx_ISR(void);
-void scia_txChar(int a);
-char scia_rxChar(void);
+interrupt void mspUartRx_ISR(void);
+void init_scib(void);
+void init_scic(void);
+void init_ints(void);
+void scib_txChar(int a);
+void scic_txChar(int a);
 
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
-int main(void) {
-// Step 1. Initialize System Control:
-// PLL, WatchDog, enable Peripheral Clocks
-// This example function is found in the F2837xD_SysCtrl.c file.
+int main (void) {
+  // Initialize System Control.
   InitSysCtrl();
 
-// Step 2. Initialize GPIO:
-// This example function is found in the F2837xD_Gpio.c file and
-// illustrates how to set the GPIO to it's default state.
-// For this example, only enable the GPIO for McBSP-A.
+  // Initialize McBsp GPIO:
   InitMcbspbGpio();
 
-// Step 3. Clear all interrupts and initialize PIE vector table:
-// Disable CPU interrupts
+  // Disable CPU interrupts.
   DINT;
 
-// Initialize PIE control registers to their default state.
-// The default state is all PIE interrupts disabled and flags
-// are cleared.
-// This function is found in the F2837xD_PieCtrl.c file.
+  // Initialize PIE control registers to their default state.
   InitPieCtrl();
 
-// Disable CPU interrupts and clear all CPU interrupt flags:
+  // Disable CPU interrupts and clear all CPU interrupt flags:
   IER = 0x0000;
   IFR = 0x0000;
 
-// Initialize the PIE vector table with pointers to the shell Interrupt
-// Service Routines (ISR).
-// This will populate the entire table, even if the interrupt
-// is not used in this example.  This is useful for debug purposes.
-// The shell ISR routines are found in F2837xD_DefaultIsr.c.
-// This function is found in F2837xD_PieVect.c.
+  // Initialize the PIE vector table with pointers to the shell Interrupt
+  // Service Routines (ISR).
   InitPieVectTable();
 
-
-// Initialize and release peripheral (McBSP) from Reset.
+  // Initialize and release peripheral (McBSP) from Reset.
   InitMcbspb();
+
+  // Initialize the SD card interface and associated peripherals.
+  initMMC();
+  init_scib();
+  init_scic();
+
+  WaveFile* wf = wave_open("/New_Song.wav", "wb+x");
+  wave_set_format(wf, WAVE_FORMAT_PCM);
+  wave_set_sample_size(wf, 4);
+  wave_set_sample_rate(wf, 44100);
+  wave_set_num_channels(wf, 2);
+  wave_close(wf);
+  while(1) {
+    if(newRemoteCmd == TRUE) {
+      UARTprintf("%s\n", g_uartRemoteRxBuf);
+      scic_txChar('i');
+      scic_txChar('n');
+      scic_txChar('q');
+      scic_txChar('u');
+      scic_txChar('i');
+      scic_txChar('r');
+      scic_txChar('y');
+      scic_txChar('\r');
+      scic_txChar('\n');
+      newRemoteCmd = FALSE;
+    }
+    if(newMspCmd == TRUE) {
+      UARTprintf("%s\n", g_uartMspRxBuf);
+      newMspCmd = FALSE;
+    }
+  }
+}
+
+
+interrupt void remoteUartRx_ISR (void) {
+  while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
+    g_uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
+    if(g_uartRemoteRxBuf[uartRemoteRxBufIndex-1] == 0x00){
+        newRemoteCmd = TRUE;
+    }
+  }
+  if(newRemoteCmd || uartRemoteRxBufIndex >= 100) {
+      uartRemoteRxBufIndex = 0;
+  }
+  ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;
+}
+
+interrupt void mspUartRx_ISR (void) {
+  while(ScicRegs.SCIFFRX.bit.RXFFST > 0) {
+    g_uartMspRxBuf[uartMspRxBufIndex++] = ScicRegs.SCIRXBUF.all;
+    if(g_uartMspRxBuf[uartMspRxBufIndex-2] == '\r' && g_uartMspRxBuf[uartMspRxBufIndex-1] == '\n'){
+        newMspCmd = TRUE;
+    }
+  }
+  if(newMspCmd || uartMspRxBufIndex >= 100) {
+      uartMspRxBufIndex =0;
+  }
+  ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
+}
+
+
+void scib_txChar (int a) {
+  while (ScibRegs.SCICTL2.bit.TXRDY != 1);
+  ScibRegs.SCITXBUF.all =a;
+}
+
+
+void scic_txChar (int a) {
+  while (ScicRegs.SCICTL2.bit.TXRDY != 1);
+  ScicRegs.SCITXBUF.all =a;
+}
+
+
+void init_ints (void) {
   EALLOW;
-  PieVectTable.MCBSPB_TX_INT = audio_ISR;      //link it to my interrupt
+
+  // Enable the McBsp Tx (Audio Transmission) interrupt and point to its ISR (PIE: 6.1).
+  PieVectTable.MCBSPB_TX_INT = audio_ISR;      
   PieCtrlRegs.PIEIER6.bit.INTx8 = 1;
   IER |= M_INT6;
 
-  PieVectTable.SCIB_RX_INT = remoteUartRx_ISR; //link it to my interrupt
+  // Enable the SCI-B (MSP Comms) interrupt and point to its ISR (PIE: 8.5).
+  PieVectTable.SCIC_RX_INT = mspUartRx_ISR;
+  PieCtrlRegs.PIEIER8.bit.INTx5 = 1;
+  IER |= M_INT8;
+
+  // Enable the SCI-B (Remote Comms) interrupt and point to its ISR (PIE: 9.3).
+  PieVectTable.SCIB_RX_INT = remoteUartRx_ISR;
   PieCtrlRegs.PIEIER9.bit.INTx3 = 1;
   IER |= M_INT9;
 
@@ -102,152 +180,68 @@ int main(void) {
   McbspbRegs.SPCR2.bit.XRST = 0;
   McbspbRegs.SPCR2.bit.XRST = 1;
   EDIS;
+}
 
-  initMMC();
 
-//  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI2);
-
+void init_scib (void) {
+  // Assign GPIO19 to CPU-1 as the RX of SCI-B.
   GPIO_SetupPinMux(19, GPIO_MUX_CPU1, 2);
   GPIO_SetupPinOptions(19, GPIO_INPUT, GPIO_PUSHPULL);
+
+  // Assign GPIO18 to CPU-1 as the TX of SCI-B.
   GPIO_SetupPinMux(18, GPIO_MUX_CPU1, 2);
   GPIO_SetupPinOptions(18, GPIO_OUTPUT, GPIO_ASYNC);
 
-  ScibRegs.SCICCR.all = 0x0007;   // 1 stop bit,  No loopback
-                                  // No parity,8 char bits,
-                                  // async mode, idle-line protocol
-  ScibRegs.SCICTL1.all = 0x0003;  // enable TX, RX, internal SCICLK,
-                                  // Disable RX ERR, SLEEP, TXWAKE
-  ScibRegs.SCICTL2.all = 0x0003;
-  ScibRegs.SCICTL2.bit.TXINTENA = 1;
-  ScibRegs.SCICTL2.bit.RXBKINTENA = 1;
+  ScibRegs.SCICCR.all = 0x0007;         // 1 stop bit,  No loopback
+                                        // No parity,8 char bits,
+                                        // async mode, idle-line protocol
+  ScibRegs.SCICTL1.all = 0x0003;        // enable TX, RX, internal SCICLK,
+                                        // Disable RX ERR, SLEEP, TXWAKE
+  ScibRegs.SCICTL2.all = 0x0003;        // Enable the interrupts for both TX and RX. 
 
-  //
   // SCIA at 9600 baud
-  // @LSPCLK = 50 MHz (200 MHz SYSCLK) HBAUD = 0x02 and LBAUD = 0x8B.
-  // @LSPCLK = 30 MHz (120 MHz SYSCLK) HBAUD = 0x01 and LBAUD = 0x86.
-  //
   ScibRegs.SCIHBAUD.all = 0x0002;
   ScibRegs.SCILBAUD.all = 0x008B;
-  ScibRegs.SCIFFRX.all  = 0x2044;
-  ScibRegs.SCIFFTX.bit.SCIFFENA = 1;
-  ScibRegs.SCIFFRX.bit.RXFFIENA = 1;
-  ScibRegs.SCIFFRX.bit.RXFFIL = 0b0001;
-//      SciaRegs.SCIFFCT.all = 0x0;
+  ScibRegs.SCIFFRX.all  = 0x2044;       // Relinquish RX FIFO from Reset,
+                                        // enable the interrupt with priority 4.
+  ScibRegs.SCIFFTX.bit.SCIFFENA = 1;    // Enable the FIFO.
+  ScibRegs.SCIFFRX.bit.RXFFIENA = 1;    // Enable the RX FIFO's interrup.
 
-  ScibRegs.SCICTL1.all = 0x0023;  // Relinquish SCI from Reset
+  // Relinquish SCI from Reset
+  ScibRegs.SCICTL1.all = 0x0023;  
 
+  // Enable SCI-C's peripheral clock.
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI2);
+}
+
+
+void init_scic () {
+  // Assign GPIO139 to CPU-1 as the RX of SCI-C.
   GPIO_SetupPinMux(139, GPIO_MUX_CPU1, 6);
   GPIO_SetupPinOptions(139, GPIO_INPUT, GPIO_PUSHPULL);
-  GPIO_SetupPinMux(56, GPIO_MUX_CPU1, 2);
+
+  // Assign GPIO56 to CPU-1 as the TX of SCI-C.
+  GPIO_SetupPinMux(56, GPIO_MUX_CPU1, 6);
   GPIO_SetupPinOptions(56, GPIO_OUTPUT, GPIO_ASYNC);
 
-  ScidRegs.SCICCR.all = 0x0007;   // 1 stop bit,  No loopback
-                                  // No parity,8 char bits,
-                                  // async mode, idle-line protocol
-  ScidRegs.SCICTL1.all = 0x0003;  // enable TX, RX, internal SCICLK,
-                                  // Disable RX ERR, SLEEP, TXWAKE
-  ScidRegs.SCICTL2.all = 0x0003;
-  ScidRegs.SCICTL2.bit.TXINTENA = 1;
-  ScidRegs.SCICTL2.bit.RXBKINTENA = 1;
+  ScicRegs.SCICCR.all = 0x0007;         // 1 stop bit,  No loopback
+                                        // No parity,8 char bits,
+                                        // async mode, idle-line protocol
+  ScicRegs.SCICTL1.all = 0x0003;        // enable TX, RX, internal SCICLK,
+                                        // Disable RX ERR, SLEEP, TXWAKE
+  ScicRegs.SCICTL2.all = 0x0003;        // Enable the interrupts for both TX and RX. 
 
-//
-// SCIA at 9600 baud
-// @LSPCLK = 50 MHz (200 MHz SYSCLK) HBAUD = 0x02 and LBAUD = 0x8B.
-// @LSPCLK = 30 MHz (120 MHz SYSCLK) HBAUD = 0x01 and LBAUD = 0x86.
-//
-  ScidRegs.SCIHBAUD.all = 0x0002;
-  ScidRegs.SCILBAUD.all = 0x008B;
-  ScidRegs.SCIFFRX.all  = 0x2044;
-//      SciaRegs.SCIFFCT.all = 0x0;
+  // SCIC at 9600 baud
+  ScicRegs.SCIHBAUD.all = 0x0002;
+  ScicRegs.SCILBAUD.all = 0x008B;
+  ScicRegs.SCIFFRX.all  = 0x2044;       // Relinquish RX FIFO from Reset,
+                                        // enable the interrupt with priority 4.
+  ScicRegs.SCIFFTX.bit.SCIFFENA = 1;    // Enable the FIFO.
+  ScicRegs.SCIFFRX.bit.RXFFIENA = 1;    // Enable the RX FIFO's interrup.
 
-  ScidRegs.SCICTL1.all = 0x0023;  // Relinquish SCI from Reset
+  // Relinquish SCI from Reset
+  ScicRegs.SCICTL1.all = 0x0023;  
 
-
-
-  WaveFile* wf = wave_open("/New_Song.wav", "wb+x");
-  wave_close(wf);
-  // Enter an (almost) infinite loop for reading and processing commands from
-  // the user.
-  int nStatus;
-  while(1) {
-    // Print a prompt to the console.  Show the CWD.
-//    UARTprintf("\n%s> ", g_cCwdBuf);
-
-    // Get a line of text from the user.
-    UARTgets(g_cCmdBuf, sizeof(g_cCmdBuf));
-    
-    for(Uint16 i=0; i<CMD_BUF_SIZE; i++){
-        if(g_cCmdBuf[i]!='\0')
-            scia_txChar(g_cCmdBuf[i]);
-        else
-            break;
-    }
-    scia_txChar(0x00);
-//    for(Uint16 i=0; i<CMD_BUF_SIZE; i++){
-//        g_cCmdBuf[i] = scia_rxChar();
-//        if(g_cCmdBuf[i]==0x00)
-//            break;
-//        else
-//            continue;
-//    }
-    if(newRemoteCmd == TRUE) {
-      UARTprintf("%s\n", g_uartRemoteRxBuf);
-      newRemoteCmd = FALSE;
-    }
-
-
-    // Pass the line from the user to the command processor.
-    // It will be parsed and valid commands executed.
-//    nStatus = CmdLineProcess(g_cCmdBuf);
-
-    // Handle the case of bad command.
-//    if(nStatus == CMDLINE_BAD_CMD) {
-//      UARTprintf("Bad command!\n");
-//    }
-//    // Handle the case of too many arguments.
-//    else if(nStatus == CMDLINE_TOO_MANY_ARGS) {
-//      UARTprintf("Too many arguments for command processor!\n");
-//    }
-//
-//    // Otherwise the command was executed.  Print the error
-//    // code if one was returned.
-//    else if(nStatus != 0) {
-//      UARTprintf("Command returned error code %s\n",
-//           StringFromFresult((FRESULT)nStatus));
-//    }
-  }
-}
-
-
-interrupt void remoteUartRx_ISR(void)
-{
-
-//  uartRemoteRxBufIndex = 0;
-//  for(uint16_t i=0; i<100; i++)
-//      g_uartRemoteRxBuf[i]=0;
-  while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
-    g_uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
-    if(g_uartRemoteRxBuf[uartRemoteRxBufIndex-1] == 0x00){
-        newRemoteCmd = TRUE;
-    }
-
-  }
-  if(newRemoteCmd || uartRemoteRxBufIndex >= 100) {
-      uartRemoteRxBufIndex =0;
-  }
-
-  ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;
-}
-
-
-void scia_txChar(int a)
-{
-    while (ScibRegs.SCICTL2.bit.TXRDY != 1) {}
-    ScibRegs.SCITXBUF.all =a;
-}
-
-char scia_rxChar(void)
-{
-    while(ScibRegs.SCIRXST.bit.RXRDY != 1) { }
-    return ScibRegs.SCIRXBUF.all;
+  // Enable SCI-C's peripheral clock.
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
 }

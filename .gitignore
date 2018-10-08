@@ -59,3 +59,5 @@ Sr_Project_Ws/
 *makefile
 *ccsObjs.opt
 *.LOG
+*.SchDocPreview
+*.PcbDoc.Zip

@@ -474,7 +474,7 @@ static void UserInterface(void)
    AddCommand("PCMLOOPBACK", PcmLoopback);
 
    /* Next display the available commands.                              */
-   DisplayHelp(NULL);
+   // DisplayHelp(NULL);
 }
 
    /* The following function is responsible for parsing user input      */
@@ -3692,7 +3692,7 @@ int InitializeApplication(HCI_DriverInformation_t *HCI_DriverInformation, BTPS_I
    /* Displays the application's prompt.                                */
 void DisplayPrompt(void)
 {
-   Display(("\r\nGator Stream Transmitter>"));
+   Display(("\r\nGator Stream Transmitter>\r\n"));
 }
 
    /* The following function is used to process a command line string.  */

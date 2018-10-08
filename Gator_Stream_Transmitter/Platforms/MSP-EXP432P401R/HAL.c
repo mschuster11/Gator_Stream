@@ -40,7 +40,7 @@
 #define DEBUG_UART_TX_BUFFER_SIZE   128
 
   /* The following constants specifies the debug UART's baud rate.     */
-#define DEBUG_UART_BAUD_RATE        115200
+#define DEBUG_UART_BAUD_RATE        9600
 
   /* The following constant specifies the high-frequency external      */
   /* oscillator's clock frequency.                                     */
@@ -549,8 +549,6 @@ void HAL_IntializeControllerAudioCodec(unsigned int BluetoothStackID) {
   /* This function enables the audio-specific pins.  The possible audio*/
   /* flags are defined above.                                          */
 void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t AudioUseCase, unsigned long SamplingFrequency, unsigned int NumChannels) {
-  unsigned char InputLine;
-  unsigned char OutputLine;
 
   const eUSCI_I2C_MasterConfig I2CConfig =
   {
@@ -570,28 +568,6 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
   I2C_setSlaveAddress(HRDWCFG_I2C_MODULE, SLAVE_ADDRESS);
   I2C_setMode(HRDWCFG_I2C_MODULE, EUSCI_B_I2C_TRANSMIT_MODE);
   I2C_enableModule(HRDWCFG_I2C_MODULE);
-
-  switch(AudioUseCase) {
-    case aucA3DPSink:
-      InputLine  = NO_INPUT;
-      OutputLine = CODEC_LINE_OUT;
-      break;
-    case aucA3DPSource:
-      InputLine  = CODEC_LINE_IN;
-      OutputLine = NO_OUTPUT;
-      break;
-    case aucHFP_HSP:
-      InputLine  = CODEC_ONBOARD_MIC;
-      OutputLine = CODEC_LINE_OUT;
-      break;
-    case aucLoopbackTest:
-      InputLine  = CODEC_LINE_IN;
-      OutputLine = CODEC_LINE_OUT;
-      break;
-  }
-
-  /* Initialize the local audio codec.                                 */
-  // CodecInit(InputLine, OutputLine);
 
   /* Flag that the local audio codec is enabled.                       */
   AudioCodecEnabled = TRUE;

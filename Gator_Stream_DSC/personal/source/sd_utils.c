@@ -499,16 +499,6 @@ void ConfigureUART(void) {
    GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
 
    UARTStdioConfig(0, 115200, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
-
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI2);
-
-//  GPIO_SetupPinMux(19, GPIO_MUX_CPU1, 2);
-//  GPIO_SetupPinOptions(19, GPIO_INPUT, GPIO_PUSHPULL);
-//  GPIO_SetupPinMux(18, GPIO_MUX_CPU1, 2);
-//  GPIO_SetupPinOptions(18, GPIO_OUTPUT, GPIO_ASYNC);
-//
-//  // Initialize the UART for console I/O.
-//  UARTStdioConfig(1, 9600, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
 }
 
 
