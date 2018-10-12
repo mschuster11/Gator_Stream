@@ -117,15 +117,15 @@ void wave_write_header(WaveFile* self) {
   }
 
 //  write_count = fwrite(&self->chunk, WAVE_RIFF_HEADER_SIZE + 4, 1, self->fp);
-  f_write(self->fp, &self->chunk, (WAVE_RIFF_HEADER_SIZE + 4) * 1, write_count);
-  if (*write_count != 1) {
+  f_write(self->fp, &self->chunk.id, (WAVE_RIFF_HEADER_SIZE + 4) * 1, write_count);
+  if (*write_count != (WAVE_RIFF_HEADER_SIZE + 4) * 1) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
 
 //  write_count = fwrite(&self->chunk.format_chunk, WAVE_RIFF_HEADER_SIZE + self->chunk.format_chunk.size, 1, self->fp);
   f_write(self->fp, &self->chunk.format_chunk, (WAVE_RIFF_HEADER_SIZE + self->chunk.format_chunk.size) * 1, write_count);
-  if (*write_count != 1) {
+  if (*write_count != (WAVE_RIFF_HEADER_SIZE + self->chunk.format_chunk.size) * 1) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
@@ -134,7 +134,7 @@ void wave_write_header(WaveFile* self) {
     /* if there is a fact chunk */
 //    write_count = fwrite(&self->chunk.fact_chunk, WAVE_RIFF_HEADER_SIZE + self->chunk.fact_chunk.size, 1, self->fp);
     f_write(self->fp, &self->chunk.fact_chunk, (WAVE_RIFF_HEADER_SIZE + self->chunk.fact_chunk.size) * 1, write_count);
-    if (*write_count != 1) {
+    if (*write_count != (WAVE_RIFF_HEADER_SIZE + self->chunk.fact_chunk.size) * 1) {
       self->error_code = WAVE_ERROR_STDIO;
       return;
     }
@@ -142,7 +142,7 @@ void wave_write_header(WaveFile* self) {
 
 //  write_count = fwrite(&self->chunk.data_chunk, WAVE_RIFF_HEADER_SIZE, 1, self->fp);
   f_write(self->fp, &self->chunk.data_chunk, (WAVE_RIFF_HEADER_SIZE) * 1, write_count);
-  if (*write_count != 1) {
+  if (*write_count != (WAVE_RIFF_HEADER_SIZE) * 1) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
@@ -317,7 +317,7 @@ size_t wave_read(void** buffers, size_t count, WaveFile* wave) {
   uint16_t n_channels = wave_get_num_channels(wave);
   size_t sample_size = wave_get_sample_size(wave);
   size_t container_size = wave_calc_container_size(sample_size);
-  size_t i, j;
+  size_t i, j, k;
   size_t len_remain;
 
   if (strcmp(wave->mode, "wb") == 0 || strcmp(wave->mode, "wbx") == 0 || strcmp(wave->mode, "ab") == 0) {
@@ -365,17 +365,17 @@ size_t wave_read(void** buffers, size_t count, WaveFile* wave) {
     for (j = 0; j < *read_count / n_channels; ++j) {
 #ifdef WAVE_ENDIAN_LITTLE
       for (k = 0; k < sample_size; ++k) {
-        ((uint8_t*)buffers[i])[j*container_size + k] = wave->tmp[j*n_channels*sample_size + i*sample_size + k];
+        ((uint16_t*)buffers[i])[j*container_size + k] = wave->tmp[j*n_channels*sample_size + i*sample_size + k];
       }
 
       /* sign extension */
-      if (((uint8_t*)buffers[i])[j*container_size + k-1] & 0x80) {
+      if (((uint16_t*)buffers[i])[j*container_size + k-1] & 0x80) {
         for (; k < container_size; ++k) {
-          ((uint8_t*)buffers[i])[j*container_size + k] = 0xff;
+          ((uint16_t*)buffers[i])[j*container_size + k] = 0xff;
         }
       } else {
         for (; k < container_size; ++k) {
-          ((uint8_t*)buffers[i])[j*container_size + k] = 0x00;
+          ((uint16_t*)buffers[i])[j*container_size + k] = 0x00;
         }
       }
 #endif
@@ -392,7 +392,7 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
   uint16_t n_channels = wave_get_num_channels(wave);
   size_t sample_size = wave_get_sample_size(wave);
   size_t container_size = wave_calc_container_size(sample_size);
-  size_t i, j;
+  size_t i, j, k;
   long int save_pos;
 
   if (strcmp(wave->mode, "rb") == 0) {
@@ -411,6 +411,7 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
   }
 
   wave_tell(wave);
+  wave->error_code = WAVE_SUCCESS;
   if (wave->error_code != WAVE_SUCCESS) {
     return 0;
   }
@@ -432,7 +433,7 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
     for (j = 0; j < count; ++j) {
 #ifdef WAVE_ENDIAN_LITTLE
       for (k = 0; k < sample_size; ++k) {
-        wave->tmp[j*n_channels*sample_size + i*sample_size + k] = ((uint8_t*)buffers[i])[j*container_size + k];
+        wave->tmp[j*n_channels*sample_size + i*sample_size + k] = ((uint16_t*)buffers[i])[j*container_size + k];
       }
 #endif
     }

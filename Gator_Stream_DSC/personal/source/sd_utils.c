@@ -491,6 +491,8 @@ int Cmd_pwd(int argc, char *argv[]) {
 void ConfigureUART(void) {
   // Enable UART0
   SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI1);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI2);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
 
 //   Configure GPIO Pins for UART mode.
    GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
