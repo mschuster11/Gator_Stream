@@ -16,19 +16,19 @@ extern "C" {
 #endif
 
 #ifdef WAVE_ENDIAN_LITTLE
-#define WAVE_RIFF_CHUNK_ID          0x46464952 // 'FFIR'
-#define WAVE_FORMAT_CHUNK_ID        0x20746d66 // ' tmf'
-#define WAVE_FACT_CHUNK_ID          0x74636166 // 'tcaf'
-#define WAVE_DATA_CHUNK_ID          0x61746164 // 'atad'
-#define WAVE_WAVE_ID                0x45564157 // 'EVAW'
+#define WAVE_RIFF_CHUNK_ID          0x0046004600490052 // 'FFIR'
+#define WAVE_FORMAT_CHUNK_ID        0x00200074006d0066 // ' tmf'
+#define WAVE_FACT_CHUNK_ID          0x0074006300610066 // 'tcaf'
+#define WAVE_DATA_CHUNK_ID          0x0061007400610064 // 'atad'
+#define WAVE_WAVE_ID                0x0045005600410057 // 'EVAW'
 #endif
 
 #ifdef WAVE_ENDIAN_BIG
-#define WAVE_RIFF_CHUNK_ID          0x52494646 // 'RIFF'
-#define WAVE_FORMAT_CHUNK_ID        0x666d7420 // 'fmt '
-#define WAVE_FACT_CHUNK_ID          0x66616374 // 'fact'
-#define WAVE_DATA_CHUNK_ID          0x64617461 // 'data'
-#define WAVE_WAVE_ID                0x57415645 // 'WAVE'
+#define WAVE_RIFF_CHUNK_ID          0x0052004900460046 // 'RIFF'
+#define WAVE_FORMAT_CHUNK_ID        0x0066006d00740020 // 'fmt '
+#define WAVE_FACT_CHUNK_ID          0x0066006100630074 // 'fact'
+#define WAVE_DATA_CHUNK_ID          0x0064006100740061 // 'data'
+#define WAVE_WAVE_ID                0x0057004100560045 // 'WAVE'
 #endif
 
 //#pragma pack(push)
@@ -39,46 +39,46 @@ extern "C" {
 typedef struct _WaveFormatChunk WaveFormatChunk;
 struct _WaveFormatChunk {
     /* RIFF header */
-    uint32_t    id;
-    uint32_t    size;
+    uint64_t id;
+    uint64_t    size;
 
-    uint16_t    format_tag;
-    uint16_t    n_channels;
-    uint32_t    sample_rate;
-    uint32_t    avg_bytes_per_sec;
-    uint16_t    block_align;
-    uint16_t    bits_per_sample;
+    uint32_t    format_tag;
+    uint32_t    n_channels;
+    uint64_t    sample_rate;
+    uint64_t    avg_bytes_per_sec;
+    uint32_t    block_align;
+    uint32_t    bits_per_sample;
 
-    uint16_t    ext_size;
-    uint16_t    valid_bits_per_sample;
-    uint32_t    channel_mask;
+    uint32_t    ext_size;
+    uint32_t    valid_bits_per_sample;
+    uint64_t    channel_mask;
 
-    uint16_t    sub_format[16];
+    uint16_t     sub_format[16];
 };
 
 typedef struct _WaveFactChunk WaveFactChunk;
 struct _WaveFactChunk {
     /* RIFF header */
-    uint32_t    id;
-    uint32_t    size;
+    uint64_t    id;
+    uint64_t    size;
 
-    uint32_t    sample_length;
+    uint64_t    sample_length;
 };
 
 typedef struct _WaveDataChunk WaveDataChunk;
 struct _WaveDataChunk {
     /* RIFF header */
-    uint32_t    id;
-    uint32_t    size;
+    uint64_t    id;
+    uint64_t    size;
 };
 
 typedef struct _WaveMasterChunk WaveMasterChunk;
 struct _WaveMasterChunk {
     /* RIFF header */
-    uint32_t            id;
-    uint32_t            size;
+    uint64_t            id;
+    uint64_t            size;
 
-    uint32_t            wave_id;
+    uint64_t            wave_id;
 
     WaveFormatChunk     format_chunk;
     WaveFactChunk       fact_chunk;

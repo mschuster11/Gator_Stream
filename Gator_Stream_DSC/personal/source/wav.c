@@ -212,8 +212,8 @@ void wave_init(WaveFile* self, char* filename, char* mode) {
   self->chunk.format_chunk.size = (size_t)&self->chunk.format_chunk.ext_size - (size_t)&self->chunk.format_chunk.format_tag;
   self->chunk.format_chunk.format_tag = WAVE_FORMAT_PCM;
   self->chunk.format_chunk.n_channels = 2;
-  self->chunk.format_chunk.sample_rate = 44100;
-  self->chunk.format_chunk.avg_bytes_per_sec = 44100*2*2;
+  self->chunk.format_chunk.sample_rate = 0x00AC0044;
+  self->chunk.format_chunk.avg_bytes_per_sec = 0x0000000200B10010;
   self->chunk.format_chunk.block_align = 4;
   self->chunk.format_chunk.bits_per_sample = 16;
 
