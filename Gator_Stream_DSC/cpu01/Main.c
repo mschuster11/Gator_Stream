@@ -131,7 +131,12 @@ int main (void) {
   Uint16* buf[2];
   buf[0] = sinLut1;
   buf[1] = sinLut1;
-  wave_write((void **)buf, 512, wf);
+  for(uint16_t j=0; j<86; j++) {
+//      for(uint16_t i=0; i<512; i++, buf[0]++, buf[1]++)
+          wave_write((void **)buf, 512, wf);
+//      buf[0] = sinLut1;
+//      buf[1] = sinLut1;
+  }
   wave_close(wf);
   while(1) {
     if(newRemoteCmd == TRUE) {
