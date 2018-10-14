@@ -126,7 +126,8 @@ int main (void) {
   init_scib();
   init_scic();
 
-  wf = wave_open("/New_Song.wav", "w");
+
+  WaveFile* wf = wave_open("/New_Song.wav", "w");
   Uint16* buf[2];
   buf[0] = sinLut1;
   buf[1] = sinLut1;

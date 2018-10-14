@@ -116,14 +116,68 @@ void wave_write_header(WaveFile* self) {
     self->chunk.size++;
   }
 
-  f_write(self->fp, &self->chunk, (WAVE_RIFF_HEADER_SIZE + 4) * 1, write_count);
-  if (*write_count != (WAVE_RIFF_HEADER_SIZE + 4) * 1) {
+  f_write(self->fp, NUM_TO_ARR(self->chunk.id, WAVE_MASTER_CHUNK_ID_LEN), WAVE_MASTER_CHUNK_ID_LEN, write_count);
+  if (*write_count != WAVE_MASTER_CHUNK_ID_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
 
-  f_write(self->fp, &self->chunk.format_chunk, (WAVE_RIFF_HEADER_SIZE + self->chunk.format_chunk.size) * 1, write_count);
-  if (*write_count != (WAVE_RIFF_HEADER_SIZE + self->chunk.format_chunk.size) * 1) {
+  f_write(self->fp, NUM_TO_ARR(self->chunk.size, WAVE_MASTER_CHUNK_SIZE_LEN), WAVE_MASTER_CHUNK_SIZE_LEN, write_count);
+  if (*write_count != WAVE_MASTER_CHUNK_SIZE_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.wave_id, WAVE_MASTER_CHUNK_WAVE_ID_LEN), WAVE_MASTER_CHUNK_WAVE_ID_LEN, write_count);
+  if (*write_count != WAVE_MASTER_CHUNK_WAVE_ID_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.id, WAVE_FORMAT_CHUNK_ID_LEN), WAVE_FORMAT_CHUNK_ID_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_ID_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.size, WAVE_FORMAT_CHUNK_SIZE_LEN), WAVE_FORMAT_CHUNK_SIZE_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_SIZE_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.format_tag, WAVE_FORMAT_CHUNK_FORMAT_TAG_LEN), WAVE_FORMAT_CHUNK_FORMAT_TAG_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_FORMAT_TAG_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.n_channels, WAVE_FORMAT_CHUNK_N_CHANNELS_LEN), WAVE_FORMAT_CHUNK_N_CHANNELS_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_N_CHANNELS_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.sample_rate, WAVE_FORMAT_CHUNK_SAMPLE_RATE_LEN), WAVE_FORMAT_CHUNK_SAMPLE_RATE_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_SAMPLE_RATE_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.avg_bytes_per_sec, WAVE_FORMAT_CHUNK_AVG_BYTES_PER_SEC_LEN), WAVE_FORMAT_CHUNK_AVG_BYTES_PER_SEC_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_AVG_BYTES_PER_SEC_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.block_align, WAVE_FORMAT_CHUNK_BLOCK_ALIGN_LEN), WAVE_FORMAT_CHUNK_BLOCK_ALIGN_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_BLOCK_ALIGN_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.format_chunk.bits_per_sample, WAVE_FORMAT_CHUNK_BITS_PER_SAMPLE_LEN), WAVE_FORMAT_CHUNK_BITS_PER_SAMPLE_LEN, write_count);
+  if (*write_count != WAVE_FORMAT_CHUNK_BITS_PER_SAMPLE_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
@@ -137,8 +191,14 @@ void wave_write_header(WaveFile* self) {
     }
   }
 
-  f_write(self->fp, &self->chunk.data_chunk, (WAVE_RIFF_HEADER_SIZE) * 1, write_count);
-  if (*write_count != (WAVE_RIFF_HEADER_SIZE) * 1) {
+  f_write(self->fp, NUM_TO_ARR(self->chunk.data_chunk.id, WAVE_DATA_CHUNK_ID_LEN), WAVE_DATA_CHUNK_ID_LEN, write_count);
+  if (*write_count != WAVE_DATA_CHUNK_ID_LEN) {
+    self->error_code = WAVE_ERROR_STDIO;
+    return;
+  }
+
+  f_write(self->fp, NUM_TO_ARR(self->chunk.data_chunk.size, WAVE_DATA_CHUNK_SIZE_LEN), WAVE_DATA_CHUNK_SIZE_LEN, write_count);
+  if (*write_count != WAVE_DATA_CHUNK_SIZE_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }

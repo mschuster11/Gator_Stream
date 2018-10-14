@@ -31,8 +31,29 @@ extern "C" {
 #define WAVE_WAVE_ID                0x0057004100560045 // 'WAVE'
 #endif
 
-//#pragma pack(push)
-//#pragma pack(1)
+#define WAVE_MASTER_CHUNK_ID_LEN                        4
+#define WAVE_MASTER_CHUNK_SIZE_LEN                      4
+#define WAVE_MASTER_CHUNK_WAVE_ID_LEN                   4
+
+#define WAVE_FORMAT_CHUNK_ID_LEN                        4
+#define WAVE_FORMAT_CHUNK_SIZE_LEN                      4
+#define WAVE_FORMAT_CHUNK_FORMAT_TAG_LEN                2
+#define WAVE_FORMAT_CHUNK_N_CHANNELS_LEN                2
+#define WAVE_FORMAT_CHUNK_SAMPLE_RATE_LEN               4
+#define WAVE_FORMAT_CHUNK_AVG_BYTES_PER_SEC_LEN         4
+#define WAVE_FORMAT_CHUNK_BLOCK_ALIGN_LEN               2
+#define WAVE_FORMAT_CHUNK_BITS_PER_SAMPLE_LEN           2
+#define WAVE_FORMAT_CHUNK_EXT_SIZE_LEN                  2
+#define WAVE_FORMAT_CHUNK_VALID_BITS_PER_SAMPLE_LEN     2
+#define WAVE_FORMAT_CHUNK_CHANNEL_MASK_LEN              4
+#define WAVE_FORMAT_CHUNK_SUB_FORMAT_LEN                16
+
+#define WAVE_FACT_CHUNK_ID_LEN                          4
+#define WAVE_FACT_CHUNK_SIZE_LEN                        4
+#define WAVE_FACT_CHUNK_SAMPLE_LENGTH_LEN               4
+
+#define WAVE_DATA_CHUNK_ID_LEN                          4
+#define WAVE_DATA_CHUNK_SIZE_LEN                        4
 
 #define WAVE_RIFF_HEADER_SIZE   8
 
@@ -86,7 +107,7 @@ struct _WaveMasterChunk {
 };
 
 struct _WaveFile {
-    FIL*               fp;
+    FIL*                fp;
     char*               mode;
     WaveError           error_code;
     WaveMasterChunk     chunk;
