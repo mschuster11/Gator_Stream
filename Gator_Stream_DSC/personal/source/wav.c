@@ -490,13 +490,13 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
     }
   }
 
-  f_write(wave->fp, wave->tmp, (sample_size * n_channels * count), write_count);
+  f_write_pcm(wave->fp, wave->tmp, (sample_size * n_channels * count), write_count);
   if (f_error(wave->fp)) {
     wave->error_code = WAVE_ERROR_STDIO;
     return 0;
   }
 
-  wave->chunk.data_chunk.size += *write_count;
+  wave->chunk.data_chunk.size += (*write_count);
 
   save_pos = f_tell(wave->fp);
   if (save_pos == -1L) {

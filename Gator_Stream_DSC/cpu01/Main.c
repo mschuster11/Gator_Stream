@@ -69,7 +69,6 @@ static uint16_t uartRemoteRxBufIndex = 0;
 char g_uartMspRxBuf[100];
 bool_t newMspCmd = FALSE;
 static uint16_t uartMspRxBufIndex = 0;
-WaveFile* wf;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -128,15 +127,12 @@ int main (void) {
 
 
   WaveFile* wf = wave_open("/New_Song.wav", "w");
-  Uint16* buf[2];
-  buf[0] = sinLut1;
-  buf[1] = sinLut1;
-  for(uint16_t j=0; j<86; j++) {
-//      for(uint16_t i=0; i<512; i++, buf[0]++, buf[1]++)
-          wave_write((void **)buf, 512, wf);
-//      buf[0] = sinLut1;
-//      buf[1] = sinLut1;
-  }
+//  Uint16* buf[2];
+//  buf[0] = sinLut1;
+//  buf[1] = sinLut1;
+////  for(uint16_t j=0; j<86; j++) {
+//  wave_write((void **)buf, 512, wf);
+////  }
   wave_close(wf);
   while(1) {
     if(newRemoteCmd == TRUE) {

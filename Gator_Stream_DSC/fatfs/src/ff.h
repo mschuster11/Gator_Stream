@@ -195,6 +195,7 @@ FRESULT f_mount (BYTE, FATFS*);                        /* Mount/Unmount a logica
 FRESULT f_open (FIL*, const char*, BYTE);            /* Open or create a file */
 FRESULT f_read (FIL*, void*, WORD, WORD*);            /* Read data from a file */
 FRESULT f_write (FIL*, const void*, WORD, WORD*);    /* Write data to a file */
+FRESULT f_write_pcm (FIL*, const void*, WORD, WORD*);    /* Write data to a file */
 FRESULT f_lseek (FIL*, DWORD);                        /* Move file pointer of a file object */
 FRESULT f_close (FIL*);                                /* Close an open file object */
 FRESULT f_opendir (DIR*, const char*);                /* Open an existing directory */
