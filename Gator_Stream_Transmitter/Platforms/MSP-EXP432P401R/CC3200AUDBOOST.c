@@ -134,52 +134,58 @@ void CodecInit(unsigned char ucInputLine, unsigned char ucOutputLine)
      * 	Considerations:
      * 		-> MDAC * xOSR >= ResourceClass * 32
      *			- 5 * 128 (640) >= 8 * 32 (256)
-     *		-> 2.8MHz < xOSR x ADC_Fs < 6.758MHz
-     *			- 128 * 44,100 = 5.644MHz
-     *			- 128 * 48,000 = 6.144MHz
-     *		-> xOSR must be a multiple of 8 (48KHz High-Performance)
-     *			-> xOSR = 64, for Low-Power Mode
-     *			-> xOSR = 128, for High-Performance Mode
+     *    -> 2.8MHz < xOSR x ADC_Fs < 6.758MHz
+     *      - 128 * 44,100 = 5.644MHz
+     *      - 128 * 48,000 = 6.144MHz
+     *    -> xOSR must be a multiple of 8 (48KHz High-Performance)
+     *      -> xOSR = 64, for Low-Power Mode
+     *      -> xOSR = 128, for High-Performance Mode
+     *    -> ADC_CLKIN = NADC × MADC × AOSR x ADC_fs
+     *      -> 84.672MHz = 3 * 5 * 128 * 44100
+
      */
     CodecPageSelect(0);
-    // P0, R4, b6.			PLL Range = High (1)
     // P0, R4, b3-2.       	PLL_CLKIN = BCLK (01)
     // P0, R4, b1-0.       	CODEC_CLKIN = PLL_CLK (11)
-    CodecRegWrite(CODEC_REG_CLK_MUX, 0x47);
+    CodecRegWrite(ADC_REG_CLK_MUX, 0x07);
     // P0, R5, b7.         	PLL = Power Up (1)
     // P0, R5, b6-4.       	PLL Divider P = 1 (001)
     // P0, R5, b3-0.       	PLL Divider R = 1 (0001)
-    CodecRegWrite(CODEC_REG_PLL_P_R, 0x91);
+    CodecRegWrite(ADC_REG_PLL_P_R, 0x91);
     // P0, R6, b5-0.       	PLL Divider J = 24 (11000)
-    CodecRegWrite(CODEC_REG_PLL_J, 0x18);
+    CodecRegWrite(ADC_REG_PLL_J, 0x18);
     // P0, R7, b5-0. (MSB) 	PLL Divider D = 0
     // P0, R8, b7-0. (LSB)
-    CodecRegWrite(CODEC_REG_PLL_D_MSB, 0x00);
-    CodecRegWrite(CODEC_REG_PLL_D_LSB, 0x00);
-    // P0, R11, b7.        	NDAC = Power Up
-    // P0, R11, b6-0.      	NDAC = 3
-    CodecRegWrite(CODEC_REG_NDAC, 0x83);
-    // P0, R12, b7.        	MDAC = Power Up
-    // P0, R12, b6-0.      	MDAC = 5
-    CodecRegWrite(CODEC_REG_MDAC, 0x85);
-    // P0, R13, b1-0.	  	DOSR_MSB (00)
-    // P0, R13, b7-0.	  	DOSR_LSB (0x80) --> DOSR = 128
-    CodecRegWrite(CODEC_REG_DOSR_MSB, 0x00);
-    CodecRegWrite(CODEC_REG_DOSR_LSB, 0x80);
+    CodecRegWrite(ADC_REG_PLL_D_MSB, 0x00);
+    CodecRegWrite(ADC_REG_PLL_D_LSB, 0x00);
+
+
+    // // P0, R11, b7.        	NDAC = Power Up
+    // // P0, R11, b6-0.      	NDAC = 3
+    // CodecRegWrite(CODEC_REG_NDAC, 0x83);
+    // // P0, R12, b7.        	MDAC = Power Up
+    // // P0, R12, b6-0.      	MDAC = 5
+    // CodecRegWrite(CODEC_REG_MDAC, 0x85);
+    // // P0, R13, b1-0.	  	DOSR_MSB (00)
+    // // P0, R13, b7-0.	  	DOSR_LSB (0x80) --> DOSR = 128
+    // CodecRegWrite(CODEC_REG_DOSR_MSB, 0x00);
+    // CodecRegWrite(CODEC_REG_DOSR_LSB, 0x80);
+
+
     // P0, R18, b7.        	NADC = Power Up
     // P0, R18, b6-0.      	NADC = 3
-    CodecRegWrite(CODEC_REG_NADC, 0x83);
+    CodecRegWrite(ADC_REG_NADC, 0x83);
     // P0, R19, b7.        	MADC = Power Up
     // P0, R19, b6-0.      	MADC = 5
-    CodecRegWrite(CODEC_REG_MADC, 0x85);
+    CodecRegWrite(ADC_REG_MADC, 0x85);
     // P0, R20, b7-0.	  	AOSR = 128
-    CodecRegWrite(CODEC_REG_AOSR, 0x80);
-    // P0, R27, b7-6.      	Interface Mode = DSP Mode (01)
+    CodecRegWrite(ADC_REG_AOSR, 0x80);
+    // P0, R27, b7-6.      	Interface Mode = I2S Mode (00)
     // P0, R27, b5-4.      	Data Length = 16bits (00)
     // P0, R27, b3.        	BCLK = Input (0)
     // P0, R27, b2.        	WCLK = Input (0)
     // P0, R27, b0.        	DOUT = Output (0)
-    CodecRegWrite(CODEC_REG_AUD_IF_CTRL_1, 0x40);
+    CodecRegWrite(CODEC_REG_AUD_IF_CTRL_1, 0x00);
     // P0, R28, b7-0.      	Data Offset = 1
     CodecRegWrite(CODEC_REG_AUD_IF_CTRL_2, 0x01);
     // P0, R60, b4-0.     	DAC Processing Block: PRB_R1

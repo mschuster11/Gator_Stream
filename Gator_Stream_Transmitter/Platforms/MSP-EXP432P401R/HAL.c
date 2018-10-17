@@ -569,6 +569,9 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
   I2C_setMode(HRDWCFG_I2C_MODULE, EUSCI_B_I2C_TRANSMIT_MODE);
   I2C_enableModule(HRDWCFG_I2C_MODULE);
 
+  /* Initialize the local audio codec.                                 */
+  CodecInit(InputLine, OutputLine);
+
   /* Flag that the local audio codec is enabled.                       */
   AudioCodecEnabled = TRUE;
 

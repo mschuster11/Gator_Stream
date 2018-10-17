@@ -117,6 +117,9 @@ int main (void) {
   // Service Routines (ISR).
   InitPieVectTable();
 
+  // Enable and assign ISRs.
+  init_ints();
+
   // Initialize and release peripheral (McBSP) from Reset.
   InitMcbspb();
 

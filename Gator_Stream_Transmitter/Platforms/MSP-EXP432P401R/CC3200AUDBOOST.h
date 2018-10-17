@@ -46,7 +46,7 @@
 //*****************************************************************************
 //                          LOCAL DEFINES
 //*****************************************************************************
-#define SLAVE_ADDRESS					((0x30 >> 1))
+#define SLAVE_ADDRESS					0b00011011
 #define PAGE_CTRL_REG   				0x00
 
 //******************************************************************************
@@ -76,29 +76,41 @@
 //
 //******************************************************************************
 
-#define CODEC_REG_SOFT_RESET            0x01
-#define CODEC_REG_CLK_MUX               0x04
-#define CODEC_REG_PLL_P_R               0x05
-#define CODEC_REG_PLL_J					0x06
-#define CODEC_REG_PLL_D_MSB				0x07
-#define CODEC_REG_PLL_D_LSB				0x08
-#define CODEC_REG_NDAC                  0x0B
-#define CODEC_REG_MDAC                  0x0C
-#define CODEC_REG_DOSR_MSB              0x0D
-#define CODEC_REG_DOSR_LSB              0x0E
-#define CODEC_REG_NADC                  0x12
-#define CODEC_REG_MADC                  0x13
-#define CODEC_REG_AOSR					0x14
-#define CODEC_REG_AUD_IF_CTRL_1			0x1B
-#define CODEC_REG_AUD_IF_CTRL_2			0x1C
-#define CODEC_REG_DAC_PRB               0x3C
-#define CODEC_REG_ADC_PRB               0x3D
-#define CODEC_REG_DAC_CTRL_1			0x3F
-#define CODEC_REG_DAC_CTRL_2			0x40
-#define CODEC_REG_LDAC_VOL				0x41
-#define CODEC_REG_RDAC_VOL				0x42
-#define CODEC_REG_ADC_CTRL				0x51
-#define CODEC_REG_ADC_FINE_GAIN			0x52
+#define ADC_REG_SOFT_RESET            0x01
+#define ADC_REG_CLK_MUX               0x04
+#define ADC_REG_PLL_P_R               0x05
+#define ADC_REG_PLL_J					        0x06
+#define ADC_REG_PLL_D_MSB				      0x07
+#define ADC_REG_PLL_D_LSB				      0x08
+#define ADC_REG_ADC_NADC              0x12
+#define ADC_REG_ADC_MADC              0x13
+#define ADC_REG_ADC_AOSR              0x14
+#define ADC_REG_ADC_IADC              0x15
+#define ADC_REG_ADC_DED               0x16
+#define ADC_REG_CLKOUT_MUX            0x19
+#define ADC_REG_CLKOUT_DIV            0x1A
+#define ADC_REG_ADC_AUDIO_IC1         0x1B
+#define ADC_REG_DSOP1                 0x1C
+#define ADC_REG_ADC_IC2               0x1D
+#define ADC_REG_BCLK_DIV              0x1E
+#define ADC_REG_2ND_AUDIO_IC1         0x1F
+#define ADC_REG_2ND_AUDIO_IC2         0x20
+#define ADC_REG_2ND_AUDIO_IC3         0x21
+#define ADC_REG_I2S_SYNC              0x22
+#define ADC_REG_ADC_FLAG_REG          0x24
+#define ADC_REG_DSOP2                 0x25
+#define ADC_REG_I2S_TDM_CR            0x26
+#define ADC_REG_INT_FLAGS_OF1         0x2A
+#define ADC_REG_INT_FLAGS_OF2         0x2B
+#define ADC_REG_ADC_INT_FLAGS1        0x2D
+#define ADC_REG_ADC_INT_FLAGS2        0x2F
+#define ADC_REG_INT1_IC               0x30
+#define ADC_REG_INT2_IC               0x31
+#define ADC_REG_GPIO1_C               0x34
+#define ADC_REG_DOUT_C                0x35
+#define ADC_REG_DOUT_C                0x35
+#define ADC_REG_ADC_SYNC_C1           0x39
+#define ADC_REG_ADC_SYNC_C2           0x3A
 
 
 //******************************************************************************
