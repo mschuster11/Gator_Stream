@@ -365,6 +365,39 @@ static BOOL xmit_datablock (const BYTE *buff, BYTE token) {
 
 
 /*-----------------------------------------------------------------------*/
+/* Send a data packet to MMC                                             */
+/* @ const BYTE *buff - 512 byte data block to be transmitted            */
+/* @ BYTE token       - Data/Stop token                                  */
+/*-----------------------------------------------------------------------*/
+#if _READONLY == 0
+static BOOL xmit_datablock_pcm (const BYTE *buff, BYTE token) {
+  BYTE resp, wc;
+
+  if (wait_ready() != 0xFF) return FALSE;
+
+  xmit_spi(token);                    /* Xmit data token */
+  /* Is data token */
+  if (token != 0xFD) {
+    wc = 256;
+    /* Xmit the 512 byte data block to MMC */
+    do {
+      xmit_spi((*buff >> 8));
+      xmit_spi((*buff & 0x00FF));
+      *buff++;
+    }
+    while (--wc);
+    xmit_spi(0xFF);                    /* CRC (Dummy) */
+    xmit_spi(0xFF);
+    resp = rcvr_spi();                /* Reveive data response */
+    if ((resp & 0x1F) != 0x05)        /* If not accepted, return with error */
+      return FALSE;
+  }
+
+  return TRUE;
+}
+#endif /* _READONLY */
+
+/*-----------------------------------------------------------------------*/
 /* Send a command packet to MMC                                          */
 /* @ BYTE cmd  - Command byte                                            */
 /* @ DWORD arg - Argument                                                */
@@ -563,7 +596,7 @@ DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count) {
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
-/* @ BYTE drv          - Physical drive nmuber (0)                       */
+/* @ BYTE drive        - Physical drive number (0)                       */
 /* @ const BYTE *buff  - Pointer to the data to be written               */
 /* @ DWORD sector      - Start sector number (LBA)                       */
 /* @ BYTE count        - Sector count (1..255)                           */
@@ -609,6 +642,53 @@ DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
 }
 #endif /* _READONLY */
 
+/*-----------------------------------------------------------------------*/
+/* Write Sector(s)                                                       */
+/* @ BYTE drive        - Physical drive number (0)                       */
+/* @ const BYTE *buff  - Pointer to the data to be written               */
+/* @ DWORD sector      - Start sector number (LBA)                       */
+/* @ BYTE count        - Sector count (1..255)                           */
+/*-----------------------------------------------------------------------*/
+#if _READONLY == 0
+DRESULT disk_write_pcm (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
+  if (drv || !count) return RES_PARERR;
+  if (Stat & STA_NOINIT) return RES_NOTRDY;
+  if (Stat & STA_PROTECT) return RES_WRPRT;
+
+  if (!(CardType & 4)) sector *= 512;    /* Convert to byte address if needed */
+
+  SELECT();            /* CS = L */
+
+  /* Single block write */
+  if (count == 1) {
+    /* WRITE_BLOCK */
+    if ((send_cmd(CMD24, sector) == 0) && xmit_datablock_pcm(buff, 0xFE))
+      count = 0;
+  }
+  /* Multiple block write */
+  else {
+    if (CardType & 2) {
+      send_cmd(CMD55, 0);
+      send_cmd(CMD23, count);    /* ACMD23 */
+    }
+    /* WRITE_MULTIPLE_BLOCK */
+    if (send_cmd(CMD25, sector) == 0) {
+      do {
+        if (!xmit_datablock_pcm(buff, 0xFC)) break;
+        buff += 512;
+      }
+      while (--count);
+      if (!xmit_datablock(0, 0xFD))    /* STOP_TRAN token */
+        count = 1;
+    }
+  }
+
+  DESELECT();            /* CS = H */
+  rcvr_spi();            /* Idle (Release DO) */
+
+  return count ? RES_ERROR : RES_OK;
+}
+#endif /* _READONLY */
 
 /*-----------------------------------------------------------------------*/
 /* Miscellaneous Functions                                               */

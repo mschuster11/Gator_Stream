@@ -12,6 +12,29 @@ extern "C" {
 #define WAVE_FORMAT_MULAW           0x0007
 #define WAVE_FORMAT_EXTENSIBLE      0xfffe
 
+#define NUM_TO_ARR(n, s)   s==4 ? ((unsigned char[]){ (unsigned char)(n),               \
+                                                      (unsigned char)(n >> 8),          \
+                                                      (unsigned char)(n >> 16),         \
+                                                      (unsigned char)(n >> 24) }) :     \
+                           s==3 ? ((unsigned char[]){ (unsigned char)(n),               \
+                                                      (unsigned char)(n >> 8),          \
+                                                      (unsigned char)(n >> 16) }) :     \
+                           s==2 ? ((unsigned char[]){ (unsigned char)(n),               \
+                                                      (unsigned char)(n >> 8) }) :      \
+                           s==1 ? ((unsigned char[]){ (unsigned char)(n) }) : (NULL)
+                           
+#define ARR_TO_NUM(n, s)   s==4 ? (unsigned long int)(((unsigned long int)n[0] << 24) + \
+                                                      ((unsigned long int)n[1] << 16) + \
+                                                      ((unsigned long int)n[2] << 8)  + \
+                                                      ((unsigned long int)n[3])) :      \
+                           s==3 ? (unsigned long int)(((unsigned long int)n[0] << 16) + \
+                                                      ((unsigned long int)n[1] << 8)  + \
+                                                      ((unsigned long int)n[2])) :      \
+                           s==2 ? (unsigned long int)(((unsigned long int)n[0] << 8)  + \
+                                                      ((unsigned long int)n[1])) :      \
+                           s==1 ? (unsigned long int)(((unsigned long int)n[0])) : 0    
+
+
 typedef enum _WaveError WaveError;
 enum _WaveError {
     WAVE_SUCCESS,           /* no error */

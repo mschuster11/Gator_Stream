@@ -21,6 +21,7 @@
 #include "personal/headers/audio_effects.h"
 #include "personal/headers/sd_utils.h"
 #include "personal/headers/wav.h"
+#include "personal/headers/wav_priv.h"
 
 #define SYSCTL_PERIPH_SCI2              0x00010007
 #define SYSCTL_PERIPH_SCI3              0x00020007
@@ -68,7 +69,6 @@ static uint16_t uartRemoteRxBufIndex = 0;
 char g_uartMspRxBuf[100];
 bool_t newMspCmd = FALSE;
 static uint16_t uartMspRxBufIndex = 0;
-
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -125,15 +125,14 @@ int main (void) {
   init_scib();
   init_scic();
 
+
   WaveFile* wf = wave_open("/New_Song.wav", "w");
-//  wave_set_format(wf, WAVE_FORMAT_PCM);
-//  wave_set_sample_size(wf, 2);
-//  wave_set_sample_rate(wf, 44100);
-//  wave_set_num_channels(wf, 2);
-////    Uint16* buf[2];
-////    buf[0] = sinLut1;
-////    buf[1] = sinLut1;
-////    wave_write((void **)buf, 512, wf);
+//  Uint16* buf[2];
+//  buf[0] = sinLut1;
+//  buf[1] = sinLut1;
+////  for(uint16_t j=0; j<86; j++) {
+//  wave_write((void **)buf, 512, wf);
+////  }
   wave_close(wf);
   while(1) {
     if(newRemoteCmd == TRUE) {
