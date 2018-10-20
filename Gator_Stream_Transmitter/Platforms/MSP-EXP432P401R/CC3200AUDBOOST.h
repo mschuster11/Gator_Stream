@@ -46,7 +46,7 @@
 //*****************************************************************************
 //                          LOCAL DEFINES
 //*****************************************************************************
-#define SLAVE_ADDRESS					0b00011011
+#define SLAVE_ADDRESS					((0x30 >> 1))
 #define PAGE_CTRL_REG   				0x00
 
 //******************************************************************************
@@ -79,14 +79,14 @@
 #define ADC_REG_SOFT_RESET            0x01
 #define ADC_REG_CLK_MUX               0x04
 #define ADC_REG_PLL_P_R               0x05
-#define ADC_REG_PLL_J					        0x06
-#define ADC_REG_PLL_D_MSB				      0x07
-#define ADC_REG_PLL_D_LSB				      0x08
-#define ADC_REG_ADC_NADC              0x12
-#define ADC_REG_ADC_MADC              0x13
-#define ADC_REG_ADC_AOSR              0x14
-#define ADC_REG_ADC_IADC              0x15
-#define ADC_REG_ADC_DED               0x16
+#define ADC_REG_PLL_J                 0x06
+#define ADC_REG_PLL_D_MSB             0x07
+#define ADC_REG_PLL_D_LSB             0x08
+#define ADC_REG_NADC                  0x12
+#define ADC_REG_MADC                  0x13
+#define ADC_REG_AOSR                  0x14
+#define ADC_REG_IADC                  0x15
+#define ADC_REG_DED                   0x16
 #define ADC_REG_CLKOUT_MUX            0x19
 #define ADC_REG_CLKOUT_DIV            0x1A
 #define ADC_REG_ADC_AUDIO_IC1         0x1B
@@ -108,9 +108,16 @@
 #define ADC_REG_INT2_IC               0x31
 #define ADC_REG_GPIO1_C               0x34
 #define ADC_REG_DOUT_C                0x35
-#define ADC_REG_DOUT_C                0x35
 #define ADC_REG_ADC_SYNC_C1           0x39
 #define ADC_REG_ADC_SYNC_C2           0x3A
+#define ADC_REG_ADC_CIC_FGC           0x3B
+#define ADC_REG_ADC_PBS               0x3D
+#define ADC_REG_PIMC_BITS             0x3E
+#define ADC_REG_DIGITAL_CTRL          0x51
+#define ADC_REG_FINE_VOLUME_CTRL      0x52
+#define ADC_REG_LEFT_VOLUME_CTRL      0x53
+#define ADC_REG_RIGHT_VOLUME_CTRL     0x53
+#define ADC_REG_PHASE_COMPENSATION    0x54
 
 
 //******************************************************************************
@@ -119,36 +126,25 @@
 //
 //******************************************************************************
 
-#define CODEC_REG_PWR_CFG				0x01
-#define	CODEC_REG_LDO_CTRL				0x02
-#define	CODEC_REG_PYBCK_CTRL_1			0x03
-#define	CODEC_REG_PYBCK_CTRL_2			0x04
-#define CODEC_REG_OUT_DRV_CTRL          0x09
-#define	CODEC_REG_COMMON_MODE			0x0A
-#define CODEC_REG_HPL_SEL               0x0C
-#define CODEC_REG_HPR_SEL               0x0D
-#define CODEC_REG_HPL_DRV_GAIN          0x10
-#define CODEC_REG_HPR_DRV_GAIN          0x11
-#define CODEC_REG_HP_DRV_STUP			0x14
-#define CODEC_REG_MCBIAS_CFG			0x33
-#define CODEC_REG_LEFT_MICPGA_POS		0x34
-#define CODEC_REG_LEFT_MICPGA_NEG		0x36
-#define CODEC_REG_RIGHT_MICPGA_POS		0x37
-#define CODEC_REG_RIGHT_MICPGA_NEG		0x39
-#define CODEC_REG_FLOAT_INPUT_CFG		0x3A
-#define CODEC_REG_LEFT_MICPGA_VOL		0x3B
-#define CODEC_REG_RIGHT_MICPGA_VOL		0x3C
-#define CODEC_REG_ANA_IN_CHARGE			0x47
-#define	CODEC_REG_REF_PWR_CFG			0x7B
+#define ADC_REG_DITHER_CTRL           0x1A
+#define ADC_REG_MICBIAS_CTRL          0x33
+#define ADC_REG_L_IN_SEL_L_PGA1       0x34
+#define ADC_REG_L_IN_SEL_L_PGA2       0x36
+#define ADC_REG_R_IN_SEL_R_PGA1       0x37
+#define ADC_REG_R_IN_SEL_R_PGA2       0x39
+#define ADC_REG_L_ANLG_PGA_SETTING    0x3B
+#define ADC_REG_R_ANLG_PGA_SETTING    0x3C
+#define ADC_REG_LOW_CURRENT_MODES     0x3D
+#define ADC_REG_ANLG_PGA_FLAGS        0x3E
 
-//
 // Prototypes for the APIs.
 //
 //******************************************************************************
 
-extern unsigned long CodecRegWrite(unsigned char ucRegAddr,unsigned char ucRegValue);
-extern unsigned long CodecPageSelect(unsigned char ucPageAddress);
-extern void CodecReset(void);
-extern void CodecInit(unsigned char ucInputLine, unsigned char ucOutputLine);
+extern unsigned long adcRegWrite(unsigned char ucRegAddr,unsigned char ucRegValue);
+extern unsigned long adcPageSelect(unsigned char ucPageAddress);
+extern void adcReset(void);
+extern void adcInit(void);
+extern unsigned char adcChangeVolume(unsigned char ucVol);
 
 #endif

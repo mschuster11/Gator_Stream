@@ -436,7 +436,7 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
 static void UserInterface(void) {
   ClearCommands();
 
-  AddCommand("INQUIRY", Inquiry);
+  AddCommand("I", Inquiry);
   AddCommand("DISPLAYINQUIRYLIST", DisplayInquiryList);
   AddCommand("PAIR", Pair);
   AddCommand("ENDPAIRING", EndPairing);
@@ -455,8 +455,8 @@ static void UserInterface(void) {
   AddCommand("GETREMOTENAME", GetRemoteName);
   AddCommand("SETBAUDRATE", SetBaudRate);
   AddCommand("HELP", DisplayHelp);
-  AddCommand("OPENSINK", OpenRemoteEndpoint);
-  AddCommand("CLOSESINK", CloseRemoteEndpoint);
+  AddCommand("OS", OpenRemoteEndpoint);
+  AddCommand("CS", CloseRemoteEndpoint);
   AddCommand("PLAY", Play);
   AddCommand("PAUSE", Pause);
   AddCommand("PCMLOOPBACK", PcmLoopback);

@@ -138,8 +138,8 @@ static void ConfigureControllerAudioCodec(unsigned int BluetoothStackID, unsigne
   /* times faster than the frame sync clock frequency in order to match*/
   /* the BCLK/WCLK ratio expected by the CC3200AUDBOOST's audio codec  */
   /* (the TLV320AIC3254).                                              */
-  Channel1Offset = (NumChannels == 1) ? 17 : 1;
-  Channel2Offset = Channel1Offset;
+  Channel1Offset = (NumChannels == 1) ? 17 :1;
+  Channel2Offset = Channel1Offset + 16;
   BTPS_MemInitialize(&u.WriteCodecConfigParams, 0, sizeof(u.WriteCodecConfigParams));
   u.WriteCodecConfigParams.PCMClockRate_KHz      = (SamplingFrequency / 100) * 8;
   u.WriteCodecConfigParams.FrameSyncFrequency_Hz = (DWord_t)SamplingFrequency;
@@ -554,7 +554,7 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
   {
     EUSCI_B_I2C_CLOCKSOURCE_SMCLK,     /* SMCLK Clock Source          */
     SMCLK_FREQUENCY,                   /* SMCLK Frequency             */
-    EUSCI_B_I2C_SET_DATA_RATE_400KBPS, /* I2C Clock Rate              */
+    EUSCI_B_I2C_SET_DATA_RATE_100KBPS, /* I2C Clock Rate              */
     0,                                 /* No byte counter threshold   */
     EUSCI_B_I2C_NO_AUTO_STOP           /* No Autostop                 */
   };
@@ -569,8 +569,8 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
   I2C_setMode(HRDWCFG_I2C_MODULE, EUSCI_B_I2C_TRANSMIT_MODE);
   I2C_enableModule(HRDWCFG_I2C_MODULE);
 
-  /* Initialize the local audio codec.                                 */
-  CodecInit(InputLine, OutputLine);
+  /* Initialize the local adc.                                         */
+  adcInit();
 
   /* Flag that the local audio codec is enabled.                       */
   AudioCodecEnabled = TRUE;
@@ -583,7 +583,7 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
 void HAL_DisableAudioCodec(void) {
   /* Reset the audio codec if it is enabled.                           */
   if(AudioCodecEnabled) {
-    CodecReset();
+    adcReset();
 
     BTPS_Delay(100);
 

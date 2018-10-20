@@ -64,7 +64,7 @@ static void ProcessCharactersTask(void *UserParameter)
 
    if(initialCmd)
    {
-      BTPS_StringCopy(Input, "Inquiry\r\n\0\0");
+      BTPS_StringCopy(Input, "I\r\n\0\0");
       ProcessCommandLine(Input);
       initialCmd = FALSE;
    }
