@@ -17,15 +17,16 @@
 /*                            CC256x, to the CS43L22 DAC, for music on the    */
 /*                            STM3240G-EVAL.                                  */
 /******************************************************************************/
-#include "Main.h"                /* Application Interface Abstraction.        */
-#include "SS1BTPS.h"             /* Main SS1 Bluetooth Stack Header.          */
-#include "SS1BTA2D.h"            /* SS1 A2DP Header.                          */
-#include "SS1BTAUD.h"            /* SS1 Audio Subsystem Header.               */
-#include "SS1BTAVC.h"            /* A/V Control Transport Header.             */
-#include "SS1BTAVR.h"            /* A/V Remote Control Header.                */
-#include "BTPSKRNL.h"            /* BTPS Kernel Header.                       */
-#include "Gator_Stream_Transmitter.h"        /* Application Header.                       */
-#include "HAL.h"                 /* Hardware Abstraction Layer Header.        */
+#include "Main.h"                       /* Application Interface Abstraction. */
+#include "SS1BTPS.h"                    /* Main SS1 Bluetooth Stack Header.   */
+#include "SS1BTA2D.h"                   /* SS1 A2DP Header.                   */
+#include "SS1BTAUD.h"                   /* SS1 Audio Subsystem Header.        */
+#include "SS1BTAVC.h"                   /* A/V Control Transport Header.      */
+#include "SS1BTAVR.h"                   /* A/V Remote Control Header.         */
+#include "BTPSKRNL.h"                   /* BTPS Kernel Header.                */
+#include "Gator_Stream_Transmitter.h"   /* Application Header.                */
+#include "HAL.h"                        /* Hardware Abstraction Layer Header. */
+#include "CC3200AUDBOOST.h"             /* CC3200 Audio Booser Pack APIs.            */
 
 #define MAX_SUPPORTED_COMMANDS                    (30)   /* Maximum number of */
                                                          /* user commands that*/
@@ -298,7 +299,12 @@ static Boolean_t           PerformingAutoConnect;   /* Variable which notes whet
 static BD_ADDR_t           RemoteSinkBD_ADDR;       /* Tracks the currently-connected  */
                                            /* A2DP sink, if available.        */
 
+
 static DWord_t             MaxBaudRate;             /* Variable stores the maximum     */
+                                           /* HCI UART baud rate supported by */
+                                           /* this platform.                  */
+
+static Byte_t              AudioVolume;             /* Variable stores the maximum     */
                                            /* HCI UART baud rate supported by */
                                            /* this platform.                  */
 
@@ -415,6 +421,8 @@ static int GetLocalAddress(ParameterList_t *TempParam);
 
 static int Play(ParameterList_t *TempParam);
 static int Pause(ParameterList_t *TempParam);
+static int VolumeUp(ParameterList_t *TempParam);
+static int VolumeDown(ParameterList_t *TempParam);
 
 static int StartA3DPStream(void);
 static int StopA3DPStream(void);
@@ -457,9 +465,11 @@ static void UserInterface(void) {
   AddCommand("HELP", DisplayHelp);
   AddCommand("OS", OpenRemoteEndpoint);
   AddCommand("CS", CloseRemoteEndpoint);
-  AddCommand("PLAY", Play);
-  AddCommand("PAUSE", Pause);
+  AddCommand("PL", Play);
+  AddCommand("PA", Pause);
   AddCommand("PCMLOOPBACK", PcmLoopback);
+  AddCommand("+", VolumeUp);
+  AddCommand("-", VolumeDown);
 
   /* Next display the available commands.                              */
   // DisplayHelp(NULL);
@@ -1345,6 +1355,7 @@ static int ReconfigureA3DPStream(AUD_Stream_Format_t *Format) {
   int ret_val = 0;
 
   AudioFormat = 0;
+  AudioVolume = 0;
 
   Display(("Initialize audio with sampling frequency: %lu\r\n", Format->SampleFrequency));
 
@@ -2508,6 +2519,30 @@ static int Pause(ParameterList_t *TempParam) {
   } else {
     DisplayFunctionSuccess("AUD_Change_Stream_State");
   }
+
+  return(ret_val);
+}
+
+  /* This function is responsible for handling a local Play command    */
+  /* issued by the user.                                               */
+static int VolumeUp(ParameterList_t *TempParam) {
+  int ret_val;
+
+  ret_val = adcChangeVolume((AudioVolume << 1) < 80 ? ++AudioVolume : AudioVolume);
+  Display(("Volume: %d), ", (AudioVolume<<1)>>1));
+  Display((" (%.2fdB)\r\n", ((float)(AudioVolume << 1)/4.0)));
+  return(ret_val);
+}
+
+  /* This function is responsible for handling a local Play command    */
+  /* issued by the user.                                               */
+static int VolumeDown(ParameterList_t *TempParam) {
+  int ret_val;
+
+  ret_val = adcChangeVolume((AudioVolume << 1) > -48 ? --AudioVolume : AudioVolume);
+  Display(("Volume: %d), ", (AudioVolume<<1)>>1));
+  Display((" (%.2fdB)\r\n", ((float)(AudioVolume << 1)/4.0)));
+
 
   return(ret_val);
 }

@@ -78,12 +78,12 @@ Uint16 j = 0x00;
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
-    McbspbRegs.DXR1.all = sinLut[i > 511 ? i=0 : i++]/2 + sinLut[j > 511 ? j=0 : j++]/2;
-    j++;
+    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;//sinLut[i > 511 ? i=0 : i++]/2 + sinLut[j > 511 ? j=0 : j++]/2;
+//    j++;
   }
   else if (channel == RIGHT) {
-    McbspbRegs.DXR1.all = sinLut[i > 511 ? i=0 : i++]/2 + sinLut[j > 511 ? j=0 : j++]/2;
-    j++;
+    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;//sinLut[i > 511 ? i=0 : i++]/2 + sinLut[j > 511 ? j=0 : j++]/2;
+//    j++;
   }
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;

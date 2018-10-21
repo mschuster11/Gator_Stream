@@ -145,6 +145,6 @@ extern unsigned long adcRegWrite(unsigned char ucRegAddr,unsigned char ucRegValu
 extern unsigned long adcPageSelect(unsigned char ucPageAddress);
 extern void adcReset(void);
 extern void adcInit(void);
-extern unsigned char adcChangeVolume(unsigned char ucVol);
+extern unsigned char adcChangeVolume(char ucVol);
 
 #endif

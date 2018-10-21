@@ -202,8 +202,12 @@ void init_ints (void) {
   EALLOW;
 
   // Enable the McBsp Tx (Audio Transmission) interrupt and point to its ISR (PIE: 6.1).
-  PieVectTable.MCBSPB_TX_INT = audio_ISR;      
-  PieCtrlRegs.PIEIER6.bit.INTx8 = 1;
+  PieVectTable.MCBSPB_RX_INT = audio_ISR;
+  PieCtrlRegs.PIEIER6.bit.INTx7 = 1;
+
+  // Enable the McBsp Tx (Audio Transmission) interrupt and point to its ISR (PIE: 6.1).
+//  PieVectTable.MCBSPB_TX_INT = audio_ISR;
+//  PieCtrlRegs.PIEIER6.bit.INTx8 = 1;
   IER |= M_INT6;
 
   // Enable the SCI-B (MSP Comms) interrupt and point to its ISR (PIE: 8.5).

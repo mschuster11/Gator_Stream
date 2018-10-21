@@ -319,34 +319,51 @@ void InitMcbspb(void) {
     McbspbRegs.XCR2.all = 0x0;
     McbspbRegs.XCR1.all = 0x0;
     // Set Receive/Transmit to 16-bit operation
+    McbspbRegs.RCR2.bit.RWDLEN2 = 2;
+    McbspbRegs.RCR1.bit.RWDLEN1 = 2;
     McbspbRegs.XCR2.bit.XWDLEN2 = 2;
     McbspbRegs.XCR1.bit.XWDLEN1 = 2;
+
+    McbspbRegs.RCR2.bit.RPHASE = 1; // Dual-phase frame for receive
+    McbspbRegs.RCR1.bit.RFRLEN1 = 0; // Receive frame length = 1 word in phase 1
+    McbspbRegs.RCR2.bit.RFRLEN2 = 0; // Receive frame length = 1 word in phase 2
+
     McbspbRegs.XCR2.bit.XPHASE = 1; // Dual-phase frame for transmit
     McbspbRegs.XCR1.bit.XFRLEN1 = 0; // Transmit frame length = 1 word in phase 1
     McbspbRegs.XCR2.bit.XFRLEN2 = 0; // Transmit frame length = 1 word in phase 2
     // I2S mode: R/XDATDLY = 1 always
-    McbspbRegs.XCR2.bit.XDATDLY = 1;
+    McbspbRegs.RCR2.bit.RDATDLY = 1;
+    McbspbRegs.XCR2.bit.XDATDLY = 0;
     // Frame Width = 1 CLKG period, CLKGDV must be 1 as slave
     McbspbRegs.SRGR1.all = 0x0001;
     McbspbRegs.PCR.all = 0x0000;
     // Transmit frame synchronization is supplied by an external source via the FSX pin
     McbspbRegs.PCR.bit.FSXM = 0;
+    // Receive frame synchronization is supplied by an external source via the FSR pin
+    McbspbRegs.PCR.bit.FSRM = 0;
     // Select sample rate generator to be signal on MCLKR pin
     McbspbRegs.PCR.bit.SCLKME = 1;
     McbspbRegs.SRGR2.bit.CLKSM = 0;
+    // Receive frame-synchronization pulses are active low - (L-channel first)
+    McbspbRegs.PCR.bit.FSRP = 1;
     // Transmit frame-synchronization pulses are active low - (L-channel first)
     McbspbRegs.PCR.bit.FSXP = 1;
+    // Receive data is sampled on the rising edge of MCLKR
+    McbspbRegs.PCR.bit.CLKRP = 1;
     // Transmit data is sampled on the falling edge of CLKX
     McbspbRegs.PCR.bit.CLKXP = 0;
     // The transmitter gets its clock signal from MCLKX
     McbspbRegs.PCR.bit.CLKXM = 0;
+    // The receiver gets its clock signal from MCLKR
+    McbspbRegs.PCR.bit.CLKRM = 0;
     // Enable Transmit Interrupt
-    McbspbRegs.MFFINT.bit.XINT = 1;
+    McbspbRegs.MFFINT.bit.RINT = 1;
     // Ignore unexpected frame sync
-    McbspbRegs.XCR2.bit.XFIG = 1;
+    // McbspbRegs.XCR2.bit.XFIG = 1;
     McbspbRegs.SPCR2.all |=0x00C0; // Frame sync & sample rate generators pulled out of reset
     delay_loop();
     McbspbRegs.SPCR2.bit.XRST=1; // Enable Transmitter
+    McbspbRegs.SPCR1.bit.RRST=1; // Enable Receiver
     EDIS;
 }
 
