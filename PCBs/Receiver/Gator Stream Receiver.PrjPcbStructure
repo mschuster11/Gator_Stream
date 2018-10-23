@@ -1,0 +1,3 @@
+Record=TopLevelDocument|FileName=Gator Stream Receiver Top Sheet.SchDoc
+Record=SheetSymbol|SourceDocument=Gator Stream Receiver Top Sheet.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=MSP432.SchDoc|SymbolType=Normal|RawFileName=MSP432.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Gator Stream Receiver Top Sheet.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=Audio output Codec.SchDoc|SymbolType=Normal|RawFileName=Audio output Codec.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 

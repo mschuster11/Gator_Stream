@@ -34,7 +34,7 @@ enum side{
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
-Uint16 sinLut[512] = {
+int16 sinLut[512] = {
   0x8000,0x8192,0x8324,0x84b6,0x8647,0x87d9,0x896a,0x8afb,0x8c8b,0x8e1b,0x8fab,0x9139,0x92c7,0x9455,0x95e1,0x976d,
   0x98f8,0x9a82,0x9c0b,0x9d93,0x9f19,0xa09f,0xa223,0xa3a6,0xa527,0xa6a7,0xa826,0xa9a3,0xab1f,0xac98,0xae10,0xaf87,
   0xb0fb,0xb26e,0xb3de,0xb54d,0xb6b9,0xb824,0xb98c,0xbaf2,0xbc56,0xbdb7,0xbf17,0xc073,0xc1cd,0xc325,0xc47a,0xc5cc,
@@ -78,12 +78,12 @@ Uint16 j = 0x00;
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;//sinLut[i > 511 ? i=0 : i++]/2 + sinLut[j > 511 ? j=0 : j++]/2;
-//    j++;
+      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
+    j >= 86 ? j = 0, i++ : j++;
   }
   else if (channel == RIGHT) {
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;//sinLut[i > 511 ? i=0 : i++]/2 + sinLut[j > 511 ? j=0 : j++]/2;
-//    j++;
+      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
+      j >= 86 ? j = 0, i++ : j++;
   }
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;

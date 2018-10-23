@@ -296,14 +296,14 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Bluetopia/include/SS1BTPS.h</locationURI>
 		</link>
 		<link>
-			<name>Platforms/MSP-EXP432P401R/CC3200AUDBOOST.c</name>
+			<name>Platforms/MSP-EXP432P401R/TLV320ADC3100.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Platforms/MSP-EXP432P401R/CC3200AUDBOOST.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/Platforms/MSP-EXP432P401R/TLV320ADC3100.c</locationURI>
 		</link>
 		<link>
-			<name>Platforms/MSP-EXP432P401R/CC3200AUDBOOST.h</name>
+			<name>Platforms/MSP-EXP432P401R/TLV320ADC3100.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Platforms/MSP-EXP432P401R/CC3200AUDBOOST.h</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/Platforms/MSP-EXP432P401R/TLV320ADC3100.h</locationURI>
 		</link>
 		<link>
 			<name>Platforms/MSP-EXP432P401R/HAL.c</name>

@@ -116,8 +116,8 @@
 #define ADC_REG_DIGITAL_CTRL          0x51
 #define ADC_REG_FINE_VOLUME_CTRL      0x52
 #define ADC_REG_LEFT_VOLUME_CTRL      0x53
-#define ADC_REG_RIGHT_VOLUME_CTRL     0x53
-#define ADC_REG_PHASE_COMPENSATION    0x54
+#define ADC_REG_RIGHT_VOLUME_CTRL     0x54
+#define ADC_REG_PHASE_COMPENSATION    0x55
 
 
 //******************************************************************************
@@ -145,6 +145,6 @@ extern unsigned long adcRegWrite(unsigned char ucRegAddr,unsigned char ucRegValu
 extern unsigned long adcPageSelect(unsigned char ucPageAddress);
 extern void adcReset(void);
 extern void adcInit(void);
-extern unsigned char adcChangeVolume(char ucVol);
+extern signed char adcChangeVolume(char ucVol);
 
 #endif

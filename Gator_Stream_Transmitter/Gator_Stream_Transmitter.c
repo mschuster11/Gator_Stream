@@ -26,7 +26,7 @@
 #include "BTPSKRNL.h"                   /* BTPS Kernel Header.                */
 #include "Gator_Stream_Transmitter.h"   /* Application Header.                */
 #include "HAL.h"                        /* Hardware Abstraction Layer Header. */
-#include "CC3200AUDBOOST.h"             /* CC3200 Audio Booser Pack APIs.            */
+#include "TLV320ADC3100.h"             /* CC3200 Audio Booser Pack APIs.            */
 
 #define MAX_SUPPORTED_COMMANDS                    (30)   /* Maximum number of */
                                                          /* user commands that*/
@@ -304,7 +304,7 @@ static DWord_t             MaxBaudRate;             /* Variable stores the maxim
                                            /* HCI UART baud rate supported by */
                                            /* this platform.                  */
 
-static Byte_t              AudioVolume;             /* Variable stores the maximum     */
+static SByte_t              AudioVolume;             /* Variable stores the maximum     */
                                            /* HCI UART baud rate supported by */
                                            /* this platform.                  */
 
@@ -2528,7 +2528,8 @@ static int Pause(ParameterList_t *TempParam) {
 static int VolumeUp(ParameterList_t *TempParam) {
   int ret_val;
 
-  ret_val = adcChangeVolume((AudioVolume << 1) < 80 ? ++AudioVolume : AudioVolume);
+  ret_val = adcChangeVolume(((AudioVolume & 0x3F) < 40) ? ++AudioVolume : AudioVolume);
+  AudioVolume &= 0x7F;
   Display(("Volume: %d), ", (AudioVolume<<1)>>1));
   Display((" (%.2fdB)\r\n", ((float)(AudioVolume << 1)/4.0)));
   return(ret_val);
@@ -2539,7 +2540,8 @@ static int VolumeUp(ParameterList_t *TempParam) {
 static int VolumeDown(ParameterList_t *TempParam) {
   int ret_val;
 
-  ret_val = adcChangeVolume((AudioVolume << 1) > -48 ? --AudioVolume : AudioVolume);
+  ret_val = adcChangeVolume(AudioVolume > 72  || AudioVolume == 0 ? (--AudioVolume & 0x7F): AudioVolume);
+  AudioVolume &= 0x7F;
   Display(("Volume: %d), ", (AudioVolume<<1)>>1));
   Display((" (%.2fdB)\r\n", ((float)(AudioVolume << 1)/4.0)));
 

@@ -23,7 +23,7 @@
 
 #ifdef __SUPPORT_AUDIO_CODEC__
 
-  #include "CC3200AUDBOOST.h"   /* CC3200 Audio Booser Pack APIs.            */
+  #include "TLV320ADC3100.h"   /* CC3200 Audio Booser Pack APIs.            */
 
 #endif
 
@@ -139,7 +139,7 @@ static void ConfigureControllerAudioCodec(unsigned int BluetoothStackID, unsigne
   /* the BCLK/WCLK ratio expected by the CC3200AUDBOOST's audio codec  */
   /* (the TLV320AIC3254).                                              */
   Channel1Offset = (NumChannels == 1) ? 17 :1;
-  Channel2Offset = Channel1Offset;
+  Channel2Offset = Channel1Offset+16;
   BTPS_MemInitialize(&u.WriteCodecConfigParams, 0, sizeof(u.WriteCodecConfigParams));
   u.WriteCodecConfigParams.PCMClockRate_KHz      = (SamplingFrequency / 100) * 8;
   u.WriteCodecConfigParams.FrameSyncFrequency_Hz = (DWord_t)SamplingFrequency;
