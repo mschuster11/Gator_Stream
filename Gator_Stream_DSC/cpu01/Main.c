@@ -128,15 +128,15 @@ int main (void) {
   init_scib();
   init_scic();
 
-
-//  WaveFile* wf = wave_open("/New_Song.wav", "w");
-//  Uint16* buf[2];
-//  buf[0] = sinLut1;
-//  buf[1] = sinLut1;
+  f_unlink("/New_Song.wav");
+  WaveFile* wf = wave_open("/New_Song.wav", "w");
+  Uint16* buf[2];
+  buf[0] = sinLut1;
+  buf[1] = sinLut1;
 //////  for(uint16_t j=0; j<86; j++) {
-//  wave_write((void **)buf, 512, wf);
+  wave_write((void **)buf, 512, wf);
 //////  }
-//  wave_close(wf);
+  wave_close(wf);
   while(1) {
     if(newRemoteCmd == TRUE) {
       UARTprintf("%s\n", g_uartRemoteRxBuf);

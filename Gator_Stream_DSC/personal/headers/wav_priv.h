@@ -16,11 +16,11 @@ extern "C" {
 #endif
 
 #ifdef WAVE_ENDIAN_LITTLE
-#define WAVE_RIFF_CHUNK_ID          0x0046004600490052 // 'FFIR'
-#define WAVE_FORMAT_CHUNK_ID        0x00200074006d0066 // ' tmf'
-#define WAVE_FACT_CHUNK_ID          0x0074006300610066 // 'tcaf'
-#define WAVE_DATA_CHUNK_ID          0x0061007400610064 // 'atad'
-#define WAVE_WAVE_ID                0x0045005600410057 // 'EVAW'
+#define WAVE_RIFF_CHUNK_ID          0x46464952 // 'FFIR'
+#define WAVE_FORMAT_CHUNK_ID        0x20746d66 // ' tmf'
+#define WAVE_FACT_CHUNK_ID          0x74636166 // 'tcaf'
+#define WAVE_DATA_CHUNK_ID          0x61746164 // 'atad'
+#define WAVE_WAVE_ID                0x45564157 // 'EVAW'
 #endif
 
 #ifdef WAVE_ENDIAN_BIG

@@ -53,7 +53,6 @@
 #define CMD41   (0x40+41)   /* SEND_OP_COND (ACMD) */
 #define CMD55   (0x40+55)   /* APP_CMD */
 #define CMD58   (0x40+58)   /* READ_OCR */
-
 /*--------------------------------------------------------------------------
 
    Module Private Variables
@@ -330,6 +329,36 @@ static BOOL rcvr_datablock (BYTE *buff, UINT btr) {
   return TRUE;                    /* Return with success */
 }
 
+/*-----------------------------------------------------------------------*/
+/* Receive a data packet from MMC                                        */
+/* @ BYTE *buff       - Data buffer to store received data               */
+/* @ UINT wordsToRead - Word count (must be even number)                 */
+/*-----------------------------------------------------------------------*/
+static BOOL rcvr_datablock_pcm (BYTE *buff, UINT wordsToRead) {
+  BYTE token;
+
+  Timer1 = 10;
+  /* Wait for data packet in timeout of 100ms */
+  do {
+    token = rcvr_spi();
+  }
+  while ((token == 0xFF) && Timer1);
+  if(token != 0xFE) return FALSE;    /* If not valid data token, return with error */
+  BYTE hi, low;
+  /* Receive the data block into buffer */
+  do {
+    rcvr_spi_m(&hi);
+    rcvr_spi_m(&low);
+    *buff = hi << 8 | low;
+    buff++;
+  }
+  while (wordsToRead--);
+  rcvr_spi();                        /* Discard CRC */
+  rcvr_spi();
+
+  return TRUE;                    /* Return with success */
+}
+
 
 /*-----------------------------------------------------------------------*/
 /* Send a data packet to MMC                                             */
@@ -388,7 +417,7 @@ static BOOL xmit_datablock_pcm (const BYTE *buff, BYTE token) {
     while (--wc);
     xmit_spi(0xFF);                    /* CRC (Dummy) */
     xmit_spi(0xFF);
-    resp = rcvr_spi();                /* Reveive data response */
+    resp = rcvr_spi();                /* Receive data response */
     if ((resp & 0x1F) != 0x05)        /* If not accepted, return with error */
       return FALSE;
   }
@@ -593,6 +622,44 @@ DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count) {
   return count ? RES_ERROR : RES_OK;
 }
 
+/*-----------------------------------------------------------------------*/
+/* Read Sector(s)                                                        */
+/* @ BYTE drv,    - Physical drive nmuber (0)                            */
+/* @ BYTE *buff,  - Pointer to the data buffer to store read data        */
+/* @ DWORD sector - Start sector number (LBA)                            */
+/* @ BYTE count   - Sector count (1..255)                                */
+/*-----------------------------------------------------------------------*/
+DRESULT disk_read_pcm (BYTE drv, BYTE *buff, DWORD sector, BYTE count) {
+  if (drv || !count) return RES_PARERR;
+  if (Stat & STA_NOINIT) return RES_NOTRDY;
+
+  if (!(CardType & 4)) sector *= 256;    /* Convert to byte address if needed */
+
+  SELECT();            /* CS = L */
+  /* Single block read */
+  if (count == 1) {
+    /* READ_SINGLE_BLOCK */
+    if ((send_cmd(CMD17, sector) == 0) && rcvr_datablock_pcm(buff, 256))
+      count = 0;
+  }
+  /* Multiple block read */
+  else {
+    /* READ_MULTIPLE_BLOCK */
+    if (send_cmd(CMD18, sector) == 0) {
+      do {
+        if (!rcvr_datablock_pcm(buff, 256)) break;
+        buff += 256;
+      }
+      while (--count);
+      send_cmd12();        /* STOP_TRANSMISSION */
+    }
+  }
+
+  DESELECT();            /* CS = H */
+  rcvr_spi();            /* Idle (Release DO) */
+
+  return count ? RES_ERROR : RES_OK;
+}
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
@@ -655,7 +722,7 @@ DRESULT disk_write_pcm (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
   if (Stat & STA_NOINIT) return RES_NOTRDY;
   if (Stat & STA_PROTECT) return RES_WRPRT;
 
-  if (!(CardType & 4)) sector *= 512;    /* Convert to byte address if needed */
+  if (!(CardType & 4)) sector *= 256;    /* Convert to byte address if needed */
 
   SELECT();            /* CS = L */
 
@@ -664,9 +731,8 @@ DRESULT disk_write_pcm (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
     /* WRITE_BLOCK */
     if ((send_cmd(CMD24, sector) == 0) && xmit_datablock_pcm(buff, 0xFE))
       count = 0;
-  }
-  /* Multiple block write */
-  else {
+  } else {
+    /* Multiple block write */
     if (CardType & 2) {
       send_cmd(CMD55, 0);
       send_cmd(CMD23, count);    /* ACMD23 */
@@ -674,11 +740,12 @@ DRESULT disk_write_pcm (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
     /* WRITE_MULTIPLE_BLOCK */
     if (send_cmd(CMD25, sector) == 0) {
       do {
-        if (!xmit_datablock_pcm(buff, 0xFC)) break;
-        buff += 512;
+        if (!xmit_datablock_pcm(buff, 0xFC))
+          break;
+        buff += 256;
       }
       while (--count);
-      if (!xmit_datablock(0, 0xFD))    /* STOP_TRAN token */
+      if (!xmit_datablock_pcm(0, 0xFD))    /* STOP_TRAN token */
         count = 1;
     }
   }
@@ -810,10 +877,10 @@ void disk_timerproc (void) {
 /* FatFs module. Any valid time must be returned even if   */
 /* the system does not support a real time clock.          */
 DWORD get_fattime (void) {
-  return  ((2008UL-1980) << 25)  // Year = 2008
-          | (2UL << 21)          // Month = February
-          | (26UL << 16)         // Day = 26
-          | (14U << 11)          // Hour = 14
+  return  ((2018UL-1980) << 25)  // Year = 2008
+          | (10UL << 21)          // Month = February
+          | (23UL << 16)         // Day = 26
+          | (20U << 11)          // Hour = 14
           | (0U << 5)            // Min = 0
           | (0U >> 1);           // Sec = 0
 }

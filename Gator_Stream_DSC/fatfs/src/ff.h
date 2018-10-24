@@ -70,6 +70,7 @@
 #define    S_SIZ    (fs->s_size)
 #else
 #define    S_SIZ    512
+#define    S_SIZ_WORD    S_SIZ/2
 #endif
 
 

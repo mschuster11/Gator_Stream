@@ -78,12 +78,14 @@ Uint16 j = 0x00;
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
-      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
-    j >= 86 ? j = 0, i++ : j++;
+      McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+//      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
+//    j >= 86 ? j = 0, i++ : j++;
   }
   else if (channel == RIGHT) {
-      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
-      j >= 86 ? j = 0, i++ : j++;
+      McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+//      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
+//      j >= 86 ? j = 0, i++ : j++;
   }
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;

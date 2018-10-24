@@ -1140,7 +1140,7 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
   FRESULT res;
   const BYTE *wbuff = buff;
   FATFS *fs = fp->fs;
-
+  WORD wordsToWrite = bytesToWrite/2;
   *bytesWritten = 0;
   /* Check validity of the object */
   res = validate(fs, fp->id);
@@ -1160,10 +1160,10 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
     return FR_OK;
 
   /* Repeat until all data transferred */
-  for (; bytesToWrite; wbuff += wordCount/2, fp->fptr += wordCount, *bytesWritten += wordCount, bytesToWrite -= wordCount) {
+  for (; wordsToWrite; wbuff += wordCount, fp->fptr += wordCount, *bytesWritten += wordCount*2, wordsToWrite -= wordCount) {
 
     /* On the sector boundary */
-    if ((fp->fptr & (S_SIZ - 1)) == 0) {
+    if ((fp->fptr & (S_SIZ - 1) / 2) == 0) {
 
       /* Decrement left sector counter */
       if (--fp->sect_clust) {
@@ -1215,7 +1215,7 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
       fp->curr_sect = sect;
 
       /* When left bytes >= S_SIZ, */
-      cc = bytesToWrite / S_SIZ;
+      cc = (wordsToWrite / S_SIZ) * 2;
 
       /* Write maximum contiguous sectors directly */
       if (cc) {
@@ -1228,21 +1228,21 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
 
         fp->sect_clust -= cc - 1;
         fp->curr_sect += cc - 1;
-        wordCount = cc * S_SIZ;
+        wordCount = (cc * S_SIZ) / 2;
         continue;
       }
       /* Fill sector buffer with file data if needed */
-      if (fp->fptr < fp->fsize && disk_read(fs->drive, fp->buffer, sect, 1) != RES_OK)
+      if (fp->fptr < fp->fsize && disk_read_pcm(fs->drive, fp->buffer, sect, 1) != RES_OK)
         goto fw_error;
     }
     /* Copy fractional bytes to file I/O buffer */
-    wordCount = S_SIZ - ((WORD)fp->fptr & (S_SIZ - 1));
+    wordCount = (S_SIZ - (((WORD)fp->fptr * 2) & (S_SIZ - 1))) / 2;
 
-    if (wordCount > bytesToWrite){
-      wordCount = bytesToWrite;
+    if (wordCount > wordsToWrite){
+      wordCount = wordsToWrite;
     }
 
-    memcpy(&fp->buffer[(fp->fptr & (S_SIZ - 1))/2], wbuff, wordCount);
+    memcpy(&fp->buffer[(fp->fptr & ((S_SIZ - 1) / 2))], wbuff, wordCount);
     fp->flag |= FA__DIRTY;
   }
   /* Update file size if needed */
@@ -1413,7 +1413,117 @@ fk_error:    /* Abort this file due to an unrecoverable error */
 }
 
 
+/*-----------------------------------------------------------------------*/
+/* Seek File R/W Pointer                                                 */
+/*-----------------------------------------------------------------------*/
+/* FIL *fp,  - Pointer to the file object                                */
+/* DWORD ofs - File pointer from top of file                             */
+/*-----------------------------------------------------------------------*/
+FRESULT f_lseek (FIL *fp, DWORD ofs) {
+  DWORD clust, csize;
+  BYTE csect;
+  FRESULT res;
+  FATFS *fs = fp->fs;
 
+  /* Check validity of the object */
+  res = validate(fs, fp->id);
+
+  if (res)
+    return res;
+
+  if (fp->flag & FA__ERROR)
+    return FR_RW_ERROR;
+
+  /* Write-back dirty buffer if needed */
+  if (fp->flag & FA__DIRTY) {
+    if (disk_write(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
+      goto fk_error;
+    fp->flag &= ~FA__DIRTY;
+  }
+
+  if (ofs > fp->fsize && !(fp->flag & FA_WRITE))
+    ofs = fp->fsize;
+
+  /* Set file R/W pointer to top of the file */
+  fp->fptr = 0; fp->sect_clust = 1;
+
+  /* Move file R/W pointer if needed */
+  if (ofs) {
+      /* Get start cluster */
+      clust = fp->org_clust;
+
+      /* If the file does not have a cluster chain, create new cluster chain */
+      if (!clust) {
+        clust = create_chain(fs, 0); 
+        if (clust == 1)
+          goto fk_error;
+
+        fp->org_clust = clust;
+      }
+
+      /* If the file has a cluster chain, it can be followed */
+      if (clust) {
+        /* Cluster size in unit of byte */
+        csize = (DWORD)fs->sects_clust * S_SIZ;
+
+        /* Loop to skip leading clusters */
+        for (;;) {
+          /* Update current cluster */
+          fp->curr_clust = clust;
+
+          if (ofs <= csize)
+            break;
+
+          /* Check if in write mode or not */
+          if (fp->flag & FA_WRITE) {
+            /* Force streached if in write mode */
+            clust = create_chain(fs, clust);
+          } else {
+            /* Only follow cluster chain if not in write mode */
+            clust = get_cluster(fs, clust);
+          }
+
+          /* Stop if could not follow the cluster chain */
+          if (clust == 0) {
+              ofs = csize;
+              break;
+          }
+
+          if (clust == 1 || clust >= fs->max_clust)
+            goto fk_error;
+
+          /* Update R/W pointer */
+          fp->fptr += csize;
+          ofs -= csize;
+        }
+
+        /* Sector offset in the cluster */
+        csect = (BYTE)((ofs - 1) / S_SIZ);
+        /* Current sector */
+        fp->curr_sect = clust2sect(fs, clust) + csect;
+        /* Load current sector if needed */
+        if ((ofs & (S_SIZ - 1)) && disk_read(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
+          goto fk_error;
+
+        /* Left sector counter in the cluster */
+        fp->sect_clust = fs->sects_clust - csect;
+        /* Update file R/W pointer */
+        fp->fptr += ofs;
+      }
+  }
+  
+  /* Set updated flag if in write mode */
+  if ((fp->flag & FA_WRITE) && fp->fptr > fp->fsize) {
+    fp->fsize = fp->fptr;
+    fp->flag |= FA__WRITTEN;
+  }
+  return FR_OK;
+
+/* Abort this file due to an unrecoverable error */
+fk_error:
+  fp->flag |= FA__ERROR;
+  return FR_RW_ERROR;
+}
 
 #if _FS_MINIMIZE <= 1
 /*-----------------------------------------------------------------------*/
