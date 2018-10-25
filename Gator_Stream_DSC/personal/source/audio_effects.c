@@ -27,7 +27,7 @@
 enum side{
   LEFT,
   RIGHT
-}channel;
+}channel = LEFT;
 
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -42,8 +42,6 @@ Uint16 sdRdy = 0;
 Uint16 i = 0x00;
 Uint16 j = 0x00;
 
-
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
@@ -57,30 +55,3 @@ interrupt void audio_ISR(void) {
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;
 }
-
-
-///* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-///* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-//
-//interrupt void audio_ISR(void) {
-//  if (channel == LEFT) {
-////      leftVals[leftIndex++] = McbspbRegs.DRR1.all;
-//      McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
-////      if(leftIndex >= 128)
-////          leftIndex=0;
-////      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
-////    j >= 86 ? j = 0, i++ : j++;
-//  }
-//  else if (channel == RIGHT) {
-////      rightVals[rightIndex++] = McbspbRegs.DRR1.all;
-//      McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
-////      if(rightIndex >= 128) {
-////          rightIndex=0;
-////          sdRdy=1;
-////      }
-////      McbspbRegs.DXR1.all = (signed int)(((float)(signed int)McbspbRegs.DRR1.all/32768.0 * ((float)sinLut[i > 511 ? i=0 : i]/65535.0 + 16383.0))*32768);
-////      j >= 86 ? j = 0, i++ : j++;
-//  }
-//  channel ^= 1;
-//  PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;
-//}

@@ -6,11 +6,11 @@ extern "C" {
 #endif
 
 /* wave file format codes */
-#define WAVE_FORMAT_PCM             0x0100
-#define WAVE_FORMAT_IEEE_FLOAT      0x0300
-#define WAVE_FORMAT_ALAW            0x0600
-#define WAVE_FORMAT_MULAW           0x0700
-#define WAVE_FORMAT_EXTENSIBLE      0xfeff
+#define WAVE_FORMAT_PCM             0x0001
+#define WAVE_FORMAT_IEEE_FLOAT      0x0003
+#define WAVE_FORMAT_ALAW            0x0006
+#define WAVE_FORMAT_MULAW           0x0007
+#define WAVE_FORMAT_EXTENSIBLE      0xfffe
 
 #define NUM_TO_ARR(n, s)   s==4 ? ((unsigned char[]){ (unsigned char)(n),               \
                                                       (unsigned char)(n >> 8),          \

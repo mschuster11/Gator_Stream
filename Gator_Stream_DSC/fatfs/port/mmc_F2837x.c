@@ -347,8 +347,8 @@ static BOOL rcvr_datablock_pcm (BYTE *buff, UINT wordsToRead) {
   BYTE hi, low;
   /* Receive the data block into buffer */
   do {
-    rcvr_spi_m(&hi);
     rcvr_spi_m(&low);
+    rcvr_spi_m(&hi);
     *buff = hi << 8 | low;
     buff++;
   }
@@ -410,8 +410,8 @@ static BOOL xmit_datablock_pcm (const BYTE *buff, BYTE token) {
     wc = 256;
     /* Xmit the 512 byte data block to MMC */
     do {
-      xmit_spi((*buff >> 8));
       xmit_spi((*buff & 0x00FF));
+      xmit_spi((*buff >> 8));
       *buff++;
     }
     while (--wc);
