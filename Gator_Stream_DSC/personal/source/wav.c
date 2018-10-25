@@ -96,8 +96,9 @@ void wave_parse_header(WaveFile* self) {
 
 void wave_write_header(WaveFile* self) {
   WORD* write_count = 0;
+//  uint16_t littleEndianSizeWords[2];
 
-  f_lseek(self->fp, 0);
+  f_lseek_pcm(self->fp, 0);
 
   self->chunk.size = (WAVE_MASTER_CHUNK_WAVE_ID_LEN +
                       WAVE_FORMAT_CHUNK_ID_LEN +
@@ -126,7 +127,10 @@ void wave_write_header(WaveFile* self) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
-
+//  littleEndianSizeWords[1] = ((self->chunk.size & 0xFF000000) >> 24) |
+//                             ((self->chunk.size & 0x00FF0000) >> 8);
+//  littleEndianSizeWords[0] = ((self->chunk.size & 0x0000FF00) >> 8) |
+//                             ((self->chunk.size & 0x000000FF) << 8);
   f_write_pcm(self->fp, (uint16_t*)&self->chunk.size, WAVE_MASTER_CHUNK_SIZE_LEN, write_count);
   if (*write_count != WAVE_MASTER_CHUNK_SIZE_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
@@ -156,7 +160,8 @@ void wave_write_header(WaveFile* self) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
-
+//  littleEndianSizeWords[0] = ((self->chunk.format_chunk.n_channels & 0x0000FF00) >> 8) |
+//                             ((self->chunk.format_chunk.n_channels & 0x000000FF) << 8);
   f_write_pcm(self->fp, (uint16_t*)&self->chunk.format_chunk.n_channels, WAVE_FORMAT_CHUNK_N_CHANNELS_LEN, write_count);
   if (*write_count != WAVE_FORMAT_CHUNK_N_CHANNELS_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
@@ -174,13 +179,15 @@ void wave_write_header(WaveFile* self) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
-
+//  littleEndianSizeWords[0] = ((self->chunk.format_chunk.block_align & 0x0000FF00) >> 8) |
+//                             ((self->chunk.format_chunk.block_align & 0x000000FF) << 8);
   f_write_pcm(self->fp, (uint16_t*)&self->chunk.format_chunk.block_align, WAVE_FORMAT_CHUNK_BLOCK_ALIGN_LEN, write_count);
   if (*write_count != WAVE_FORMAT_CHUNK_BLOCK_ALIGN_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
-
+//  littleEndianSizeWords[0] = ((self->chunk.format_chunk.bits_per_sample & 0x0000FF00) >> 8) |
+//                             ((self->chunk.format_chunk.bits_per_sample & 0x000000FF) << 8);
   f_write_pcm(self->fp, (uint16_t*)&self->chunk.format_chunk.bits_per_sample, WAVE_FORMAT_CHUNK_BITS_PER_SAMPLE_LEN, write_count);
   if (*write_count != WAVE_FORMAT_CHUNK_BITS_PER_SAMPLE_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
@@ -192,7 +199,10 @@ void wave_write_header(WaveFile* self) {
     self->error_code = WAVE_ERROR_STDIO;
     return;
   }
-
+//  littleEndianSizeWords[1] = ((self->chunk.data_chunk.size & 0xFF000000) >> 24) |
+//                                      ((self->chunk.data_chunk.size & 0x00FF0000) >> 8);
+//  littleEndianSizeWords[0] = ((self->chunk.data_chunk.size & 0x0000FF00) >> 8) |
+//                                     ((self->chunk.data_chunk.size & 0x000000FF) << 8);
   f_write_pcm(self->fp, (uint16_t*)&self->chunk.data_chunk.size, WAVE_DATA_CHUNK_SIZE_LEN, write_count);
   if (*write_count != WAVE_DATA_CHUNK_SIZE_LEN) {
     self->error_code = WAVE_ERROR_STDIO;
@@ -268,8 +278,8 @@ void wave_init(WaveFile* self, char* filename, char* mode) {
   self->chunk.format_chunk.size = 16;
   self->chunk.format_chunk.format_tag = WAVE_FORMAT_PCM;
   self->chunk.format_chunk.n_channels = 2;
-  self->chunk.format_chunk.sample_rate = 0x00AC0044;
-  self->chunk.format_chunk.avg_bytes_per_sec = 0x0000000200B10010;
+  self->chunk.format_chunk.sample_rate = 44100;
+  self->chunk.format_chunk.avg_bytes_per_sec = 176400;
   self->chunk.format_chunk.block_align = 4;
   self->chunk.format_chunk.bits_per_sample = 16;
 
@@ -405,7 +415,6 @@ size_t wave_read(void** buffers, size_t count, WaveFile* wave) {
     }
   }
 
-//  read_count = fread(wave->tmp, sample_size, n_channels * count, wave->fp);
   f_read(wave->fp, wave->tmp, (sample_size * n_channels * count), read_count);
   if (f_error(wave->fp)) {
     wave->error_code = WAVE_ERROR_STDIO;
@@ -418,7 +427,6 @@ size_t wave_read(void** buffers, size_t count, WaveFile* wave) {
       for (k = 0; k < sample_size; ++k) {
         ((uint16_t*)buffers[i])[j*container_size + k] = wave->tmp[j*n_channels*sample_size + i*sample_size + k];
       }
-
       /* sign extension */
       if (((uint16_t*)buffers[i])[j*container_size + k-1] & 0x80) {
         for (; k < container_size; ++k) {
@@ -507,7 +515,7 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
   if (wave->error_code != WAVE_SUCCESS) {
     return 0;
   }
-  if (f_lseek(wave->fp, save_pos) != 0) {
+  if (f_lseek_pcm(wave->fp, save_pos) != 0) {
     wave->error_code = WAVE_ERROR_STDIO;
     return 0;
   }

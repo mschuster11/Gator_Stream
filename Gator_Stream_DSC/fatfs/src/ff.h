@@ -198,12 +198,14 @@ FRESULT f_read (FIL*, void*, WORD, WORD*);            /* Read data from a file *
 FRESULT f_write (FIL*, const void*, WORD, WORD*);    /* Write data to a file */
 FRESULT f_write_pcm (FIL*, const void*, WORD, WORD*);    /* Write data to a file */
 FRESULT f_lseek (FIL*, DWORD);                        /* Move file pointer of a file object */
+FRESULT f_lseek_pcm (FIL*, DWORD);                        /* Move file pointer of a file object */
 FRESULT f_close (FIL*);                                /* Close an open file object */
 FRESULT f_opendir (DIR*, const char*);                /* Open an existing directory */
 FRESULT f_readdir (DIR*, FILINFO*);                    /* Read a directory item */
 FRESULT f_stat (const char*, FILINFO*);                /* Get file status */
 FRESULT f_getfree (const char*, DWORD*, FATFS**);    /* Get number of free clusters on the drive */
 FRESULT f_sync (FIL*);                                /* Flush cached data of a writing file */
+FRESULT f_sync_pcm (FIL*);                                /* Flush cached data of a writing file */
 FRESULT f_unlink (const char*);                        /* Delete an existing file or directory */
 FRESULT f_mkdir (const char*);                        /* Create a new directory */
 FRESULT f_chmod (const char*, BYTE, BYTE);            /* Change file/dir attriburte */
