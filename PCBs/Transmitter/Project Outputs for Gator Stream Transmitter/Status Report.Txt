@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [Gator Stream Transmitter.PrjPCB]
+   Generated File[Gator Stream Transmitter.TXT]
+   Generated File[Gator Stream Transmitter.LDP]
+   Generated File[Gator Stream Transmitter.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 4:09:19 PM On 10/25/2018

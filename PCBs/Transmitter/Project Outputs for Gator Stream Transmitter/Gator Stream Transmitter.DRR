@@ -1,0 +1,19 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: Gator Stream Transmitter.PcbDoc   10/25/2018  4:09:18 PM
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : Gator Stream Transmitter.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      10mil (0.254mm)                                           Round             82        PTH        12.26inch (311.30mm)
+T2      15mil (0.381mm)                                           Round             33        PTH        10.18inch (258.53mm)
+T3      25mil (0.635mm)                                           Round             20        PTH        2.28inch (58.00mm)
+T4      28mil (0.7mm)                                             Round             8         PTH        2.38inch (60.43mm)
+T5      30mil (0.762mm)                                           Round             4         PTH        0.70inch (17.78mm)
+T6      35mil (0.9mm)                                             Round             89        PTH        13.66inch (346.97mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              236
+
+Total Processing Time (hh:mm:ss) : 00:00:01
