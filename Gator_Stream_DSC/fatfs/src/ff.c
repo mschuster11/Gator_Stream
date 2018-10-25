@@ -283,16 +283,16 @@ DWORD create_chain (FATFS *fs, DWORD clust) {
     /* Wrap around */
     if (ncl >= mcl) {
       ncl = 2;
-      /* No free custer */
+      /* No free cluster */
       if (ncl > scl) return 0;
     }
     /* Get the cluster status */
     cstat = get_cluster(fs, ncl);
     /* Found a free cluster */
     if (cstat == 0) break;
-    /* Any error occured */
+    /* Any error occurred */
     if (cstat == 1) return 1;
-    /* No free custer */
+    /* No free cluster */
     if (ncl == scl) return 0;
   }
   /* Mark the new cluster "in use" */
@@ -1163,7 +1163,7 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
   for (; wordsToWrite; wbuff += wordCount, fp->fptr += wordCount, *bytesWritten += wordCount*2, wordsToWrite -= wordCount) {
 
     /* On the sector boundary */
-    if ((fp->fptr & (S_SIZ - 1) / 2) == 0) {
+    if ((fp->fptr & ((S_SIZ - 1) / 2)) == 0) {
 
       /* Decrement left sector counter */
       if (--fp->sect_clust) {
@@ -1185,7 +1185,7 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
 
         /* Middle or end of file */
         } else {
-          /* Trace or streach cluster chain */
+          /* Trace or stretch cluster chain */
           clust = create_chain(fs, fp->curr_clust);
         }
         /* Disk full */
@@ -1215,7 +1215,7 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
       fp->curr_sect = sect;
 
       /* When left bytes >= S_SIZ, */
-      cc = (wordsToWrite / S_SIZ) * 2;
+      cc = (wordsToWrite * 2) / S_SIZ;
 
       /* Write maximum contiguous sectors directly */
       if (cc) {
@@ -1247,7 +1247,7 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
   }
   /* Update file size if needed */
   if (fp->fptr > fp->fsize)
-    fp->fsize = fp->fptr;
+    fp->fsize = fp->fptr * 2;
 
   /* Set file changed flag */
   fp->flag |= FA__WRITTEN;
@@ -1300,6 +1300,46 @@ FRESULT f_sync (
     return res;
 }
 
+/*-----------------------------------------------------------------------*/
+/* Synchronize between File and Disk                                     */
+/*-----------------------------------------------------------------------*/
+
+FRESULT f_sync_pcm (
+    FIL *fp        /* Pointer to the file object */
+)
+{
+    DWORD tim;
+    BYTE *dir;
+    FRESULT res;
+    FATFS *fs = fp->fs;
+
+
+    res = validate(fs, fp->id);            /* Check validity of the object */
+    if (res == FR_OK) {
+        if (fp->flag & FA__WRITTEN) {    /* Has the file been written? */
+            /* Write back data buffer if needed */
+            if (fp->flag & FA__DIRTY) {
+                if (disk_write_pcm(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
+                    return FR_RW_ERROR;
+                fp->flag &= ~FA__DIRTY;
+            }
+            /* Update the directory entry */
+            if (!move_window(fs, fp->dir_sect))
+                return FR_RW_ERROR;
+            dir = fp->dir_ptr;
+            dir[DIR_Attr] |= AM_ARC;                        /* Set archive bit */
+            ST_DWORD(&dir[DIR_FileSize], fp->fsize);        /* Update file size */
+            ST_WORD(&dir[DIR_FstClusLO], fp->org_clust);    /* Update start cluster */
+            ST_WORD(&dir[DIR_FstClusHI], fp->org_clust >> 16);
+            tim = get_fattime();                    /* Updated time */
+            ST_DWORD(&dir[DIR_WrtTime], tim);
+            fp->flag &= ~FA__WRITTEN;
+            res = sync(fs);
+        }
+    }
+    return res;
+}
+
 #endif /* !_FS_READONLY */
 
 
@@ -1317,7 +1357,7 @@ FRESULT f_close (
 
 
 #if !_FS_READONLY
-    res = f_sync(fp);
+    res = f_sync_pcm(fp);
 #else
     res = validate(fp->fs, fp->id);
 #endif
@@ -1419,7 +1459,7 @@ fk_error:    /* Abort this file due to an unrecoverable error */
 /* FIL *fp,  - Pointer to the file object                                */
 /* DWORD ofs - File pointer from top of file                             */
 /*-----------------------------------------------------------------------*/
-FRESULT f_lseek (FIL *fp, DWORD ofs) {
+FRESULT f_lseek_pcm (FIL *fp, DWORD ofs) {
   DWORD clust, csize;
   BYTE csect;
   FRESULT res;
@@ -1436,7 +1476,7 @@ FRESULT f_lseek (FIL *fp, DWORD ofs) {
 
   /* Write-back dirty buffer if needed */
   if (fp->flag & FA__DIRTY) {
-    if (disk_write(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
+    if (disk_write_pcm(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
       goto fk_error;
     fp->flag &= ~FA__DIRTY;
   }
@@ -1463,8 +1503,8 @@ FRESULT f_lseek (FIL *fp, DWORD ofs) {
 
       /* If the file has a cluster chain, it can be followed */
       if (clust) {
-        /* Cluster size in unit of byte */
-        csize = (DWORD)fs->sects_clust * S_SIZ;
+        /* Cluster size in unit of word */
+        csize = (DWORD)fs->sects_clust * (S_SIZ / 2);
 
         /* Loop to skip leading clusters */
         for (;;) {
@@ -1476,7 +1516,7 @@ FRESULT f_lseek (FIL *fp, DWORD ofs) {
 
           /* Check if in write mode or not */
           if (fp->flag & FA_WRITE) {
-            /* Force streached if in write mode */
+            /* Force stretched if in write mode */
             clust = create_chain(fs, clust);
           } else {
             /* Only follow cluster chain if not in write mode */
@@ -1498,11 +1538,11 @@ FRESULT f_lseek (FIL *fp, DWORD ofs) {
         }
 
         /* Sector offset in the cluster */
-        csect = (BYTE)((ofs - 1) / S_SIZ);
+        csect = (BYTE)((ofs - 1) / (S_SIZ / 2));
         /* Current sector */
         fp->curr_sect = clust2sect(fs, clust) + csect;
         /* Load current sector if needed */
-        if ((ofs & (S_SIZ - 1)) && disk_read(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
+        if ((ofs & ((S_SIZ - 1) / 2)) && disk_read_pcm(fs->drive, fp->buffer, fp->curr_sect, 1) != RES_OK)
           goto fk_error;
 
         /* Left sector counter in the cluster */
@@ -1527,7 +1567,7 @@ fk_error:
 
 #if _FS_MINIMIZE <= 1
 /*-----------------------------------------------------------------------*/
-/* Create a directroy object                                             */
+/* Create a directory object                                             */
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_opendir (
@@ -1565,7 +1605,7 @@ FRESULT f_opendir (
 
 
 /*-----------------------------------------------------------------------*/
-/* Read Directory Entry in Sequense                                      */
+/* Read Directory Entry in Sequence                                      */
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_readdir (

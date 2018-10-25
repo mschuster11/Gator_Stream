@@ -16,19 +16,19 @@ extern "C" {
 #endif
 
 #ifdef WAVE_ENDIAN_LITTLE
-#define WAVE_RIFF_CHUNK_ID          0x46464952 // 'FFIR'
-#define WAVE_FORMAT_CHUNK_ID        0x20746d66 // ' tmf'
-#define WAVE_FACT_CHUNK_ID          0x74636166 // 'tcaf'
-#define WAVE_DATA_CHUNK_ID          0x61746164 // 'atad'
-#define WAVE_WAVE_ID                0x45564157 // 'EVAW'
+#define WAVE_RIFF_CHUNK_ID          0x46465249 // 'FFIR'
+#define WAVE_FORMAT_CHUNK_ID        0x7420666d // ' tmf'
+#define WAVE_FACT_CHUNK_ID          0x63746661 // 'tcaf'
+#define WAVE_DATA_CHUNK_ID          0x74616461 // 'atad'
+#define WAVE_WAVE_ID                0x56455741 // 'EVAW'
 #endif
 
 #ifdef WAVE_ENDIAN_BIG
-#define WAVE_RIFF_CHUNK_ID          0x0052004900460046 // 'RIFF'
-#define WAVE_FORMAT_CHUNK_ID        0x0066006d00740020 // 'fmt '
-#define WAVE_FACT_CHUNK_ID          0x0066006100630074 // 'fact'
-#define WAVE_DATA_CHUNK_ID          0x0064006100740061 // 'data'
-#define WAVE_WAVE_ID                0x0057004100560045 // 'WAVE'
+#define WAVE_RIFF_CHUNK_ID          0x52494646 // 'RIFF'
+#define WAVE_FORMAT_CHUNK_ID        0x666d7420 // 'fmt '
+#define WAVE_FACT_CHUNK_ID          0x66616374 // 'fact'
+#define WAVE_DATA_CHUNK_ID          0x64617461 // 'data'
+#define WAVE_WAVE_ID                0x57415645 // 'WAVE'
 #endif
 
 #define WAVE_MASTER_CHUNK_ID_LEN                        4
