@@ -157,6 +157,10 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=XCDJIROT
 
+[GeneratedDocument1]
+DocumentPath=Project Outputs for Gator Stream Transmitter\Design Rule Check - Gator Stream Transmitter.html
+DItemRevisionGUID=
+
 [Configuration1]
 Name=Sources
 ParameterCount=0
