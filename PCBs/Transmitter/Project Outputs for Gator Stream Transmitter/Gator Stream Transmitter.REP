@@ -3,7 +3,7 @@ FileName = Gator Stream Transmitter.GBR
 AutoAperture = True
 *************************************************************
 Generating : Top Layer
-      File : Gator Stream Transmitter_Copper_Signal_Top.gbr
+      File : Gator Stream Transmitter.GTL
 
     Adding Layer      : Top Layer
 
@@ -39,7 +39,7 @@ Used DCodes :
 
 *************************************************************
 Generating : Bottom Layer
-      File : Gator Stream Transmitter_Copper_Signal_Bot.gbr
+      File : Gator Stream Transmitter.GBL
 
     Adding Layer      : Bottom Layer
 
@@ -47,8 +47,8 @@ Generating : Bottom Layer
 
 
 Used DCodes :
-    D10
-    D11
+    D12
+    D13
     D23
     D24
     D25
@@ -64,7 +64,7 @@ Used DCodes :
 
 *************************************************************
 Generating : Bottom Pad Master
-      File : Gator Stream Transmitter_Pads_Bot.gbr
+      File : Gator Stream Transmitter.GPB
 
     Adding Layer      : Bottom Layer
 
@@ -72,8 +72,8 @@ Generating : Bottom Pad Master
 
 
 Used DCodes :
-    D10
-    D11
+    D12
+    D13
     D24
     D25
     D26
@@ -86,7 +86,7 @@ Used DCodes :
 
 *************************************************************
 Generating : Top Pad Master
-      File : Gator Stream Transmitter_Pads_Top.gbr
+      File : Gator Stream Transmitter.GPT
 
     Adding Layer      : Top Layer
 
@@ -119,24 +119,51 @@ Used DCodes :
 
 *************************************************************
 Generating : Top Overlay
-      File : Gator Stream Transmitter_Legend_Top.gbr
+      File : Gator Stream Transmitter.GTO
 
     Adding Layer      : Top Overlay
 
 
 Used DCodes :
+    D23
     D34
     D35
     D36
     D37
     D38
     D39
+*************************************************************
+
+*************************************************************
+Generating : Top Paste
+      File : Gator Stream Transmitter.GTP
+
+    Adding Layer      : Top Paste
+
+    Adding Layer      : Top Layer
+
+    Adding Layer      : Multi-Layer
+
+
+Used DCodes :
+    D10
+    D11
+    D12
+    D13
+    D15
+    D16
+    D17
+    D18
+    D19
+    D20
+    D21
     D40
+    D41
 *************************************************************
 
 *************************************************************
 Generating : Top Solder
-      File : Gator Stream Transmitter_Soldermask_Top.gbr
+      File : Gator Stream Transmitter.GTS
 
     Adding Layer      : Top Solder
 
@@ -146,11 +173,11 @@ Generating : Top Solder
 
 
 Used DCodes :
-    D12
-    D13
-    D14
+    D20
+    D21
+    D22
+    D30
     D32
-    D41
     D42
     D43
     D44
@@ -172,36 +199,8 @@ Used DCodes :
 *************************************************************
 
 *************************************************************
-Generating : Bottom Paste
-      File : Gator Stream Transmitter_Paste_Bot.gbr
-
-    Adding Layer      : Bottom Paste
-
-    Adding Layer      : Bottom Layer
-
-    Adding Layer      : Multi-Layer
-
-
-Used DCodes :
-    D10
-    D11
-*************************************************************
-
-*************************************************************
-Generating : Bottom Overlay
-      File : Gator Stream Transmitter_Legend_Bot.gbr
-
-    Adding Layer      : Bottom Overlay
-
-
-Used DCodes :
-    D34
-    D39
-*************************************************************
-
-*************************************************************
 Generating : Bottom Solder
-      File : Gator Stream Transmitter_Soldermask_Bot.gbr
+      File : Gator Stream Transmitter.GBS
 
     Adding Layer      : Bottom Solder
 
@@ -211,10 +210,10 @@ Generating : Bottom Solder
 
 
 Used DCodes :
+    D30
     D32
-    D41
-    D42
-    D51
+    D44
+    D45
     D52
     D53
     D54
@@ -226,71 +225,47 @@ Used DCodes :
 *************************************************************
 
 *************************************************************
-Generating : Top Paste
-      File : Gator Stream Transmitter_Paste_Top.gbr
+Generating : Bottom Paste
+      File : Gator Stream Transmitter.GBP
 
-    Adding Layer      : Top Paste
+    Adding Layer      : Bottom Paste
 
-    Adding Layer      : Top Layer
+    Adding Layer      : Bottom Layer
 
     Adding Layer      : Multi-Layer
 
 
 Used DCodes :
-    D10
-    D11
+    D12
     D13
-    D14
-    D15
-    D16
-    D17
-    D18
-    D19
-    D21
-    D22
-    D60
-    D61
+*************************************************************
+
+*************************************************************
+Generating : Bottom Overlay
+      File : Gator Stream Transmitter.GBO
+
+    Adding Layer      : Bottom Overlay
+
+
+Used DCodes :
+    D23
+    D38
 *************************************************************
 
 *************************************************************
 Generating : Keep-Out Layer
-      File : Gator Stream Transmitter_Keep-out.gbr
+      File : Gator Stream Transmitter.GKO
 
     Adding Layer      : Keep-Out Layer
 
 
 Used DCodes :
-    D34
-*************************************************************
-
-*************************************************************
-Generating : Mechanical 13
-      File : Gator Stream Transmitter_Mechanical_13.gbr
-
-    Adding Layer      : Mechanical 13
-
-
-Used DCodes :
-    D38
-    D62
-    D63
-*************************************************************
-
-*************************************************************
-Generating : Mechanical 15
-      File : Gator Stream Transmitter_Mechanical_15.gbr
-
-    Adding Layer      : Mechanical 15
-
-
-Used DCodes :
-    D62
-    D64
+    D23
 *************************************************************
 
 *************************************************************
 Generating : Mechanical 1
-      File : Gator Stream Transmitter_Mechanical_1.gbr
+      File : Gator Stream Transmitter.GM1
 
     Adding Layer      : Mechanical 1
 
@@ -299,11 +274,27 @@ Used DCodes :
 *************************************************************
 
 *************************************************************
-Generating : Profile
-      File : Gator Stream Transmitter_Profile.gbr
+Generating : Mechanical 13
+      File : Gator Stream Transmitter.GM13
+
+    Adding Layer      : Mechanical 13
 
 
 Used DCodes :
-    D65
+    D37
+    D60
+    D61
+*************************************************************
+
+*************************************************************
+Generating : Mechanical 15
+      File : Gator Stream Transmitter.GM15
+
+    Adding Layer      : Mechanical 15
+
+
+Used DCodes :
+    D60
+    D62
 *************************************************************
 
