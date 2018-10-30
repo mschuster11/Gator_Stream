@@ -29,16 +29,23 @@ enum side{
   RIGHT
 }channel = LEFT;
 
-
+enum buffer{
+  FIRST,
+  SECOND
+}bufferNum = FIRST;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
-Uint16 leftVals[128];
-Uint16 rightVals[128];
-Uint16 leftIndex = 0x00;
-Uint16 rightIndex = 0x00;
-Uint16 sdRdy = 0;
+int16 leftVals1[2048];
+int16 rightVals1[2048];
+int16 leftVals2[2048];
+int16 rightVals2[2048];
+int16* buf[2];
+
+Uint16 bufIndexL = 0x00;
+Uint16 bufIndexR = 0x00;
+bool_t sdRdy = 0;
 Uint16 i = 0x00;
 Uint16 j = 0x00;
 
@@ -47,11 +54,35 @@ Uint16 j = 0x00;
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
+    if (bufferNum == FIRST) {
+      leftVals1[bufIndexL++] = McbspbRegs.DRR1.all;
+    } else {
+      leftVals2[bufIndexL++] = McbspbRegs.DRR1.all;
+    }
+    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+  } else if (channel == RIGHT) {
+    if (bufferNum == FIRST) {
+      rightVals1[bufIndexR++] = McbspbRegs.DRR1.all;
+    } else {
+      rightVals2[bufIndexR++] = McbspbRegs.DRR1.all;
+    }
     McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
   }
-  else if (channel == RIGHT) {
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
-  }
+
+  if (bufIndexR > 2047 && bufIndexL > 2047) {
+    bufIndexL = 0;
+    bufIndexR = 0;
+    sdRdy = 1;
+    if(bufferNum == FIRST) {
+      buf[0] = leftVals1;
+      buf[1] = rightVals1;
+      bufferNum = SECOND;
+    } else {
+      buf[0] = leftVals2;
+      buf[1] = rightVals2;
+      bufferNum = FIRST;
+    }
+  } 
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;
 }

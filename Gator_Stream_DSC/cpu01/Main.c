@@ -28,19 +28,14 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-Uint16 sinLut1[100] = {
-                       0x0000,
-                       0x0809, 0x100a, 0x17fb, 0x1fd4, 0x278d, 0x2f1e, 0x367f, 0x3da9, 0x4495, 0x4b3b,
-                       0x5196, 0x579e, 0x5d4e, 0x629f, 0x678d, 0x6c12, 0x7029, 0x73d0, 0x7701, 0x79bb,
-                       0x7bf9, 0x7dba, 0x7efc, 0x7fbe, 0x7fff, 0x7fbe, 0x7efc, 0x7dba, 0x7bf9, 0x79bb,
-                       0x7701, 0x73d0, 0x7029, 0x6c12, 0x678d, 0x629f, 0x5d4e, 0x579e, 0x5196, 0x4b3b,
-                       0x4495, 0x3da9, 0x367f, 0x2f1e, 0x278d, 0x1fd4, 0x17fb, 0x100a, 0x0809, 0x0000,
-                       0xf7f7, 0xeff6, 0xe805, 0xe02c, 0xd873, 0xd0e2, 0xc981, 0xc257, 0xbb6b, 0xb4c5,
-                       0xae6a, 0xa862, 0xa2b2, 0x9d61, 0x9873, 0x93ee, 0x8fd7, 0x8c30, 0x88ff, 0x8645,
-                       0x8407, 0x8246, 0x8104, 0x8042, 0x8001, 0x8042, 0x8104, 0x8246, 0x8407, 0x8645,
-                       0x88ff, 0x8c30, 0x8fd7, 0x93ee, 0x9873, 0x9d61, 0xa2b2, 0xa862, 0xae6a, 0xb4c5,
-                       0xbb6b, 0xc257, 0xc981, 0xd0e2, 0xd873, 0xe02c, 0xe805, 0xeff6, 0xf7f7
-};
+extern bool_t sdRdy;
+bool_t fRdy = TRUE;
+static uint16_t count = 0;
+extern int16 leftVals1[2048];
+extern int16 rightVals1[2048];
+extern int16 leftVals2[2048];
+extern int16 rightVals2[2048];
+extern int16* buf[2];
 char g_uartRemoteRxBuf[100];
 bool_t newRemoteCmd = FALSE;
 static uint16_t uartRemoteRxBufIndex = 0;
@@ -109,14 +104,23 @@ int main (void) {
 
   f_unlink("/New_Song.wav");
   WaveFile* wf = wave_open("/New_Song.wav", "w");
-  Uint16* buf[2];
-  buf[0] = sinLut1;
-  buf[1] = sinLut1;
-  for(uint16_t j=0; j<4410; j++) {
-    wave_write((void **)buf, 100, wf);
-  }
-  wave_close(wf);
+  buf[0] = leftVals2;
+  buf[1] = rightVals2;
+  // for(uint16_t j=0; j<4410; j++) {
+  //   wave_write((void **)buf, 100, wf);
+  // }
+//  wave_close(wf);
   while(1) {
+    if(fRdy && sdRdy) {
+      if(count < 3024){
+        sdRdy = FALSE;
+        wave_write((void **)buf, 2048, wf);
+        count++;
+      } else {
+        fRdy = FALSE;
+        wave_close(wf);
+      }
+    }
     if(newRemoteCmd == TRUE) {
       UARTprintf("%s\n", g_uartRemoteRxBuf);
       scic_txChar('i');

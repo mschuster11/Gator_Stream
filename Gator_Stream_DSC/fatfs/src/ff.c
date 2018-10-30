@@ -1143,21 +1143,21 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
   WORD wordsToWrite = bytesToWrite/2;
   *bytesWritten = 0;
   /* Check validity of the object */
-  res = validate(fs, fp->id);
-  if (res)
-    return res;
+//  res = validate(fs, fp->id);
+//  if (res)
+//    return res;
 
   /* Check error flag */
-  if (fp->flag & FA__ERROR)
-    return FR_RW_ERROR;
+//  if (fp->flag & FA__ERROR)
+//    return FR_RW_ERROR;
 
   /* Check access mode */
-  if (!(fp->flag & FA_WRITE))
-    return FR_DENIED;
+//  if (!(fp->flag & FA_WRITE))
+//    return FR_DENIED;
 
   /* File size cannot reach 4GB */
-  if (fp->fsize + bytesToWrite < fp->fsize)
-    return FR_OK;
+//  if (fp->fsize + bytesToWrite < fp->fsize)
+//    return FR_OK;
 
   /* Repeat until all data transferred */
   for (; wordsToWrite; wbuff += wordCount, fp->fptr += wordCount, *bytesWritten += wordCount*2, wordsToWrite -= wordCount) {
@@ -1192,8 +1192,8 @@ FRESULT f_write_pcm (FIL *fp, const void *buff, WORD bytesToWrite, WORD *bytesWr
         if (clust == 0)
           break;
 
-        if (clust == 1 || clust >= fs->max_clust)
-          goto fw_error;
+//        if (clust == 1 || clust >= fs->max_clust)
+//          goto fw_error;
 
         /* Current cluster */
         fp->curr_clust = clust;

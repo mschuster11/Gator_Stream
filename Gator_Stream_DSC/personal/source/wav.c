@@ -448,32 +448,31 @@ size_t wave_read(void** buffers, size_t count, WaveFile* wave) {
 
 size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
   WORD* write_count = NULL;
-  uint16_t n_channels = wave_get_num_channels(wave);
-  size_t sample_size = wave_get_sample_size(wave);
-  size_t container_size = wave_calc_container_size(sample_size);
+  uint16_t n_channels = 2;//wave_get_num_channels(wave);
+  size_t sample_size = 2;//wave_get_sample_size(wave);
+  size_t container_size = 2;//wave_calc_container_size(sample_size);
   size_t i, j, k;
   long int save_pos;
 
-  if (strcmp(wave->mode, "rb") == 0) {
-    wave->error_code = WAVE_ERROR_MODE;
-    return 0;
-  }
-
-  if (wave->chunk.format_chunk.format_tag == WAVE_FORMAT_EXTENSIBLE) {
-    wave->error_code = WAVE_ERROR_FORMAT;
-    return 0;
-  }
-
-  if (count == 0) {
-    wave->error_code = WAVE_SUCCESS;
-    return 0;
-  }
-
-  wave_tell(wave);
-  wave->error_code = WAVE_SUCCESS;
-  if (wave->error_code != WAVE_SUCCESS) {
-    return 0;
-  }
+//  if (strcmp(wave->mode, "rb") == 0) {
+//    wave->error_code = WAVE_ERROR_MODE;
+//    return 0;
+//  }
+//
+//  if (wave->chunk.format_chunk.format_tag == WAVE_FORMAT_EXTENSIBLE) {
+//    wave->error_code = WAVE_ERROR_FORMAT;
+//    return 0;
+//  }
+//
+//  if (count == 0) {
+//    wave->error_code = WAVE_SUCCESS;
+//    return 0;
+//  }
+//
+//  wave_tell(wave);
+//  if (wave->error_code != WAVE_SUCCESS) {
+//    return 0;
+//  }
 
   if (wave->tmp_size < n_channels * count * sample_size || !wave->tmp) {
       if (wave->tmp) {
@@ -481,11 +480,11 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
       }
       wave->tmp_size = n_channels * count * sample_size;
       wave->tmp = malloc(wave->tmp_size);
-      if (wave->tmp == NULL) {
-        wave->tmp_size = 0;
-        wave->error_code = WAVE_ERROR_MALLOC;
-        return 0;
-      }
+//      if (wave->tmp == NULL) {
+//        wave->tmp_size = 0;
+//        wave->error_code = WAVE_ERROR_MALLOC;
+//        return 0;
+//      }
   }
 
   for (i = 0; i < n_channels; ++i) {
@@ -499,22 +498,22 @@ size_t wave_write(void** buffers, size_t count, WaveFile* wave) {
   }
 
   f_write_pcm(wave->fp, wave->tmp, (sample_size * n_channels * count), write_count);
-  if (f_error(wave->fp)) {
-    wave->error_code = WAVE_ERROR_STDIO;
-    return 0;
-  }
+//  if (f_error(wave->fp)) {
+//    wave->error_code = WAVE_ERROR_STDIO;
+//    return 0;
+//  }
 
   wave->chunk.data_chunk.size += (*write_count);
 
   save_pos = f_tell(wave->fp);
-  if (save_pos == -1L) {
-    wave->error_code = WAVE_ERROR_STDIO;
-    return 0;
-  }
+//  if (save_pos == -1L) {
+//    wave->error_code = WAVE_ERROR_STDIO;
+//    return 0;
+//  }
   wave_write_header(wave);
-  if (wave->error_code != WAVE_SUCCESS) {
-    return 0;
-  }
+//  if (wave->error_code != WAVE_SUCCESS) {
+//    return 0;
+//  }
   if (f_lseek_pcm(wave->fp, save_pos) != 0) {
     wave->error_code = WAVE_ERROR_STDIO;
     return 0;

@@ -508,7 +508,7 @@ static BYTE send_cmd12 (void) {
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */
-/* @ BYTE drv - Physical drive nmuber (0)                                */
+/* @ BYTE drv - Physical drive number (0)                                */
 /*-----------------------------------------------------------------------*/
 DSTATUS disk_initialize (BYTE drv) {
   BYTE n, ty, ocr[4];
@@ -559,7 +559,7 @@ DSTATUS disk_initialize (BYTE drv) {
   DESELECT();            /* CS = H */
   rcvr_spi();            /* Idle (Release DO) */
 
-  /* Initialization succeded */
+  /* Initialization succeed */
   if (ty) {
     Stat &= ~STA_NOINIT;        /* Clear STA_NOINIT */
     set_max_speed();
