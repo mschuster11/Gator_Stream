@@ -158,7 +158,7 @@ GenerateClassCluster=0
 DocumentUniqueId=XCDJIROT
 
 [Document8]
-DocumentPath=CAMtastic4.Cam
+DocumentPath=NC Drill Files.Cam
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
