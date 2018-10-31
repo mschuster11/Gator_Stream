@@ -38,24 +38,7 @@ PrefsVaultGUID=
 PrefsRevisionGUID=
 
 [Document1]
-DocumentPath=..\Transmitter\Gator_Stream.PcbLib
-AnnotationEnabled=1
-AnnotateStartValue=1
-AnnotationIndexControlEnabled=0
-AnnotateSuffix=
-AnnotateScope=All
-AnnotateOrder=-1
-DoLibraryUpdate=1
-DoDatabaseUpdate=1
-ClassGenCCAutoEnabled=1
-ClassGenCCAutoRoomEnabled=1
-ClassGenNCAutoScope=None
-DItemRevisionGUID=
-GenerateClassCluster=0
-DocumentUniqueId=IFXJKATE
-
-[Document2]
-DocumentPath=..\Transmitter\Gator_Stream.SchLib
+DocumentPath=Gator_Stream.SchLib
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -71,7 +54,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=EINPPHAJ
 
-[Document3]
+[Document2]
 DocumentPath=Gator Stream Receiver Top Sheet.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -88,7 +71,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=CWOKQGDG
 
-[Document4]
+[Document3]
 DocumentPath=MSP432.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -105,7 +88,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=KPYRJVCC
 
-[Document5]
+[Document4]
 DocumentPath=Audio output Codec.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -122,7 +105,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=SDDUKAUO
 
-[Document6]
+[Document5]
 DocumentPath=Gator Stream Receiver.PcbDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
