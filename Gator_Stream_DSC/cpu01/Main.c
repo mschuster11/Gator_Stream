@@ -17,7 +17,6 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 #include "F28x_Project.h"
-#include "F28x_Project.h"
 #include "personal/headers/audio_effects.h"
 #include "personal/headers/sd_utils.h"
 #include "personal/headers/wav.h"
