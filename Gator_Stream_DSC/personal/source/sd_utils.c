@@ -495,12 +495,12 @@ void ConfigureUART(void) {
   SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
 
 //   Configure GPIO Pins for UART mode.
-   GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
-   GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
-   GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
-   GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
+  GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
+  GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
 
-   UARTStdioConfig(0, 115200, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
+  UARTStdioConfig(0, 115200, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
 }
 
 

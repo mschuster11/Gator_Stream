@@ -454,6 +454,7 @@ void InitMcbspbGpio(void) {
     //
     GpioCtrlRegs.GPAMUX2.bit.GPIO24 = 3;
     GpioCtrlRegs.GPAINV.bit.GPIO24 = 1;
+    GpioCtrlRegs.GPACSEL4.bit.GPIO24 = 2;
     // GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
     // GpioCtrlRegs.GPCMUX2.bit.GPIO84 = 2;
 
@@ -467,6 +468,7 @@ void InitMcbspbGpio(void) {
     //GpioCtrlRegs.GPAQSEL1.bit.GPIO13 = 3;
     GpioCtrlRegs.GPAMUX2.bit.GPIO25 = 3;
     GpioCtrlRegs.GPAQSEL2.bit.GPIO25 = 3;
+    GpioCtrlRegs.GPACSEL4.bit.GPIO25 = 2;
     // GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
     // GpioCtrlRegs.GPCMUX2.bit.GPIO85 = 2;
     // GpioCtrlRegs.GPCQSEL2.bit.GPIO85 = 3;
@@ -481,6 +483,7 @@ void InitMcbspbGpio(void) {
     //GpioCtrlRegs.GPAQSEL1.bit.GPIO14 = 3;
     GpioCtrlRegs.GPAMUX2.bit.GPIO26 = 3;
     GpioCtrlRegs.GPAQSEL2.bit.GPIO26 = 3;
+    GpioCtrlRegs.GPACSEL4.bit.GPIO26 = 2;
     // GpioCtrlRegs.GPCGMUX2.bit.GPIO86 = 1;
     // GpioCtrlRegs.GPCMUX2.bit.GPIO86 = 2;
     // GpioCtrlRegs.GPCQSEL2.bit.GPIO86= 3;
@@ -493,6 +496,7 @@ void InitMcbspbGpio(void) {
     //
     GpioCtrlRegs.GPAMUX1.bit.GPIO3 = 3;
     GpioCtrlRegs.GPAQSEL1.bit.GPIO3 = 3;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO3 = 2;
     // GpioCtrlRegs.GPBMUX2.bit.GPIO60 = 1;
     // GpioCtrlRegs.GPBQSEL2.bit.GPIO60 = 3;
 
@@ -506,6 +510,7 @@ void InitMcbspbGpio(void) {
     // GpioCtrlRegs.GPAQSEL1.bit.GPIO15 = 3;
     GpioCtrlRegs.GPAMUX2.bit.GPIO27 = 3;
     GpioCtrlRegs.GPAQSEL2.bit.GPIO27 = 3;
+    GpioCtrlRegs.GPACSEL4.bit.GPIO27 = 2;
     // GpioCtrlRegs.GPCGMUX2.bit.GPIO87 = 1;
     // GpioCtrlRegs.GPCMUX2.bit.GPIO87 = 2;
     // GpioCtrlRegs.GPCQSEL2.bit.GPIO87= 3;
@@ -518,9 +523,11 @@ void InitMcbspbGpio(void) {
     //
     GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 3;
     GpioCtrlRegs.GPAQSEL1.bit.GPIO1 = 3;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO1 = 2;
     // GpioCtrlRegs.GPBMUX2.bit.GPIO61 = 1;
     // GpioCtrlRegs.GPBQSEL2.bit.GPIO61 = 3;
 
+    DevCfgRegs.CPUSEL9.bit.McBSP_B = 1;
     EDIS;
 
 #endif

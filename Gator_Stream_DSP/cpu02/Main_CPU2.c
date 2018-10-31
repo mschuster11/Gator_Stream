@@ -56,9 +56,7 @@
 //
 #include "F28x_Project.h"
 #include "F2837xD_Ipc_drivers.h"
-#include "personal/headers/sd_utils.h"
-#include "personal/headers/wav.h"
-#include "personal/headers/wav_priv.h"
+#include "personal/headers/audio_effects.h"
 
 //
 // Defines
@@ -101,27 +99,15 @@ void Error (void);
 //
 // Main
 //
-void
-main(void) {
-    uint32_t *pulMsgRam;
-    uint16_t counter;
-
-//
-// Step 1. Initialize System Control (Performed by CPU01):
-// PLL, WatchDog, enable Peripheral Clocks
-//
-//  InitSysCtrl();
-
-//
-// Step 2. Initialize GPIO:
-//
-// InitGpio();  // Skipped for this example
-
+void main(void) {
+  uint32_t *pulMsgRam;
+  uint16_t counter;
+  InitSysCtrl();
 //
 // Step 3. Clear all interrupts and initialize PIE vector table:
 // Disable CPU interrupts
 //
-    DINT;
+  DINT;
 
 //
 // Initialize PIE control registers to their default state.
@@ -129,13 +115,13 @@ main(void) {
 // are cleared.
 // This function is found in the F2837xD_PieCtrl.c file.
 //
-    InitPieCtrl();
+  InitPieCtrl();
 
 //
 // Disable CPU interrupts and clear all CPU interrupt flags:
 //
-    IER = 0x0000;
-    IFR = 0x0000;
+  IER = 0x0000;
+  IFR = 0x0000;
 
 //
 // Initialize the PIE vector table with pointers to the shell Interrupt
@@ -145,22 +131,28 @@ main(void) {
 // The shell ISR routines are found in F2837xD_DefaultISR.c.
 // This function is found in F2837xD_PieVect.c.
 //
-    InitPieVectTable();
+  InitPieVectTable();
 
 //
 // Interrupts that are used in this example are re-mapped to
 // ISR functions found within this file.
 //
-    EALLOW;  // This is needed to write to EALLOW protected registers
-    PieVectTable.IPC0_INT = &CPU01toCPU02IPC0IntHandler;
-    PieVectTable.IPC1_INT = &CPU01toCPU02IPC1IntHandler;
-    EDIS;    // This is needed to disable write to EALLOW protected registers
+  EALLOW;  // This is needed to write to EALLOW protected registers
+  PieVectTable.IPC0_INT = &CPU01toCPU02IPC0IntHandler;
+  PieVectTable.IPC1_INT = &CPU01toCPU02IPC1IntHandler;
+
+  // Enable the McBsp Tx (Audio Transmission) interrupt and point to its ISR (PIE: 6.1).
+  PieVectTable.MCBSPB_RX_INT = audio_ISR;
+  PieCtrlRegs.PIEIER6.bit.INTx7 = 1;
+  IER |= M_INT6;
+
+  EDIS;    // This is needed to disable write to EALLOW protected registers
 
 //
 // Step 4. Initialize the Device Peripherals:
 //
-    IPCInitialize(&g_sIpcController1, IPC_INT0, IPC_INT0);
-    IPCInitialize(&g_sIpcController2, IPC_INT1, IPC_INT1);
+  IPCInitialize(&g_sIpcController1, IPC_INT0, IPC_INT0);
+  IPCInitialize(&g_sIpcController2, IPC_INT1, IPC_INT1);
 
 //
 // Step 5. User specific code, enable interrupts:
@@ -169,26 +161,31 @@ main(void) {
 //
 // Enable CPU INT1 which is connected to Upper PIE IPC INT0-3:
 //
-    IER |= M_INT1;
+  IER |= M_INT1;
 
 //
 // Enable CPU01 to CPU02 INTn in the PIE: Group 11 interrupts
 //
-    PieCtrlRegs.PIEIER1.bit.INTx13 = 1;   // CPU1 to CPU2 INT0
-    PieCtrlRegs.PIEIER1.bit.INTx14 = 1;   // CPU1 to CPU2 INT1
+  PieCtrlRegs.PIEIER1.bit.INTx13 = 1;   // CPU1 to CPU2 INT0
+  PieCtrlRegs.PIEIER1.bit.INTx14 = 1;   // CPU1 to CPU2 INT1
 
 //
 // Enable global Interrupts and higher priority real-time debug events:
 //
-    EINT;   // Enable Global interrupt INTM
-    ERTM;   // Enable Global realtime interrupt DBGM
-    ErrorFlag = 0;
-    FnCallStatus = 0;
-    usWWord16 = 0;
-    ulWWord32 = 0;
-    for(counter = 0; counter < 256; counter++) {
-        usCPU02Buffer[counter] = 0;
-    }
+  EINT;   // Enable Global interrupt INTM
+  ERTM;   // Enable Global realtime interrupt DBGM
+  EALLOW;
+  McbspbRegs.SPCR2.bit.XRST = 0;
+  McbspbRegs.SPCR2.bit.XRST = 1;
+  EDIS;
+  InitMcbspb();
+  ErrorFlag = 0;
+  FnCallStatus = 0;
+  usWWord16 = 0;
+  ulWWord32 = 0;
+  for(counter = 0; counter < 256; counter++) {
+      usCPU02Buffer[counter] = 0;
+  }
 
 //
 // Point array to address in CPU02 TO CPU01 MSGRAM for passing

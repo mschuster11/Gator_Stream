@@ -71,7 +71,9 @@
 //
 #include "F28x_Project.h"
 #include "F2837xD_Ipc_drivers.h"
-#include "personal/headers/audio_effects.h"
+#include "personal/headers/sd_utils.h"
+#include "personal/headers/wav.h"
+#include "personal/headers/wav_priv.h"
 //
 // Defines
 //
@@ -110,37 +112,52 @@ uint32_t ulWWord32;
 uint16_t usRWord16;
 uint32_t ulRWord32;
 uint16_t usCPU01Buffer[256];
+char g_uartRemoteRxBuf[100];
+bool_t newRemoteCmd = FALSE;
+static uint16_t uartRemoteRxBufIndex = 0;
 
+char g_uartMspRxBuf[100];
+bool_t newMspCmd = FALSE;
+static uint16_t uartMspRxBufIndex = 0;
+
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+
+extern char g_cCwdBuf[CMD_BUF_SIZE];
+extern char g_cCmdBuf[CMD_BUF_SIZE];
 //
 // Function Prototypes
 //
 void Error(void);
-__interrupt void CPU02toCPU01IPC0IntHandler(void);
-__interrupt void CPU02toCPU01IPC1IntHandler(void);
+interrupt void CPU02toCPU01IPC0IntHandler(void);
+interrupt void CPU02toCPU01IPC1IntHandler(void);
+interrupt void remoteUartRx_ISR(void);
+interrupt void mspUartRx_ISR(void);
 
 //
 // Main
 //
-void
-main(void) {
-    uint16_t counter;
-    uint16_t *pusCPU01BufferPt;
-    uint16_t *pusCPU02BufferPt;
-    uint32_t *pulMsgRam ;
+void main(void) {
+  uint16_t counter;
+  uint16_t *pusCPU01BufferPt;
+  uint16_t *pusCPU02BufferPt;
+  uint32_t *pulMsgRam ;
 
 //
 // Step 1. Initialize System Control:
 // PLL, WatchDog, enable Peripheral Clocks
 // This example function is found in the F2837xD_SysCtrl.c file.
 //
-    InitSysCtrl();
+  InitSysCtrl();
 
 //
 // Step 2. Initialize GPIO:
 // This example function is found in the F2837xD_SysCtrl.c file and
 // illustrates how to set the GPIO to it's default state.
 //
-// InitGpio();  // Skipped for this example
+  InitMcbspbGpio();
+
 
 //
 // Step 3. Clear all interrupts and initialize PIE vector table:
@@ -176,10 +193,20 @@ main(void) {
 // Interrupts that are used in this example are re-mapped to
 // ISR functions found within this file.
 //
-    EALLOW;  // This is needed to write to EALLOW protected registers
-    PieVectTable.IPC0_INT = &CPU02toCPU01IPC0IntHandler;
-    PieVectTable.IPC1_INT = &CPU02toCPU01IPC1IntHandler;
-    EDIS;    // This is needed to disable write to EALLOW protected registers
+  EALLOW;  // This is needed to write to EALLOW protected registers
+  PieVectTable.IPC0_INT = &CPU02toCPU01IPC0IntHandler;
+  PieVectTable.IPC1_INT = &CPU02toCPU01IPC1IntHandler;
+
+  // Enable the SCI-B (MSP Comms) interrupt and point to its ISR (PIE: 8.5).
+  PieVectTable.SCIC_RX_INT = mspUartRx_ISR;
+  PieCtrlRegs.PIEIER8.bit.INTx5 = 1;
+  IER |= M_INT8;
+
+  // Enable the SCI-B (Remote Comms) interrupt and point to its ISR (PIE: 9.3).
+  PieVectTable.SCIB_RX_INT = remoteUartRx_ISR;
+  PieCtrlRegs.PIEIER9.bit.INTx3 = 1;
+  IER |= M_INT9;
+  EDIS;    // This is needed to disable write to EALLOW protected registers
 
 #ifdef _STANDALONE
 #ifdef _FLASH
@@ -512,7 +539,7 @@ main(void) {
 // CPU02toCPU01IPC0IntHandler - Handles writes into CPU01 addresses as a
 //                              result of read commands to the CPU02.
 //
-__interrupt void CPU02toCPU01IPC0IntHandler (void) {
+interrupt void CPU02toCPU01IPC0IntHandler (void) {
     tIpcMessage sMessage;
 
     //
@@ -542,7 +569,7 @@ __interrupt void CPU02toCPU01IPC0IntHandler (void) {
 // CPU02toCPU01IPC1IntHandler - Should never reach this ISR. This is an
 //                              optional placeholder for g_sIpcController2.
 //
-__interrupt void CPU02toCPU01IPC1IntHandler (void) {
+interrupt void CPU02toCPU01IPC1IntHandler (void) {
     //
     // Should never reach here - Placeholder for Debug
     //
@@ -555,3 +582,28 @@ __interrupt void CPU02toCPU01IPC1IntHandler (void) {
 //
 // End of file
 //
+interrupt void remoteUartRx_ISR (void) {
+  while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
+    g_uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
+    if(g_uartRemoteRxBuf[uartRemoteRxBufIndex-1] == 0x00){
+        newRemoteCmd = TRUE;
+    }
+  }
+  if(newRemoteCmd || uartRemoteRxBufIndex >= 100) {
+      uartRemoteRxBufIndex = 0;
+  }
+  ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;
+}
+
+interrupt void mspUartRx_ISR (void) {
+  while(ScicRegs.SCIFFRX.bit.RXFFST > 0) {
+    g_uartMspRxBuf[uartMspRxBufIndex++] = ScicRegs.SCIRXBUF.all;
+    if(g_uartMspRxBuf[uartMspRxBufIndex-2] == '\r' && g_uartMspRxBuf[uartMspRxBufIndex-1] == '\n'){
+        newMspCmd = TRUE;
+    }
+  }
+  if(newMspCmd || uartMspRxBufIndex >= 100) {
+      uartMspRxBufIndex =0;
+  }
+  ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
+}
