@@ -90,8 +90,8 @@ uint16_t usCPU02Buffer[256];
 //
 // Function Prototypes
 //
-__interrupt void CPU01toCPU02IPC0IntHandler(void);
-__interrupt void CPU01toCPU02IPC1IntHandler(void);
+interrupt void CPU01toCPU02IPC0IntHandler(void);
+interrupt void CPU01toCPU02IPC1IntHandler(void);
 void FunctionCall(void);
 void FunctionCallParam(uint32_t ulParam);
 void Error (void);
@@ -174,11 +174,7 @@ void main(void) {
 //
   EINT;   // Enable Global interrupt INTM
   ERTM;   // Enable Global realtime interrupt DBGM
-  EALLOW;
-  McbspbRegs.SPCR2.bit.XRST = 0;
-  McbspbRegs.SPCR2.bit.XRST = 1;
-  EDIS;
-  InitMcbspb();
+
   ErrorFlag = 0;
   FnCallStatus = 0;
   usWWord16 = 0;
@@ -215,8 +211,10 @@ void main(void) {
 // Flag to CPU01 that the variables are ready in MSG RAM with CPU02 TO
 // CPU01 IPC Flag 17
 //
-    IpcRegs.IPCSET.bit.IPC17 = 1;
-
+    while(IpcRegs.IPCSTS.bit.IPC17 != 1) {
+    }
+    IpcRegs.IPCACK.bit.IPC17 = 1;
+    InitMcbspb();
     for(;;) {
         //
         // Flag an Error if an Invalid Command has been received.
@@ -230,16 +228,14 @@ void main(void) {
 //
 // FunctionCall - Function run by IPC_FUNC_CALL command
 //
-void
-FunctionCall(void) {
+void FunctionCall(void) {
     FnCallStatus = 1;
 }
 
 //
 // FunctionCallParam - Set the call status param
 //
-void
-FunctionCallParam(uint32_t ulParam) {
+void FunctionCallParam(uint32_t ulParam) {
     FnCallStatus = ulParam;
 }
 
@@ -247,8 +243,7 @@ FunctionCallParam(uint32_t ulParam) {
 // Error - Function to Indicate an Error has Occurred
 //         (Invalid Command Received).
 //
-void
-Error(void) {
+void Error(void) {
     //
     // An error has occurred (invalid command received). Loop forever.
     //
@@ -259,8 +254,7 @@ Error(void) {
 //
 // CPU01toCPU02IPC0IntHandler - Handles Data Word Reads/Writes
 //
-__interrupt void
-CPU01toCPU02IPC0IntHandler (void) {
+interrupt void CPU01toCPU02IPC0IntHandler (void) {
     tIpcMessage sMessage;
 
     //
@@ -301,8 +295,7 @@ CPU01toCPU02IPC0IntHandler (void) {
 //
 // CPU01toCPU02IPC1IntHandler - Handles Data Block Reads/Writes
 //
-__interrupt void
-CPU01toCPU02IPC1IntHandler (void) {
+interrupt void CPU01toCPU02IPC1IntHandler (void) {
     tIpcMessage sMessage;
 
     //

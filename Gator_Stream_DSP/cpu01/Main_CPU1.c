@@ -102,7 +102,11 @@ volatile tIpcController g_sIpcController2;
 
 volatile uint16_t ErrorFlag;
 volatile uint16_t ErrorCount;
-
+int16 leftVals1[2048];
+int16 rightVals1[2048];
+int16 leftVals2[2048];
+int16 rightVals2[2048];
+int16* buf[2];
 //
 // Global variables used in this example to read/write data passed between
 // CPU01 and CPU02
@@ -134,6 +138,12 @@ interrupt void CPU02toCPU01IPC0IntHandler(void);
 interrupt void CPU02toCPU01IPC1IntHandler(void);
 interrupt void remoteUartRx_ISR(void);
 interrupt void mspUartRx_ISR(void);
+void init_scib(void);
+void init_scic(void);
+void init_ints(void);
+void scib_txChar(int a);
+void scic_txChar(int a);
+
 
 //
 // Main
@@ -144,55 +154,28 @@ void main(void) {
   uint16_t *pusCPU02BufferPt;
   uint32_t *pulMsgRam ;
 
-//
-// Step 1. Initialize System Control:
-// PLL, WatchDog, enable Peripheral Clocks
-// This example function is found in the F2837xD_SysCtrl.c file.
-//
+  // Initialize System Control.
   InitSysCtrl();
 
-//
-// Step 2. Initialize GPIO:
-// This example function is found in the F2837xD_SysCtrl.c file and
-// illustrates how to set the GPIO to it's default state.
-//
+  // Initialize McBsp GPIO:
   InitMcbspbGpio();
 
+  // Disable CPU interrupts.
+  DINT;
 
-//
-// Step 3. Clear all interrupts and initialize PIE vector table:
-// Disable CPU interrupts
-//
-    DINT;
+  // Initialize PIE control registers to their default state.
+  InitPieCtrl();
 
-//
-// Initialize PIE control registers to their default state.
-// The default state is all PIE interrupts disabled and flags
-// are cleared.
-// This function is found in the F2837xD_PieCtrl.c file.
-//
-    InitPieCtrl();
+  // Disable CPU interrupts and clear all CPU interrupt flags:
+  IER = 0x0000;
+  IFR = 0x0000;
 
-//
-// Disable CPU interrupts and clear all CPU interrupt flags:
-//
-    IER = 0x0000;
-    IFR = 0x0000;
+  // Initialize the PIE vector table with pointers to the shell Interrupt
+  // Service Routines (ISR).
+  InitPieVectTable();
 
-//
-// Initialize the PIE vector table with pointers to the shell Interrupt
-// Service Routines (ISR).
-// This will populate the entire table, even if the interrupt
-// is not used in this example.  This is useful for debug purposes.
-// The shell ISR routines are found in F2837xD_DefaultISR.c.
-// This function is found in F2837xD_PieVect.c.
-//
-    InitPieVectTable();
-
-//
-// Interrupts that are used in this example are re-mapped to
-// ISR functions found within this file.
-//
+  // Interrupts that are used in this example are re-mapped to
+  // ISR functions found within this file.
   EALLOW;  // This is needed to write to EALLOW protected registers
   PieVectTable.IPC0_INT = &CPU02toCPU01IPC0IntHandler;
   PieVectTable.IPC1_INT = &CPU02toCPU01IPC1IntHandler;
@@ -209,73 +192,81 @@ void main(void) {
   EDIS;    // This is needed to disable write to EALLOW protected registers
 
 #ifdef _STANDALONE
-#ifdef _FLASH
-    //
-    //  Send boot command to allow the CPU02 application to begin execution
-    //
-    IPCBootCPU2(C1C2_BROM_BOOTMODE_BOOT_FROM_FLASH);
-#else
-    //
-    //  Send boot command to allow the CPU02 application to begin execution
-    //
-    IPCBootCPU2(C1C2_BROM_BOOTMODE_BOOT_FROM_RAM);
-#endif
+  //  Send boot command to allow the CPU02 application to begin execution
+  IPCBootCPU2(C1C2_BROM_BOOTMODE_BOOT_FROM_FLASH);
 #endif
 
-//
-// Step 4. Initialize the Device Peripherals:
-//
-    ErrorFlag = 0;
+  // Step 4. Initialize the Device Peripherals:
+  ErrorFlag = 0;
 
-    IPCInitialize (&g_sIpcController1, IPC_INT0, IPC_INT0);
-    IPCInitialize (&g_sIpcController2, IPC_INT1, IPC_INT1);
+  IPCInitialize (&g_sIpcController1, IPC_INT0, IPC_INT0);
+  IPCInitialize (&g_sIpcController2, IPC_INT1, IPC_INT1);
 
-//
-// Step 5. User specific code, enable interrupts:
-//
-//
-// Enable CPU INT1 which is connected to Upper PIE IPC INT0-3:
-//
-    IER |= M_INT1;
+  // Enable CPU INT1 which is connected to Upper PIE IPC INT0-3:
+  IER |= M_INT1;
 
-//
-// Enable CPU2 to CPU1 IPC INTn in the PIE: Group 1 interrupts
-//
-    PieCtrlRegs.PIEIER1.bit.INTx13 = 1;    // CPU2 to CPU1 INT0
-    PieCtrlRegs.PIEIER1.bit.INTx14 = 1;    // CPU2 to CPU1 INT1
+  // Enable CPU2 to CPU1 IPC INTn in the PIE: Group 1 interrupts
+  PieCtrlRegs.PIEIER1.bit.INTx13 = 1;    // CPU2 to CPU1 INT0
+  PieCtrlRegs.PIEIER1.bit.INTx14 = 1;    // CPU2 to CPU1 INT1
 
-//
-// Enable global Interrupts and higher priority real-time debug events:
-//
-    EINT;   // Enable Global interrupt INTM
-    ERTM;   // Enable Global realtime interrupt DBGM
+  // Enable global Interrupts and higher priority real-time debug events:
+  EINT;   // Enable Global interrupt INTM
+  ERTM;   // Enable Global realtime interrupt DBGM
 
-//
-// Initialize local variables
-//
-    pulMsgRam = (void *)CPU02TOCPU01_PASSMSG;
-    pusCPU01BufferPt = (void *)GS0SARAM_START;
-    pusCPU02BufferPt = (void *)(GS0SARAM_START + 256);
-    ErrorCount = 0;
+  // Initialize local variables
+  pulMsgRam = (void *)CPU02TOCPU01_PASSMSG;
+  pusCPU01BufferPt = (void *)GS0SARAM_START;
+  pusCPU02BufferPt = (void *)(GS0SARAM_START + 256);
+  ErrorCount = 0;
 
-//
-// Initialize all variables used in example.
-//
-    for(counter = 0; counter < 256; counter++) {
-        usCPU01Buffer[counter] = ((counter<<8)+(~counter));
+  // Initialize all variables used in example.
+  for(counter = 0; counter < 256; counter++) {
+    usCPU01Buffer[counter] = ((counter<<8)+(~counter));
+  }
+
+  usWWord16 = 0x1234;
+  ulWWord32 = 0xABCD5678;
+  usRWord16 = 0;
+  ulRWord32 = 0;
+
+  // Spin here until CPU02 has written variable addresses to pulMsgRam
+  IpcRegs.IPCSET.bit.IPC17 = 1;
+  initMMC();
+  init_scib();
+  init_scic();
+
+  f_unlink("/New_Song.wav");
+  WaveFile* wf = wave_open("/New_Song.wav", "w");
+  while(1) {
+    if(fRdy && sdRdy) {
+      if(count < 3024){
+        sdRdy = FALSE;
+        wave_write((void **)buf, 2048, wf);
+        count++;
+      } else {
+        fRdy = FALSE;
+        wave_close(wf);
+      }
     }
-
-    usWWord16 = 0x1234;
-    ulWWord32 = 0xABCD5678;
-    usRWord16 = 0;
-    ulRWord32 = 0;
-
-//
-// Spin here until CPU02 has written variable addresses to pulMsgRam
-//
-    while(IpcRegs.IPCSTS.bit.IPC17 != 1) {
+    if(newRemoteCmd == TRUE) {
+      UARTprintf("%s\n", g_uartRemoteRxBuf);
+      scic_txChar('i');
+      scic_txChar('n');
+      scic_txChar('q');
+      scic_txChar('u');
+      scic_txChar('i');
+      scic_txChar('r');
+      scic_txChar('y');
+      scic_txChar('\r');
+      scic_txChar('\n');
+      newRemoteCmd = FALSE;
     }
-    IpcRegs.IPCACK.bit.IPC17 = 1;
+    if(newMspCmd == TRUE) {
+      UARTprintf("%s\n", g_uartMspRxBuf);
+      newMspCmd = FALSE;
+    }
+  }
+}
 
 //
 // 16 and 32-bit Data Writes
@@ -607,3 +598,68 @@ interrupt void mspUartRx_ISR (void) {
   }
   ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
+
+
+void init_scib (void) {
+  // Assign GPIO19 to CPU-1 as the RX of SCI-B.
+  GPIO_SetupPinMux(19, GPIO_MUX_CPU1, 2);
+  GPIO_SetupPinOptions(19, GPIO_INPUT, GPIO_PUSHPULL);
+
+  // Assign GPIO18 to CPU-1 as the TX of SCI-B.
+  GPIO_SetupPinMux(18, GPIO_MUX_CPU1, 2);
+  GPIO_SetupPinOptions(18, GPIO_OUTPUT, GPIO_ASYNC);
+
+  ScibRegs.SCICCR.all = 0x0007;         // 1 stop bit,  No loopback
+                                        // No parity,8 char bits,
+                                        // async mode, idle-line protocol
+  ScibRegs.SCICTL1.all = 0x0003;        // enable TX, RX, internal SCICLK,
+                                        // Disable RX ERR, SLEEP, TXWAKE
+  ScibRegs.SCICTL2.all = 0x0003;        // Enable the interrupts for both TX and RX. 
+
+  // SCIA at 9600 baud
+  ScibRegs.SCIHBAUD.all = 0x0002;
+  ScibRegs.SCILBAUD.all = 0x008B;
+  ScibRegs.SCIFFRX.all  = 0x2044;       // Relinquish RX FIFO from Reset,
+                                        // enable the interrupt with priority 4.
+  ScibRegs.SCIFFTX.bit.SCIFFENA = 1;    // Enable the FIFO.
+  ScibRegs.SCIFFRX.bit.RXFFIENA = 1;    // Enable the RX FIFO's interrup.
+
+  // Relinquish SCI from Reset
+  ScibRegs.SCICTL1.all = 0x0023;  
+
+  // Enable SCI-C's peripheral clock.
+//  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI2);
+}
+
+
+void init_scic () {
+  // Assign GPIO139 to CPU-1 as the RX of SCI-C.
+  GPIO_SetupPinMux(139, GPIO_MUX_CPU1, 6);
+  GPIO_SetupPinOptions(139, GPIO_INPUT, GPIO_PUSHPULL);
+
+  // Assign GPIO56 to CPU-1 as the TX of SCI-C.
+  GPIO_SetupPinMux(56, GPIO_MUX_CPU1, 6);
+  GPIO_SetupPinOptions(56, GPIO_OUTPUT, GPIO_ASYNC);
+
+  ScicRegs.SCICCR.all = 0x0007;         // 1 stop bit,  No loopback
+                                        // No parity,8 char bits,
+                                        // async mode, idle-line protocol
+  ScicRegs.SCICTL1.all = 0x0003;        // enable TX, RX, internal SCICLK,
+                                        // Disable RX ERR, SLEEP, TXWAKE
+  ScicRegs.SCICTL2.all = 0x0003;        // Enable the interrupts for both TX and RX. 
+
+  // SCIC at 9600 baud
+  ScicRegs.SCIHBAUD.all = 0x0002;
+  ScicRegs.SCILBAUD.all = 0x008B;
+  ScicRegs.SCIFFRX.all  = 0x2044;       // Relinquish RX FIFO from Reset,
+                                        // enable the interrupt with priority 4.
+  ScicRegs.SCIFFTX.bit.SCIFFENA = 1;    // Enable the FIFO.
+  ScicRegs.SCIFFRX.bit.RXFFIENA = 1;    // Enable the RX FIFO's interrup.
+
+  // Relinquish SCI from Reset
+  ScicRegs.SCICTL1.all = 0x0023;  
+
+  // Enable SCI-C's peripheral clock.
+//  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
+}
+
