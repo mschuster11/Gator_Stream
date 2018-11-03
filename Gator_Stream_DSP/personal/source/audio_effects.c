@@ -18,6 +18,7 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 #include "F28x_Project.h"
+#include "F2837xD_Ipc_drivers.h"
 #include "personal/headers/audio_effects.h"
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -37,52 +38,25 @@ enum buffer{
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
-int16 leftVals1[100];
-int16 rightVals1[100];
-int16 leftVals2[100];
-int16 rightVals2[100];
-int16* buf[2];
 
-Uint16 bufIndexL = 0x00;
-Uint16 bufIndexR = 0x00;
 bool_t sdRdy = 0;
 Uint16 i = 0x00;
 Uint16 j = 0x00;
+extern uint32_t *pulMsgRam;
+extern volatile tIpcController g_sIpcController1;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
-    if (bufferNum == FIRST) {
-      leftVals1[bufIndexL++] = McbspbRegs.DRR1.all;
-    } else {
-      leftVals2[bufIndexL++] = McbspbRegs.DRR1.all;
-    }
+    IPCLtoRDataWrite(&g_sIpcController1, pulMsgRam[0],(uint32_t)McbspbRegs.DRR1.all, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
     McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
   } else if (channel == RIGHT) {
-    if (bufferNum == FIRST) {
-      rightVals1[bufIndexR++] = McbspbRegs.DRR1.all;
-    } else {
-      rightVals2[bufIndexR++] = McbspbRegs.DRR1.all;
-    }
+    IPCLtoRDataWrite(&g_sIpcController1, pulMsgRam[1],(uint32_t)McbspbRegs.DRR1.all, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
     McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
   }
 
-  if (bufIndexR > 2047 && bufIndexL > 2047) {
-    bufIndexL = 0;
-    bufIndexR = 0;
-    sdRdy = 1;
-    if(bufferNum == FIRST) {
-      buf[0] = leftVals1;
-      buf[1] = rightVals1;
-      bufferNum = SECOND;
-    } else {
-      buf[0] = leftVals2;
-      buf[1] = rightVals2;
-      bufferNum = FIRST;
-    }
-  } 
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;
 }

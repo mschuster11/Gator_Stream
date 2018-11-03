@@ -61,6 +61,7 @@
 //
 // Defines
 //
+#define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
 #define CPU02TOCPU01_PASSMSG  0x0003FBF4    // Used by CPU02 to pass address
                                             // of local variables to perform
                                             // actions on
@@ -75,7 +76,6 @@
 //
 volatile tIpcController g_sIpcController1;
 volatile tIpcController g_sIpcController2;
-
 volatile uint16_t ErrorFlag;
 volatile uint32_t FnCallStatus;
 
@@ -86,6 +86,7 @@ volatile uint32_t FnCallStatus;
 uint16_t usWWord16;
 uint32_t ulWWord32;
 uint16_t usCPU02Buffer[256];
+uint32_t *pulMsgRam;
 
 //
 // Function Prototypes
@@ -100,7 +101,7 @@ void Error (void);
 // Main
 //
 void main(void) {
-  uint32_t *pulMsgRam;
+
   uint16_t counter;
   InitSysCtrl();
 //
@@ -175,19 +176,11 @@ void main(void) {
   EINT;   // Enable Global interrupt INTM
   ERTM;   // Enable Global realtime interrupt DBGM
 
-  ErrorFlag = 0;
-  FnCallStatus = 0;
-  usWWord16 = 0;
-  ulWWord32 = 0;
-  for(counter = 0; counter < 256; counter++) {
-      usCPU02Buffer[counter] = 0;
-  }
-
 //
 // Point array to address in CPU02 TO CPU01 MSGRAM for passing
 // variable locations
 //
-    pulMsgRam = (void *)CPU02TOCPU01_PASSMSG;
+  pulMsgRam = (void *)CPU01TOCPU02_PASSMSG;
 
 //
 // Write addresses of variables where words should be written to pulMsgRam
@@ -200,12 +193,12 @@ void main(void) {
 // 5 = Address of 32-bit FnCallStatus variable to check function call
 // executed
 //
-    pulMsgRam[0] = (uint32_t)&usWWord16;
-    pulMsgRam[1] = (uint32_t)&ulWWord32;
-    pulMsgRam[2] = (uint32_t)&usCPU02Buffer[0];
-    pulMsgRam[3] = (uint32_t)&FunctionCall;
-    pulMsgRam[4] = (uint32_t)&FunctionCallParam;
-    pulMsgRam[5] = (uint32_t)&FnCallStatus;
+    // pulMsgRam[0] = (uint32_t)&usWWord16;
+    // pulMsgRam[1] = (uint32_t)&ulWWord32;
+    // pulMsgRam[2] = (uint32_t)&usCPU02Buffer[0];
+    // pulMsgRam[3] = (uint32_t)&FunctionCall;
+    // pulMsgRam[4] = (uint32_t)&FunctionCallParam;
+    // pulMsgRam[5] = (uint32_t)&FnCallStatus;
 
 //
 // Flag to CPU01 that the variables are ready in MSG RAM with CPU02 TO

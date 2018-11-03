@@ -77,18 +77,9 @@
 //
 // Defines
 //
-#define CPU02TOCPU01_PASSMSG  0x0003FBF4     // CPU02 to CPU01 MSG RAM offsets
-                                             // for passing address
-#define SETMASK_16BIT         0xFF00         // Mask for setting bits of
-                                             // 16-bit word
-#define CLEARMASK_16BIT       0xA5A5         // Mask for clearing bits of
-                                             // 16-bit word
-#define SETMASK_32BIT         0xFFFF0000     // Mask for setting bits of
-                                             // 32-bit word
-#define CLEARMASK_32BIT       0xA5A5A5A5     // Mask for clearing bits of
-                                             // 32-bit word
-#define GS0SARAM_START        0xC000         // Start of GS0 SARAM
 
+#define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
+#define CPU02TOCPU01_PASSMSG  0x0003FBF4     // CPU02 to CPU01 MSG RAM offsets
 //
 // Globals
 //
@@ -99,23 +90,28 @@
 //
 volatile tIpcController g_sIpcController1;
 volatile tIpcController g_sIpcController2;
-
-volatile uint16_t ErrorFlag;
-volatile uint16_t ErrorCount;
+enum buffer{
+  FIRST,
+  SECOND
+}bufferNum = FIRST;
 int16 leftVals1[2048];
 int16 rightVals1[2048];
 int16 leftVals2[2048];
 int16 rightVals2[2048];
 int16* buf[2];
+Uint16 bufIndexL = 0x00;
+Uint16 bufIndexR = 0x00;
+bool_t sdRdy = FALSE;
+bool_t fRdy = TRUE;
 //
 // Global variables used in this example to read/write data passed between
 // CPU01 and CPU02
 //
-uint16_t usWWord16;
-uint32_t ulWWord32;
-uint16_t usRWord16;
-uint32_t ulRWord32;
-uint16_t usCPU01Buffer[256];
+uint16_t leftSample;
+uint16_t rightSample;
+uint16_t activeEffect;
+uint16_t count;
+
 char g_uartRemoteRxBuf[100];
 bool_t newRemoteCmd = FALSE;
 static uint16_t uartRemoteRxBufIndex = 0;
@@ -149,10 +145,7 @@ void scic_txChar(int a);
 // Main
 //
 void main(void) {
-  uint16_t counter;
-  uint16_t *pusCPU01BufferPt;
-  uint16_t *pusCPU02BufferPt;
-  uint32_t *pulMsgRam ;
+  uint32_t *pulMsgRam;
 
   // Initialize System Control.
   InitSysCtrl();
@@ -197,8 +190,6 @@ void main(void) {
 #endif
 
   // Step 4. Initialize the Device Peripherals:
-  ErrorFlag = 0;
-
   IPCInitialize (&g_sIpcController1, IPC_INT0, IPC_INT0);
   IPCInitialize (&g_sIpcController2, IPC_INT1, IPC_INT1);
 
@@ -214,30 +205,21 @@ void main(void) {
   ERTM;   // Enable Global realtime interrupt DBGM
 
   // Initialize local variables
-  pulMsgRam = (void *)CPU02TOCPU01_PASSMSG;
-  pusCPU01BufferPt = (void *)GS0SARAM_START;
-  pusCPU02BufferPt = (void *)(GS0SARAM_START + 256);
-  ErrorCount = 0;
+  pulMsgRam = (void *)CPU01TOCPU02_PASSMSG;
+  pulMsgRam[0] = (uint32_t)&leftSample;
+  pulMsgRam[1] = (uint32_t)&rightSample;
+  pulMsgRam[2] = (uint32_t)&activeEffect;
+  count = 0;
 
-  // Initialize all variables used in example.
-  for(counter = 0; counter < 256; counter++) {
-    usCPU01Buffer[counter] = ((counter<<8)+(~counter));
-  }
-
-  usWWord16 = 0x1234;
-  ulWWord32 = 0xABCD5678;
-  usRWord16 = 0;
-  ulRWord32 = 0;
-
-  // Spin here until CPU02 has written variable addresses to pulMsgRam
-  IpcRegs.IPCSET.bit.IPC17 = 1;
   initMMC();
   init_scib();
   init_scic();
-
+  IpcRegs.IPCSET.bit.IPC17 = 1;
   f_unlink("/New_Song.wav");
   WaveFile* wf = wave_open("/New_Song.wav", "w");
-  while(1) {
+  buf[0] = leftVals2;
+  buf[1] = rightVals2;
+  for(;;) {
     if(fRdy && sdRdy) {
       if(count < 3024){
         sdRdy = FALSE;
@@ -269,291 +251,57 @@ void main(void) {
 }
 
 //
-// 16 and 32-bit Data Writes
-// Write 16-bit word to CPU02 16-bit write word variable.
-//
-    IPCLtoRDataWrite(&g_sIpcController1, pulMsgRam[0],(uint32_t)usWWord16,
-                     IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
-
-//
-// Read 16-bit word from CPU02 16-bit write word variable. Use IPC Flag 17 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[0], &usRWord16,
-                    IPC_LENGTH_16_BITS, ENABLE_BLOCKING,
-                    IPC_FLAG17);
-
-//
-// Write 32-bit word to CPU02 32-bit write word variable.
-//
-    IPCLtoRDataWrite(&g_sIpcController1, pulMsgRam[1],ulWWord32,
-                     IPC_LENGTH_32_BITS, ENABLE_BLOCKING,
-                     NO_FLAG);
-
-//
-// Read 32-bit word from CPU02 32-bit write word variable. Use IPC Flag 18 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[1], &ulRWord32,
-                    IPC_LENGTH_32_BITS, ENABLE_BLOCKING,
-                    IPC_FLAG18);
-
-//
-// Wait until read variables are ready (by checking IPC Response Flag is
-// cleared). Then check Read var = Write var
-//
-    while(IpcRegs.IPCFLG.bit.IPC17) {
-    }
-
-    if(usWWord16 != usRWord16) {
-        ErrorCount++;
-    }
-
-    while(IpcRegs.IPCFLG.bit.IPC18) {
-    }
-
-    if(ulWWord32 != ulRWord32) {
-        ErrorCount++;
-    }
-
-//
-// 16 and 32-bit Data Set Bits
-// Set upper 8 bits in 16-bit write word variable location.
-//
-    IPCLtoRSetBits(&g_sIpcController1, pulMsgRam[0],(uint32_t)SETMASK_16BIT,
-                   IPC_LENGTH_16_BITS,ENABLE_BLOCKING);
-
-//
-// Read 16-bit word from CPU02 16-bit write word variable. Use IPC Flag 17 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[0], &usRWord16,
-                    IPC_LENGTH_16_BITS, ENABLE_BLOCKING,IPC_FLAG17);
-
-//
-// Set upper 16 bits in 32-bit write word variable location.
-//
-    IPCLtoRSetBits(&g_sIpcController1, pulMsgRam[1], SETMASK_32BIT,
-                   IPC_LENGTH_32_BITS,ENABLE_BLOCKING);
-
-//
-// Read 32-bit word from CPU02 32-bit write word variable. Use IPC Flag 18 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[1], &ulRWord32,
-                    IPC_LENGTH_32_BITS, ENABLE_BLOCKING,IPC_FLAG18);
-
-//
-// Wait until read variables are ready (by checking IPC Response Flag is
-// cleared). Then check correct bits are set.
-//
-    while(IpcRegs.IPCFLG.bit.IPC17) {
-    }
-
-    if(usRWord16 != (usWWord16 | SETMASK_16BIT)) {
-        ErrorCount++;
-    }
-
-    while(IpcRegs.IPCFLG.bit.IPC18) {
-    }
-
-    if(ulRWord32 != (ulWWord32 | SETMASK_32BIT)) {
-        ErrorCount++;
-    }
-
-//
-// 16 and 32-bit Data Clear Bits
-// Clear alternating bits in 16-bit write word variable location
-//
-    IPCLtoRClearBits(&g_sIpcController1, pulMsgRam[0],(uint32_t)CLEARMASK_16BIT,
-                     IPC_LENGTH_16_BITS,ENABLE_BLOCKING);
-
-//
-// Read 16-bit word from CPU02 16-bit write word variable. Use IPC Flag 17 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[0], &usRWord16,
-                    IPC_LENGTH_16_BITS, ENABLE_BLOCKING,IPC_FLAG17);
-
-//
-// Clear alternating bits in 32-bit write word variable location
-//
-    IPCLtoRClearBits(&g_sIpcController1, pulMsgRam[1],(uint32_t)CLEARMASK_32BIT,
-                     IPC_LENGTH_32_BITS,ENABLE_BLOCKING);
-
-//
-// Read 16-bit word from CPU02 32-bit write word variable. Use IPC Flag 18 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[1], &ulRWord32,
-                    IPC_LENGTH_32_BITS, ENABLE_BLOCKING,IPC_FLAG18);
-
-//
-// Wait until read variables are ready (by checking IPC Response Flag is
-// cleared). Then check correct bits are clear.
-//
-    while(IpcRegs.IPCFLG.bit.IPC17) {
-    }
-
-    if(usRWord16 != ((usWWord16 | SETMASK_16BIT) & (~CLEARMASK_16BIT))) {
-        ErrorCount++;
-    }
-
-    while(IpcRegs.IPCFLG.bit.IPC18) {
-    }
-
-    if(ulRWord32  != ((ulWWord32 | SETMASK_32BIT) & (~CLEARMASK_32BIT))) {
-        ErrorCount++;
-    }
-
-//
-// Data Block Writes
-//
-
-//
-// Request Memory Access to GS0 SARAM for CPU01
-// Clear bits to let CPU01 own GS0
-//
-    if((MemCfgRegs.GSxMSEL.bit.MSEL_GS0) == 1) {
-        EALLOW;
-        MemCfgRegs.GSxMSEL.bit.MSEL_GS0 = 0;
-        EDIS;
-    }
-
-//
-// Write a block of data from CPU01 to GS0 shared RAM which is then written to
-// an CPU02 address.
-//
-    for(counter = 0; counter < 256; counter++) {
-        pusCPU01BufferPt[counter] = usCPU01Buffer[counter];
-    }
-
-    IPCLtoRBlockWrite(&g_sIpcController2, pulMsgRam[2],
-                      (uint32_t)pusCPU01BufferPt, 256,
-                      IPC_LENGTH_16_BITS,ENABLE_BLOCKING);
-
-//
-// Give Memory Access to GS0 SARAM to CPU02
-//
-    while(!(MemCfgRegs.GSxMSEL.bit.MSEL_GS0)) {
-        EALLOW;
-        MemCfgRegs.GSxMSEL.bit.MSEL_GS0 = 1;
-        EDIS;
-    }
-
-//
-// Read data back from CPU02.
-//
-    IPCLtoRBlockRead(&g_sIpcController2, pulMsgRam[2],
-                     (uint32_t)pusCPU02BufferPt, 256,
-                     ENABLE_BLOCKING,IPC_FLAG17);
-
-//
-// Wait until read data is ready (by checking IPC Response Flag is cleared).
-// Then check for correct data.
-//
-    while(IpcRegs.IPCFLG.bit.IPC17) {
-    }
-
-    for(counter = 0; counter <256; counter++) {
-        if(usCPU01Buffer[counter] != pusCPU01BufferPt[counter]) {
-            ErrorFlag = 1;
-        }
-    }
-
-    if (ErrorFlag == 1) {
-        ErrorCount++;
-    }
-
-//
-// Check Function Call Function
-//
-
-//
-// Call FunctionCall() function on CPU02 with a dummy parameter of "0"(i.e. no
-// parameter).
-//
-    IPCLtoRFunctionCall(&g_sIpcController1, pulMsgRam[3], 0, ENABLE_BLOCKING);
-
-//
-// Read status variable to check if function was entered. Use IPC Flag 17 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[5], &usRWord16,
-                    IPC_LENGTH_16_BITS, ENABLE_BLOCKING,
-                    IPC_FLAG17);
-
-//
-// Call FunctionCall() function on CPU02 with a parameter of "0x12345678".
-//
-    IPCLtoRFunctionCall(&g_sIpcController1, pulMsgRam[4], 0x12345678,
-                        ENABLE_BLOCKING);
-
-//
-// Read status variable to check if function was entered. Use IPC Flag 18 to
-// check when read data is ready.
-//
-    IPCLtoRDataRead(&g_sIpcController1, pulMsgRam[5], &ulRWord32,
-                    IPC_LENGTH_32_BITS, ENABLE_BLOCKING,
-                    IPC_FLAG18);
-
-//
-// Wait until read data is ready (by checking IPC Response Flag is cleared).
-// Then check status variables to see if function was entered.
-//
-    while(IpcRegs.IPCFLG.bit.IPC17) {
-    }
-
-    if(usRWord16 != 1) {
-        ErrorCount++;
-    }
-
-    while(IpcRegs.IPCFLG.bit.IPC18) {
-    }
-
-    if(ulRWord32 != 0x12345678) {
-        ErrorCount++;
-    }
-
-    if(ErrorCount != 0) {
-        ESTOP0;
-    }
-
-    for(;;) {
-        //
-        // When Complete, Loop Forever here.
-        //
-    }
-}
-
-//
 // CPU02toCPU01IPC0IntHandler - Handles writes into CPU01 addresses as a
 //                              result of read commands to the CPU02.
 //
 interrupt void CPU02toCPU01IPC0IntHandler (void) {
-    tIpcMessage sMessage;
+  tIpcMessage sMessage;
 
-    //
-    // Continue processing messages as long as CPU01 to CPU02
-    // GetBuffer1 is full
-    //
-    while(IpcGet(&g_sIpcController1, &sMessage,
-                 DISABLE_BLOCKING) != STATUS_FAIL) {
-        switch (sMessage.ulcommand) {
-            case IPC_DATA_WRITE:
-                IPCRtoLDataWrite(&sMessage);
-                break;
-            default:
-                ErrorFlag = 1;
-                break;
+  //
+  // Continue processing messages as long as CPU01 to CPU02
+  // GetBuffer1 is full
+  //
+  while(IpcGet(&g_sIpcController1, &sMessage, DISABLE_BLOCKING) != STATUS_FAIL) {
+    switch (sMessage.ulcommand) {
+      case IPC_DATA_WRITE:
+        if(sMessage.uladdress == (uint32_t)&leftSample){
+          if (bufferNum == FIRST) {
+            leftVals1[bufIndexL++] = sMessage.uldataw2;
+          } else {
+            leftVals2[bufIndexL++] = sMessage.uldataw2;
+          }
+        } else if(sMessage.uladdress == (uint32_t)&rightSample){
+          if (bufferNum == FIRST) {
+            rightVals1[bufIndexR++] = sMessage.uldataw2;
+          } else {
+            rightVals2[bufIndexR++] = sMessage.uldataw2;
+          }
         }
+        if (bufIndexR > 2047 && bufIndexL > 2047) {
+          bufIndexL = 0;
+          bufIndexR = 0;
+          sdRdy = 1;
+          if(bufferNum == FIRST) {
+            buf[0] = leftVals1;
+            buf[1] = rightVals1;
+            bufferNum = SECOND;
+          } else {
+            buf[0] = leftVals2;
+            buf[1] = rightVals2;
+            bufferNum = FIRST;
+          }
+        } 
+        break;
+      default:
+        break;
     }
+  }
 
-    //
-    // Acknowledge IPC INT0 Flag and PIE to receive more interrupts
-    //
-    IpcRegs.IPCACK.bit.IPC0 = 1;
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+  //
+  // Acknowledge IPC INT0 Flag and PIE to receive more interrupts
+  //
+  IpcRegs.IPCACK.bit.IPC0 = 1;
+  PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
 //
@@ -570,9 +318,7 @@ interrupt void CPU02toCPU01IPC1IntHandler (void) {
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
-//
-// End of file
-//
+
 interrupt void remoteUartRx_ISR (void) {
   while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
     g_uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
@@ -598,7 +344,16 @@ interrupt void mspUartRx_ISR (void) {
   }
   ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
+void scib_txChar (int a) {
+  while (ScibRegs.SCICTL2.bit.TXRDY != 1);
+  ScibRegs.SCITXBUF.all =a;
+}
 
+
+void scic_txChar (int a) {
+  while (ScicRegs.SCICTL2.bit.TXRDY != 1);
+  ScicRegs.SCITXBUF.all =a;
+}
 
 void init_scib (void) {
   // Assign GPIO19 to CPU-1 as the RX of SCI-B.
