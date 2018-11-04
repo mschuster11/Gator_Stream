@@ -41,7 +41,6 @@ static void resetISR(void);
 static void nmiISR(void);
 static void faultISR(void);
 static void defaultISR(void);
-extern void UART_rxIsr(void);
 
 
 /* External declaration for the reset handler that is to be called when the */
@@ -53,6 +52,7 @@ extern void SystemInit(void);
 
 /* Linker variable that marks the top of the stack. */
 extern unsigned long __STACK_END;
+
 
 /* External declarations for the interrupt handlers used by the application. */
 /* To be added by user */
@@ -101,7 +101,7 @@ void (* const interruptVectors[])(void) =
     defaultISR,                             /* EUSCIA0 ISR               */
     defaultISR,                             /* EUSCIA1 ISR               */
     defaultISR,                             /* EUSCIA2 ISR               */
-    UART_rxIsr,                             /* EUSCIA3 ISR               */
+    defaultISR,                             /* EUSCIA3 ISR               */
     defaultISR,                             /* EUSCIB0 ISR               */
     defaultISR,                             /* EUSCIB1 ISR               */
     defaultISR,                             /* EUSCIB2 ISR               */
@@ -216,3 +216,4 @@ static void defaultISR(void)
 
     #pragma diag_pop
 }
+

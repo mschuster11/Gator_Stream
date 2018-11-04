@@ -83,10 +83,10 @@ volatile uint32_t FnCallStatus;
 // Global variables used in this example to read/write data passed between
 // CPU01 and CPU02
 //
-uint16_t usWWord16;
-uint32_t ulWWord32;
-uint16_t usCPU02Buffer[256];
-uint32_t *pulMsgRam;
+uint16_t leftSample;
+uint16_t rightSample;
+uint16_t activeEffect;
+uint32_t *crossCoreMemory;
 
 //
 // Function Prototypes
@@ -101,8 +101,6 @@ void Error (void);
 // Main
 //
 void main(void) {
-
-  uint16_t counter;
   InitSysCtrl();
 //
 // Step 3. Clear all interrupts and initialize PIE vector table:
@@ -180,42 +178,20 @@ void main(void) {
 // Point array to address in CPU02 TO CPU01 MSGRAM for passing
 // variable locations
 //
-  pulMsgRam = (void *)CPU01TOCPU02_PASSMSG;
+  crossCoreMemory = (void *)CPU01TOCPU02_PASSMSG;
 
-//
-// Write addresses of variables where words should be written to pulMsgRam
-// array.
-// 0 = Address of 16-bit word to write to.
-// 1 = Address of 32-bit word to write to.
-// 2 = Address of buffer to block write to.
-// 3 = Address of FunctionCall() function to call.
-// 4 = Address of FunctionCallParam() function to call.
-// 5 = Address of 32-bit FnCallStatus variable to check function call
-// executed
-//
-    // pulMsgRam[0] = (uint32_t)&usWWord16;
-    // pulMsgRam[1] = (uint32_t)&ulWWord32;
-    // pulMsgRam[2] = (uint32_t)&usCPU02Buffer[0];
-    // pulMsgRam[3] = (uint32_t)&FunctionCall;
-    // pulMsgRam[4] = (uint32_t)&FunctionCallParam;
-    // pulMsgRam[5] = (uint32_t)&FnCallStatus;
+  crossCoreMemory[0] = (uint32_t)&leftSample;
+  crossCoreMemory[1] = (uint32_t)&rightSample;
+  crossCoreMemory[2] = (uint32_t)&activeEffect;
 
 //
 // Flag to CPU01 that the variables are ready in MSG RAM with CPU02 TO
 // CPU01 IPC Flag 17
 //
-    while(IpcRegs.IPCSTS.bit.IPC17 != 1) {
-    }
+    while(IpcRegs.IPCSTS.bit.IPC17 != 1);
     IpcRegs.IPCACK.bit.IPC17 = 1;
     InitMcbspb();
-    for(;;) {
-        //
-        // Flag an Error if an Invalid Command has been received.
-        //
-        if (ErrorFlag == 1) {
-            Error();
-        }
-    }
+    for(;;);
 }
 
 //

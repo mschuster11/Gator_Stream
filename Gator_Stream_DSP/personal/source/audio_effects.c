@@ -16,45 +16,54 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Includes-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-
 #include "F28x_Project.h"
 #include "F2837xD_Ipc_drivers.h"
 #include "personal/headers/audio_effects.h"
 
+
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-Enums~-~-~-~--~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+enum side channel = LEFT;
+enum buffer bufferNum = FIRST;
 
-enum side{
-  LEFT,
-  RIGHT
-}channel = LEFT;
-
-enum buffer{
-  FIRST,
-  SECOND
-}bufferNum = FIRST;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-
-
-bool_t sdRdy = 0;
-Uint16 i = 0x00;
-Uint16 j = 0x00;
-extern uint32_t *pulMsgRam;
+int16 currentLeftSample;
+int16 currentRightSample;
+extern uint32_t *crossCoreMemory;
+extern uint16_t activeEffect;
 extern volatile tIpcController g_sIpcController1;
 
+
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
-    IPCLtoRDataWrite(&g_sIpcController1, pulMsgRam[0],(uint32_t)McbspbRegs.DRR1.all, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+    currentLeftSample = McbspbRegs.DRR1.all;
+    switch(activeEffect) {
+      case NO_AUDIO_EFFECT:
+        break; 
+    }
+
+    if(IpcRegs.IPCSTS.bit.IPC11 == 1)
+      IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[0],(uint32_t)currentLeftSample, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+
+    McbspbRegs.DXR1.all = currentLeftSample;
   } else if (channel == RIGHT) {
-    IPCLtoRDataWrite(&g_sIpcController1, pulMsgRam[1],(uint32_t)McbspbRegs.DRR1.all, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+    currentRightSample = McbspbRegs.DRR1.all;
+    switch(activeEffect) {
+      case NO_AUDIO_EFFECT:
+        break; 
+    }
+
+    if(IpcRegs.IPCSTS.bit.IPC11 == 1)
+      IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[1],(uint32_t)currentRightSample, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+    
+    McbspbRegs.DXR1.all = currentRightSample;
   }
 
   channel ^= 1;
