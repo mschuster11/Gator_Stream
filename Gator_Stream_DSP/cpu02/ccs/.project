@@ -95,6 +95,11 @@
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/personal/source/audio_effects.c</locationURI>
 		</link>
+		<link>
+			<name>cpu2_ipc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/cpu2_ipc.c</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>

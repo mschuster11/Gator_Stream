@@ -96,6 +96,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/utils/cmdline.c</locationURI>
 		</link>
 		<link>
+			<name>cpu1_ipc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/cpu1_ipc.c</locationURI>
+		</link>
+		<link>
 			<name>ff.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/fatfs/src/ff.c</locationURI>
@@ -109,6 +114,16 @@
 			<name>mmc_F2837x.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/fatfs/port/mmc_F2837x.c</locationURI>
+		</link>
+		<link>
+			<name>sci_utils.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/sci_utils.c</locationURI>
+		</link>
+		<link>
+			<name>sd_utils.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/sd_utils.c</locationURI>
 		</link>
 		<link>
 			<name>sysctl.c</name>
@@ -134,11 +149,6 @@
 			<name>ustdlib.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/common/deprecated/utils/ustdlib.c</locationURI>
-		</link>
-		<link>
-			<name>sd_utils.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/personal/source/sd_utils.c</locationURI>
 		</link>
 		<link>
 			<name>wav.c</name>

@@ -257,55 +257,55 @@ void runPrimitivesDemo(void) {
 
 	Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
 	Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
-	Graphics_clearDisplay(&g_sContext);
-	Graphics_drawString(&g_sContext, "Draw Pixels & Lines", AUTO_STRING_LENGTH, 60, 5, TRANSPARENT_TEXT);
-	Graphics_drawPixel(&g_sContext, 45, 45);
-	Graphics_drawPixel(&g_sContext, 45, 50);
-	Graphics_drawPixel(&g_sContext, 50, 50);
-	Graphics_drawPixel(&g_sContext, 50, 45);
-	Graphics_drawLine(&g_sContext, 60, 60, 200, 200);
-	Graphics_drawLine(&g_sContext, 30, 200, 200, 60);
-	Graphics_drawLine(&g_sContext, 0, Graphics_getDisplayHeight(&g_sContext) - 1,
-			Graphics_getDisplayWidth(&g_sContext) - 1,
-			Graphics_getDisplayHeight(&g_sContext) - 1);
-	Delay(2000);
-	Graphics_clearDisplay(&g_sContext);
-	Graphics_drawStringCentered(&g_sContext, "Draw Rectangles", AUTO_STRING_LENGTH, 159, 15, TRANSPARENT_TEXT);
-	Graphics_drawRectangle(&g_sContext, &myRectangle1);
-	Graphics_fillRectangle(&g_sContext, &myRectangle2);
-	// Text won't be visible on screen due to transparency (foreground colors match)
-	Graphics_drawStringCentered(&g_sContext, "Normal Text", AUTO_STRING_LENGTH, 225, 120, TRANSPARENT_TEXT);
-	// Text draws foreground and background for opacity
-	Graphics_drawStringCentered(&g_sContext, "Opaque Text", AUTO_STRING_LENGTH, 225, 150, OPAQUE_TEXT);
-	Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+	// Graphics_clearDisplay(&g_sContext);
+	// Graphics_drawString(&g_sContext, "Draw Pixels & Lines", AUTO_STRING_LENGTH, 60, 5, TRANSPARENT_TEXT);
+	// Graphics_drawPixel(&g_sContext, 45, 45);
+	// Graphics_drawPixel(&g_sContext, 45, 50);
+	// Graphics_drawPixel(&g_sContext, 50, 50);
+	// Graphics_drawPixel(&g_sContext, 50, 45);
+	// Graphics_drawLine(&g_sContext, 60, 60, 200, 200);
+	// Graphics_drawLine(&g_sContext, 30, 200, 200, 60);
+	// Graphics_drawLine(&g_sContext, 0, Graphics_getDisplayHeight(&g_sContext) - 1,
+	// 		Graphics_getDisplayWidth(&g_sContext) - 1,
+	// 		Graphics_getDisplayHeight(&g_sContext) - 1);
+	// Delay(2000);
+	// Graphics_clearDisplay(&g_sContext);
+	// Graphics_drawStringCentered(&g_sContext, "Draw Rectangles", AUTO_STRING_LENGTH, 159, 15, TRANSPARENT_TEXT);
+	// Graphics_drawRectangle(&g_sContext, &myRectangle1);
+	// Graphics_fillRectangle(&g_sContext, &myRectangle2);
+	// // Text won't be visible on screen due to transparency (foreground colors match)
+	// Graphics_drawStringCentered(&g_sContext, "Normal Text", AUTO_STRING_LENGTH, 225, 120, TRANSPARENT_TEXT);
+	// // Text draws foreground and background for opacity
+	// Graphics_drawStringCentered(&g_sContext, "Opaque Text", AUTO_STRING_LENGTH, 225, 150, OPAQUE_TEXT);
+	// Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
 
-	Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_RED);
-	// Text draws with inverted foreground color to become visible
-	Graphics_drawStringCentered(&g_sContext, "Invert Text", AUTO_STRING_LENGTH, 225, 180, TRANSPARENT_TEXT);
-	Delay(2000);
-	Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
-	Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
-	// Invert the foreground and background colors
-	Graphics_fillRectangle(&g_sContext, &myRectangle3);
-	Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
-	Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_RED);
-	Graphics_drawStringCentered(&g_sContext, "Invert Colors", AUTO_STRING_LENGTH, 159, 15, TRANSPARENT_TEXT);
-	Graphics_drawRectangle(&g_sContext, &myRectangle1);
-	Graphics_fillRectangle(&g_sContext, &myRectangle2);
-	// Text won't be visible on screen due to transparency
-	Graphics_drawStringCentered(&g_sContext, "Normal Text", AUTO_STRING_LENGTH, 225, 120, TRANSPARENT_TEXT);
-	// Text draws foreground and background for opacity
-	Graphics_drawStringCentered(&g_sContext, "Opaque Text", AUTO_STRING_LENGTH, 225, 150, OPAQUE_TEXT);
-	Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
-	Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
-	// Text draws with inverted color to become visible
-	Graphics_drawStringCentered(&g_sContext, "Invert Text", AUTO_STRING_LENGTH, 225, 180, TRANSPARENT_TEXT);
-	Delay(2000);
-	Graphics_clearDisplay(&g_sContext);
-	Graphics_drawStringCentered(&g_sContext, "Draw Circles", AUTO_STRING_LENGTH, 159, 15, TRANSPARENT_TEXT);
-	Graphics_drawCircle(&g_sContext, 100, 100, 50);
-	Graphics_fillCircle(&g_sContext, 200, 140, 70);
-	Delay(2000);
+	// Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+	// // Text draws with inverted foreground color to become visible
+	// Graphics_drawStringCentered(&g_sContext, "Invert Text", AUTO_STRING_LENGTH, 225, 180, TRANSPARENT_TEXT);
+	// Delay(2000);
+	// Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+	// Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+	// // Invert the foreground and background colors
+	// Graphics_fillRectangle(&g_sContext, &myRectangle3);
+	// Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+	// Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+	// Graphics_drawStringCentered(&g_sContext, "Invert Colors", AUTO_STRING_LENGTH, 159, 15, TRANSPARENT_TEXT);
+	// Graphics_drawRectangle(&g_sContext, &myRectangle1);
+	// Graphics_fillRectangle(&g_sContext, &myRectangle2);
+	// // Text won't be visible on screen due to transparency
+	// Graphics_drawStringCentered(&g_sContext, "Normal Text", AUTO_STRING_LENGTH, 225, 120, TRANSPARENT_TEXT);
+	// // Text draws foreground and background for opacity
+	// Graphics_drawStringCentered(&g_sContext, "Opaque Text", AUTO_STRING_LENGTH, 225, 150, OPAQUE_TEXT);
+	// Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+	// Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+	// // Text draws with inverted color to become visible
+	// Graphics_drawStringCentered(&g_sContext, "Invert Text", AUTO_STRING_LENGTH, 225, 180, TRANSPARENT_TEXT);
+	// Delay(2000);
+	// Graphics_clearDisplay(&g_sContext);
+	// Graphics_drawStringCentered(&g_sContext, "Draw Circles", AUTO_STRING_LENGTH, 159, 15, TRANSPARENT_TEXT);
+	// Graphics_drawCircle(&g_sContext, 100, 100, 50);
+	// Graphics_fillCircle(&g_sContext, 200, 140, 70);
+	// Delay(2000);
 	Graphics_clearDisplay(&g_sContext);
 	// Add some more color
 	Graphics_setForegroundColor(&g_sContext, ClrLawnGreen);

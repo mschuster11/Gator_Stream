@@ -16,73 +16,56 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Includes-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-
 #include "F28x_Project.h"
+#include "F2837xD_Ipc_drivers.h"
 #include "personal/headers/audio_effects.h"
+
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-Enums~-~-~-~--~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+enum side channel = LEFT;
+enum buffer bufferNum = FIRST;
 
-enum side{
-  LEFT,
-  RIGHT
-}channel = LEFT;
-
-enum buffer{
-  FIRST,
-  SECOND
-}bufferNum = FIRST;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+int16 currentLeftSample;
+int16 currentRightSample;
+extern uint32_t *crossCoreMemory;
+extern uint16_t activeEffect;
+extern volatile tIpcController g_sIpcController1;
 
-int16 leftVals1[100];
-int16 rightVals1[100];
-int16 leftVals2[100];
-int16 rightVals2[100];
-int16* buf[2];
 
-Uint16 bufIndexL = 0x00;
-Uint16 bufIndexR = 0x00;
-bool_t sdRdy = 0;
-Uint16 i = 0x00;
-Uint16 j = 0x00;
-
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
-    if (bufferNum == FIRST) {
-      leftVals1[bufIndexL++] = McbspbRegs.DRR1.all;
-    } else {
-      leftVals2[bufIndexL++] = McbspbRegs.DRR1.all;
+    currentLeftSample = McbspbRegs.DRR1.all;
+    switch(activeEffect) {
+      case NO_AUDIO_EFFECT:
+        break; 
     }
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+
+    if(IpcRegs.IPCSTS.bit.IPC11 == 1)
+      IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[0],(uint32_t)currentLeftSample, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+
+    McbspbRegs.DXR1.all = currentLeftSample;
   } else if (channel == RIGHT) {
-    if (bufferNum == FIRST) {
-      rightVals1[bufIndexR++] = McbspbRegs.DRR1.all;
-    } else {
-      rightVals2[bufIndexR++] = McbspbRegs.DRR1.all;
+    currentRightSample = McbspbRegs.DRR1.all;
+    switch(activeEffect) {
+      case NO_AUDIO_EFFECT:
+        break; 
     }
-    McbspbRegs.DXR1.all = McbspbRegs.DRR1.all;
+
+    if(IpcRegs.IPCSTS.bit.IPC11 == 1)
+      IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[1],(uint32_t)currentRightSample, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+    
+    McbspbRegs.DXR1.all = currentRightSample;
   }
 
-  if (bufIndexR > 2047 && bufIndexL > 2047) {
-    bufIndexL = 0;
-    bufIndexR = 0;
-    sdRdy = 1;
-    if(bufferNum == FIRST) {
-      buf[0] = leftVals1;
-      buf[1] = rightVals1;
-      bufferNum = SECOND;
-    } else {
-      buf[0] = leftVals2;
-      buf[1] = rightVals2;
-      bufferNum = FIRST;
-    }
-  } 
   channel ^= 1;
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;
 }

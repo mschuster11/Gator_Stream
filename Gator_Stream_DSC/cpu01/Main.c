@@ -199,8 +199,6 @@ void init_ints (void) {
   IER |= M_INT9;
 
   EnableInterrupts();
-  // McbspbRegs.SPCR2.bit.XRST = 0;
-  // McbspbRegs.SPCR2.bit.XRST = 1;
   EDIS;
 }
 

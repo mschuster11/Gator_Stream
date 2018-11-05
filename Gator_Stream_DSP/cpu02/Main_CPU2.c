@@ -61,6 +61,7 @@
 //
 // Defines
 //
+#define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
 #define CPU02TOCPU01_PASSMSG  0x0003FBF4    // Used by CPU02 to pass address
                                             // of local variables to perform
                                             // actions on
@@ -75,7 +76,6 @@
 //
 volatile tIpcController g_sIpcController1;
 volatile tIpcController g_sIpcController2;
-
 volatile uint16_t ErrorFlag;
 volatile uint32_t FnCallStatus;
 
@@ -83,15 +83,16 @@ volatile uint32_t FnCallStatus;
 // Global variables used in this example to read/write data passed between
 // CPU01 and CPU02
 //
-uint16_t usWWord16;
-uint32_t ulWWord32;
-uint16_t usCPU02Buffer[256];
+uint16_t leftSample;
+uint16_t rightSample;
+uint16_t activeEffect;
+uint32_t *crossCoreMemory;
 
 //
 // Function Prototypes
 //
-__interrupt void CPU01toCPU02IPC0IntHandler(void);
-__interrupt void CPU01toCPU02IPC1IntHandler(void);
+interrupt void CPU01toCPU02IPC0IntHandler(void);
+interrupt void CPU01toCPU02IPC1IntHandler(void);
 void FunctionCall(void);
 void FunctionCallParam(uint32_t ulParam);
 void Error (void);
@@ -100,8 +101,6 @@ void Error (void);
 // Main
 //
 void main(void) {
-  uint32_t *pulMsgRam;
-  uint16_t counter;
   InitSysCtrl();
 //
 // Step 3. Clear all interrupts and initialize PIE vector table:
@@ -174,72 +173,38 @@ void main(void) {
 //
   EINT;   // Enable Global interrupt INTM
   ERTM;   // Enable Global realtime interrupt DBGM
-  EALLOW;
-  McbspbRegs.SPCR2.bit.XRST = 0;
-  McbspbRegs.SPCR2.bit.XRST = 1;
-  EDIS;
-  InitMcbspb();
-  ErrorFlag = 0;
-  FnCallStatus = 0;
-  usWWord16 = 0;
-  ulWWord32 = 0;
-  for(counter = 0; counter < 256; counter++) {
-      usCPU02Buffer[counter] = 0;
-  }
 
 //
 // Point array to address in CPU02 TO CPU01 MSGRAM for passing
 // variable locations
 //
-    pulMsgRam = (void *)CPU02TOCPU01_PASSMSG;
+  crossCoreMemory = (void *)CPU01TOCPU02_PASSMSG;
 
-//
-// Write addresses of variables where words should be written to pulMsgRam
-// array.
-// 0 = Address of 16-bit word to write to.
-// 1 = Address of 32-bit word to write to.
-// 2 = Address of buffer to block write to.
-// 3 = Address of FunctionCall() function to call.
-// 4 = Address of FunctionCallParam() function to call.
-// 5 = Address of 32-bit FnCallStatus variable to check function call
-// executed
-//
-    pulMsgRam[0] = (uint32_t)&usWWord16;
-    pulMsgRam[1] = (uint32_t)&ulWWord32;
-    pulMsgRam[2] = (uint32_t)&usCPU02Buffer[0];
-    pulMsgRam[3] = (uint32_t)&FunctionCall;
-    pulMsgRam[4] = (uint32_t)&FunctionCallParam;
-    pulMsgRam[5] = (uint32_t)&FnCallStatus;
+  crossCoreMemory[0] = (uint32_t)&leftSample;
+  crossCoreMemory[1] = (uint32_t)&rightSample;
+  crossCoreMemory[2] = (uint32_t)&activeEffect;
 
 //
 // Flag to CPU01 that the variables are ready in MSG RAM with CPU02 TO
 // CPU01 IPC Flag 17
 //
-    IpcRegs.IPCSET.bit.IPC17 = 1;
-
-    for(;;) {
-        //
-        // Flag an Error if an Invalid Command has been received.
-        //
-        if (ErrorFlag == 1) {
-            Error();
-        }
-    }
+    while(IpcRegs.IPCSTS.bit.IPC17 != 1);
+    IpcRegs.IPCACK.bit.IPC17 = 1;
+    InitMcbspb();
+    for(;;);
 }
 
 //
 // FunctionCall - Function run by IPC_FUNC_CALL command
 //
-void
-FunctionCall(void) {
+void FunctionCall(void) {
     FnCallStatus = 1;
 }
 
 //
 // FunctionCallParam - Set the call status param
 //
-void
-FunctionCallParam(uint32_t ulParam) {
+void FunctionCallParam(uint32_t ulParam) {
     FnCallStatus = ulParam;
 }
 
@@ -247,8 +212,7 @@ FunctionCallParam(uint32_t ulParam) {
 // Error - Function to Indicate an Error has Occurred
 //         (Invalid Command Received).
 //
-void
-Error(void) {
+void Error(void) {
     //
     // An error has occurred (invalid command received). Loop forever.
     //
@@ -259,8 +223,7 @@ Error(void) {
 //
 // CPU01toCPU02IPC0IntHandler - Handles Data Word Reads/Writes
 //
-__interrupt void
-CPU01toCPU02IPC0IntHandler (void) {
+interrupt void CPU01toCPU02IPC0IntHandler (void) {
     tIpcMessage sMessage;
 
     //
@@ -301,8 +264,7 @@ CPU01toCPU02IPC0IntHandler (void) {
 //
 // CPU01toCPU02IPC1IntHandler - Handles Data Block Reads/Writes
 //
-__interrupt void
-CPU01toCPU02IPC1IntHandler (void) {
+interrupt void CPU01toCPU02IPC1IntHandler (void) {
     tIpcMessage sMessage;
 
     //

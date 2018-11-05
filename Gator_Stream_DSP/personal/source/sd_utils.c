@@ -147,17 +147,14 @@ FRESULT ChangeToDirectory(char *pcDirectory, unsigned long *pulReason) {
     if(strlen(pcDirectory) + 1 > sizeof(g_cCwdBuf)) {
       *pulReason = NAME_TOO_LONG_ERROR;
       return(FR_OK);
-    }
-    // If the new path name (in argv[1])  is not too long, then
-    // copy it into the temporary buffer so it can be checked.
-    else
-    {
+    } else {
+      // If the new path name (in argv[1])  is not too long, then
+      // copy it into the temporary buffer so it can be checked.
       strncpy(g_cTmpBuf, pcDirectory, sizeof(g_cTmpBuf));
     }
-  }
-  // If the argument is .. then attempt to remove the lowest level
-  // on the CWD.
-  else if(!strcmp(pcDirectory, "..")) {
+  } else if(!strcmp(pcDirectory, "..")) {
+    // If the argument is .. then attempt to remove the lowest level
+    // on the CWD.
     // Get the index to the last character in the current path.
     uIdx = strlen(g_cTmpBuf) - 1;
 
@@ -173,11 +170,9 @@ FRESULT ChangeToDirectory(char *pcDirectory, unsigned long *pulReason) {
     // So set the new end of string here, effectively removing
     // that last part of the path.
     g_cTmpBuf[uIdx] = 0;
-  }
-  // Otherwise this is just a normal path name from the current
-  // directory, and it needs to be appended to the current path.
-  else
-  {
+  } else {
+    // Otherwise this is just a normal path name from the current
+    // directory, and it needs to be appended to the current path.
     // Test to make sure that when the new additional path is
     // added on to the current path, there is room in the buffer
     // for the full new path.  It needs to include a new separator,
@@ -185,11 +180,9 @@ FRESULT ChangeToDirectory(char *pcDirectory, unsigned long *pulReason) {
     if(strlen(g_cTmpBuf) + strlen(pcDirectory) + 1 + 1 > sizeof(g_cCwdBuf)) {
       *pulReason = NAME_TOO_LONG_ERROR;
       return(FR_INVALID_OBJECT);
-    }
-    // The new path is okay, so add the separator and then append
-    // the new directory to the path.
-    else
-    {
+    } else {
+      // The new path is okay, so add the separator and then append
+      // the new directory to the path.
       // If not already at the root level, then append a /.
       if(strcmp(g_cTmpBuf, "/")) {
         strcat(g_cTmpBuf, "/");
@@ -209,11 +202,9 @@ FRESULT ChangeToDirectory(char *pcDirectory, unsigned long *pulReason) {
   if(fresult != FR_OK) {
     *pulReason = OPENDIR_ERROR;
     return(fresult);
-  }
-  // Otherwise, it is a valid new path, so copy it into the CWD and update
-  // the screen.
-  else
-  {
+  } else {
+    // Otherwise, it is a valid new path, so copy it into the CWD and update
+    // the screen.
     strncpy(g_cCwdBuf, g_cTmpBuf, sizeof(g_cCwdBuf));
   }
 
@@ -434,8 +425,7 @@ int Cmd_ls(int argc, char *argv[]) {
     }
     // Otherwise, it is a file.  Increment the file count, and
     // add in the file size to the total.
-    else
-    {
+    else {
       ulFileCount++;
       ulTotalSize += g_sFileInfo.fsize;
     }
@@ -491,8 +481,6 @@ int Cmd_pwd(int argc, char *argv[]) {
 void ConfigureUART(void) {
   // Enable UART0
   SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI1);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI2);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
 
 //   Configure GPIO Pins for UART mode.
    GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
@@ -509,11 +497,9 @@ void ConfigureUART(void) {
 //          FatFs.  It can be used for printing human readable
 //          error messages.
 const char* StringFromFresult(FRESULT fresult) {
-  unsigned int uIdx;
-
   // Enter a loop to search the error code table for a matching
   // error code.
-  for(uIdx = 0; uIdx < NUM_FRESULT_CODES; uIdx++) {
+  for(unsigned int uIdx = 0; uIdx < NUM_FRESULT_CODES; uIdx++) {
     // If a match is found, then return the string name of the
     // error code.
     if(g_sFresultStrings[uIdx].fresult == fresult) {
