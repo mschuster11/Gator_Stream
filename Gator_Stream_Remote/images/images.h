@@ -33,11 +33,10 @@
 //
 //*****************************************************************************
 
-extern Graphics_Image TI_platform_bar_red4BPP_UNCOMP;
-extern Graphics_Image Primitives_Button4BPP_UNCOMP;
 extern Graphics_Image Images_Button4BPP_UNCOMP;
 extern Graphics_Image maserati8BPP_UNCOMP;
 extern Graphics_Image bt_logo4BPP_UNCOMP;
+extern Graphics_Image audio4BPP_UNCOMP;
 extern Graphics_Image TI_logo_150x1501BPP_COMP_RLE4;
 
 #endif // __IMAGES_H__

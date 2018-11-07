@@ -3292,6 +3292,8 @@ int InitializeApplication(HCI_DriverInformation_t *HCI_DriverInformation, BTPS_I
   /* Displays the application's prompt.                                */
 void DisplayPrompt(void) {
   // Display(("\r\nGator Stream Transmitter>\r\n"));
+  // Display(("TEST\r\n"));
+
 }
 
   /* The following function is used to process a command line string.  */
@@ -3310,5 +3312,38 @@ void PlayPause(void) {
       Pause(NULL);
     else
       Play(NULL);
+  }
+}
+
+
+  /* The following function is responsible for performing a General    */
+  /* Inquiry for discovering Bluetooth Devices.  This function requires*/
+  /* that a valid Bluetooth Stack ID exists before running.  This      */
+  /* function returns zero is successful or a negative value if there  */
+  /* was an error.                                                     */
+void InquiryTask(void *UserParameter) {
+  int Result;
+
+  /* First, check that valid Bluetooth Stack ID exists.                */
+  if(BluetoothStackID) {
+    /* Use the GAP_Perform_Inquiry() function to perform an Inquiry.  */
+    /* The Inquiry will last 10 seconds or until 1 Bluetooth Device is*/
+    /* found.  When the Inquiry Results become available the          */
+    /* GAP_Event_Callback is called.                                  */
+    Result = GAP_Perform_Inquiry(BluetoothStackID, itGeneralInquiry, 0, 0, 10, MAX_INQUIRY_RESULTS, GAP_Event_Callback, (unsigned long)INQUIRY_REASON_LOCAL_COMMAND);
+
+    /* Next, check to see if the GAP_Perform_Inquiry() function was   */
+    /* successful.                                                    */
+    if(!Result) {
+      /* The Inquiry appears to have been sent successfully.         */
+      /* Processing of the results returned from this command occurs */
+      /* within the GAP_Event_Callback() function.                   */
+
+      /* Flag that we have found NO Bluetooth Devices.               */
+      NumberofValidResponses = 0;
+    } else {
+      /* A error occurred while performing the Inquiry.              */
+      DisplayFunctionError("Inquiry", Result);
+    }
   }
 }

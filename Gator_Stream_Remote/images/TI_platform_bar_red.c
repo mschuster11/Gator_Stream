@@ -79,7 +79,7 @@ static const uint32_t palette_TI_platform_bar_red4BPP_UNCOMP[]=
 	0xfac6c8, 	0xfefefe, 	0xfefeff, 	0xffffff
 };
 
-const Graphics_Image  TI_platform_bar_red4BPP_UNCOMP=
+Graphics_Image  TI_platform_bar_red4BPP_UNCOMP=
 {
 	IMAGE_FMT_4BPP_UNCOMP,
 	340,

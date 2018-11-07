@@ -290,11 +290,14 @@ int main(void)
          {
             if(BTPS_AddFunctionToScheduler(ToggleLEDTask, NULL, 750))
             {
-               HAL_SetLEDColor(hlcGreen);
+               if(BTPS_AddFunctionToScheduler(InquiryTask, NULL, 20000))
+               {
+                  HAL_SetLEDColor(hlcGreen);
 
-               /* Execute the scheduler, note that this function does   */
-               /* not return.                                           */
-               BTPS_ExecuteScheduler();
+                  /* Execute the scheduler, note that this function does   */
+                  /* not return.                                           */
+                  BTPS_ExecuteScheduler();
+               }
             }
          }
       }

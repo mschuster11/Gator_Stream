@@ -48,9 +48,10 @@ interrupt void mspUartRx_ISR (void) {
     uartMspRxBuf[uartMspRxBufIndex++] = ScicRegs.SCIRXBUF.all;
     if(uartMspRxBuf[uartMspRxBufIndex-2] == '\r' && uartMspRxBuf[uartMspRxBufIndex-1] == '\n'){
         newMspCmd = TRUE;
+        uartMspRxBufIndex =0;
     }
   }
-  if(newMspCmd || uartMspRxBufIndex >= 100) {
+  if(uartMspRxBufIndex >= 100) {
       uartMspRxBufIndex =0;
   }
   ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
@@ -62,9 +63,10 @@ interrupt void remoteUartRx_ISR (void) {
     uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
     if(uartRemoteRxBuf[uartRemoteRxBufIndex-1] == 0x00){
         newRemoteCmd = TRUE;
+        uartRemoteRxBufIndex = 0;
     }
   }
-  if(newRemoteCmd || uartRemoteRxBufIndex >= 100) {
+  if(uartRemoteRxBufIndex >= 100) {
       uartRemoteRxBufIndex = 0;
   }
   ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;

@@ -106,15 +106,15 @@ void main(void) {
   PieVectTable.IPC0_INT = &CPU02toCPU01IPC0IntHandler;
   PieVectTable.IPC1_INT = &CPU02toCPU01IPC1IntHandler;
 
-  // Enable the SCI-B (MSP Comms) interrupt and point to its ISR (PIE: 8.5).
-  PieVectTable.SCIC_RX_INT = mspUartRx_ISR;
-  PieCtrlRegs.PIEIER8.bit.INTx5 = 1;
-  IER |= M_INT8;
-
   // Enable the SCI-B (Remote Comms) interrupt and point to its ISR (PIE: 9.3).
   PieVectTable.SCIB_RX_INT = remoteUartRx_ISR;
   PieCtrlRegs.PIEIER9.bit.INTx3 = 1;
   IER |= M_INT9;
+
+  // Enable the SCI-C (MSP Comms) interrupt and point to its ISR (PIE: 8.5).
+  PieVectTable.SCIC_RX_INT = mspUartRx_ISR;
+  PieCtrlRegs.PIEIER8.bit.INTx5 = 1;
+  IER |= M_INT8;
   EDIS;    // This is needed to disable write to EALLOW protected registers
 
 #ifdef _STANDALONE

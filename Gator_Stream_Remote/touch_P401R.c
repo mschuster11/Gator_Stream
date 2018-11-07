@@ -37,12 +37,18 @@
 #include "grlib.h"
 #include "LcdDriver/kitronix320x240x16_ssd2119_spi.h"
 
-static touch_calibration touch_calibrationData;
+static touch_calibration touch_calibrationData = {
+  0x0980,
+  0x36C1,
+  0x0E2F,
+  0x3353,
+  0xA5A5A5A5
+};
 static bool validateCalibration(void);
 extern Graphics_Context g_sContext;
 
 static void touch_delay(){
-    uint32_t i = 0;
+    volatile uint32_t i = 0;
     uint32_t time = 480000;
 
     for(i = 0; i < time; i++)

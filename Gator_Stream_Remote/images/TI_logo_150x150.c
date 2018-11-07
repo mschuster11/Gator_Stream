@@ -53,7 +53,7 @@ static const uint32_t palette_TI_logo_150x1501BPP_COMP_RLE4[]=
 	0x000000, 	0xffffff
 };
 
-const Graphics_Image  TI_logo_150x1501BPP_COMP_RLE4=
+Graphics_Image TI_logo_150x1501BPP_COMP_RLE4=
 {
 	IMAGE_FMT_1BPP_COMP_RLE4,
 	150,

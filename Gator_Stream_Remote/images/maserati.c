@@ -343,7 +343,7 @@ static const uint32_t palette_maserati8BPP_UNCOMP[]=
 	0xeaeaea, 	0xf0f0f0, 	0xf6f6f6, 	0xfcfcfc
 };
 
-const Graphics_Image maserati8BPP_UNCOMP=
+Graphics_Image maserati8BPP_UNCOMP=
 {
 	IMAGE_FMT_8BPP_UNCOMP,
 	320,
