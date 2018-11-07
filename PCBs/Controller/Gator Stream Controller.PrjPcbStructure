@@ -1,0 +1,3 @@
+Record=TopLevelDocument|FileName=Controller Top Sheet.SchDoc
+Record=SheetSymbol|SourceDocument=Controller Top Sheet.SchDoc|Designator=U_Battery Charger|SchDesignator=U_Battery Charger|FileName=Battery Charger.SchDoc|SymbolType=Normal|RawFileName=Battery Charger.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Controller Top Sheet.SchDoc|Designator=U_MSP432|SchDesignator=U_MSP432|FileName=MSP432.SchDoc|SymbolType=Normal|RawFileName=MSP432.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
