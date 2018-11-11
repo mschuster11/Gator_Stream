@@ -24,7 +24,7 @@
 #include "personal/headers/wav_priv.h"
 #include "personal/headers/cpu1_ipc.h"
 #include "personal/headers/sci_utils.h"
-
+#include "stdlib.h"
 
 // Defines
 #define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
@@ -57,21 +57,22 @@ uint16_t leftSample;
 uint16_t rightSample;
 uint16_t activeEffect;
 uint16_t count;
-
+extern uint16_t uartMspRxBufIndex ;
 
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-
 extern char g_cCwdBuf[CMD_BUF_SIZE];
 extern char g_cCmdBuf[CMD_BUF_SIZE];
-//
-// Function Prototypes
-//
-void Error(void);
-void init_ints(void);
+extern node* currentMspUartCmd;
+extern node* newMspUartCmd;
 
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-Prototypes~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+void init_ints(void);
+void printString(char* s);
 
 
 //
@@ -166,16 +167,28 @@ void main(void) {
     }
 
     if(newRemoteCmd == TRUE) {
-      UARTprintf("%s\n", uartRemoteRxBuf);
-      scic_txChar('i');
-      scic_txChar('\r');
-      scic_txChar('\n');
+     // UARTprintf("%s\n", uartRemoteRxBuf);
+     printString(uartRemoteRxBuf);
+     scic_txChar(uartRemoteRxBuf[0]);
+     scic_txChar(uartRemoteRxBuf[1]);
+     scic_txChar(uartRemoteRxBuf[2]);
+     scic_txChar(uartRemoteRxBuf[3]);
+     scic_txChar('\r');
+     scic_txChar('\n');
+     scic_txChar(0x00);
       newRemoteCmd = FALSE;
     }
 
-    if(newMspCmd == TRUE) {
-      UARTprintf("%s\n", uartMspRxBuf);
-      newMspCmd = FALSE;
+    while(currentMspUartCmd != NULL){
+      node* temp = currentMspUartCmd;
+      printString(currentMspUartCmd->uartString);
+      currentMspUartCmd = currentMspUartCmd->next;
+      free(temp);
     }
   }
+}
+
+void printString(char* s) {
+  for(uint16_t i=0;s[i]!=NULL;i++)
+    scia_txChar(s[i]);
 }

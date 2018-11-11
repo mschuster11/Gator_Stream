@@ -71,6 +71,7 @@ void scic_txChar(int a);
 
 int main (void) {
   // Initialize System Control.
+    asm("   NOP");
   InitSysCtrl();
 
   // Initialize McBsp GPIO:

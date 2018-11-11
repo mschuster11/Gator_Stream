@@ -290,7 +290,7 @@ int main(void)
          {
             if(BTPS_AddFunctionToScheduler(ToggleLEDTask, NULL, 750))
             {
-               if(BTPS_AddFunctionToScheduler(InquiryTask, NULL, 20000))
+               if(BTPS_AddFunctionToScheduler(InquiryTask, NULL, 100000))
                {
                   HAL_SetLEDColor(hlcGreen);
 

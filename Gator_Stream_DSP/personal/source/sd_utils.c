@@ -525,9 +525,7 @@ FRESULT initMMC(void) {
   // Configure UART0 for debug output.
   ConfigureUART();
 
-  // Print hello message to user.
-  UARTprintf("\n\nSD Card Example Program\n");
-  UARTprintf("Type \'help\' for help.\n");
+  // Initialize the connection to the SD card.
   disk_initialize(0);
   // Mount the file system, using logical disk 0.
   fresult = f_mount(0, &g_sFatFs);

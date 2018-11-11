@@ -73,6 +73,10 @@ Graphics_ImageButton btConnectivityButton;
 Graphics_Button yesButton;
 Graphics_Button noButton;
 Graphics_Button backButton;
+Graphics_Button choiceButton1;
+Graphics_Button choiceButton2;
+Graphics_Button choiceButton3;
+Graphics_Button disconnectButton;
 
 // Graphic library context
 Graphics_Context g_sContext;
@@ -92,6 +96,7 @@ void drawRestarDemo(void);
 void Remote_EnableUART(uint32_t ModuleInstance, uint32_t InterruptNumber, unsigned long BaudRate);
 void UART_rxIsr(void);
 void drawLoadingAnimation(uint16_t seconds);
+void UART_transmitString(char* s);
 
 void main(void) {
 //  int16_t ulIdx;
@@ -131,48 +136,15 @@ void main(void) {
       } else if(Graphics_isImageButtonSelected(&btConnectivityButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedImageButton(&g_sContext,&btConnectivityButton);
         openBTMenu();
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'T');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'h');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'i');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 's');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, ' ');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'i');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 's');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, ' ');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'a');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, ' ');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 't');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'e');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 's');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 't');
-        UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 0x00);
+        UART_transmitString("This is a test");
       }
 
        if(g_ranDemo == true) {
 
-         g_ranDemo = false;
- //                for(uint16_t i = 0; i < UART_RX_CMD_BUF_SIZE ; i++){
- //                    if(uartRxCmdBuf[i] == 0x00){
- //                        break;
- //                    }
- //                    UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, uartRxCmdBuf[i]);
- //                }
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'T');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'h');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'i');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 's');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, ' ');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'i');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 's');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, ' ');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'a');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, ' ');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 't');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 'e');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 's');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 't');
-         UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 0x00);
-         drawMainMenu();
+        g_ranDemo = false;
+
+        UART_transmitString("This is a test");
+        drawMainMenu();
        }
     }
   }
@@ -251,6 +223,70 @@ void initializeDemoButtons(void) {
   backButton.text = "BACK";
   backButton.font = &g_sFontCm18;
 
+  choiceButton1.xMin = 145;
+  choiceButton1.xMax = 175;
+  choiceButton1.yMin = 55;
+  choiceButton1.yMax = 95;
+  choiceButton1.borderWidth = 1;
+  choiceButton1.selected = false;
+  choiceButton1.fillColor = GRAPHICS_COLOR_ORANGE;
+  choiceButton1.borderColor = GRAPHICS_COLOR_BLUE;
+  choiceButton1.selectedColor = GRAPHICS_COLOR_BLACK;
+  choiceButton1.textColor = GRAPHICS_COLOR_BLACK;
+  choiceButton1.selectedTextColor = GRAPHICS_COLOR_RED;
+  choiceButton1.textXPos = 160;
+  choiceButton1.textYPos = 75;
+  choiceButton1.text = "1";
+  choiceButton1.font = &g_sFontCm18;
+
+  choiceButton2.xMin = 145;
+  choiceButton2.xMax = 175;
+  choiceButton2.yMin = 100;
+  choiceButton2.yMax = 140;
+  choiceButton2.borderWidth = 1;
+  choiceButton2.selected = false;
+  choiceButton2.fillColor = GRAPHICS_COLOR_BLUE;
+  choiceButton2.borderColor = GRAPHICS_COLOR_ORANGE;
+  choiceButton2.selectedColor = GRAPHICS_COLOR_BLACK;
+  choiceButton2.textColor = GRAPHICS_COLOR_BLACK;
+  choiceButton2.selectedTextColor = GRAPHICS_COLOR_RED;
+  choiceButton2.textXPos = 160;
+  choiceButton2.textYPos = 120;
+  choiceButton2.text = "2";
+  choiceButton2.font = &g_sFontCm18;
+
+  choiceButton3.xMin = 145;
+  choiceButton3.xMax = 175;
+  choiceButton3.yMin = 145;
+  choiceButton3.yMax = 185;
+  choiceButton3.borderWidth = 1;
+  choiceButton3.selected = false;
+  choiceButton3.fillColor = GRAPHICS_COLOR_ORANGE;
+  choiceButton3.borderColor = GRAPHICS_COLOR_BLUE;
+  choiceButton3.selectedColor = GRAPHICS_COLOR_BLACK;
+  choiceButton3.textColor = GRAPHICS_COLOR_BLACK;
+  choiceButton3.selectedTextColor = GRAPHICS_COLOR_RED;
+  choiceButton3.textXPos = 160;
+  choiceButton3.textYPos = 180;
+  choiceButton3.text = "3";
+  choiceButton3.font = &g_sFontCm18;
+
+  disconnectButton.xMin = 0;
+  disconnectButton.xMax = 70;
+  disconnectButton.yMin = 0;
+  disconnectButton.yMax = 40;
+  disconnectButton.borderWidth = 1;
+  disconnectButton.selected = false;
+  disconnectButton.fillColor = GRAPHICS_COLOR_RED;
+  disconnectButton.borderColor = GRAPHICS_COLOR_RED;
+  disconnectButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  disconnectButton.textColor = GRAPHICS_COLOR_BLACK;
+  disconnectButton.selectedTextColor = GRAPHICS_COLOR_RED;
+  disconnectButton.textXPos = 10;
+  disconnectButton.textYPos = 10;
+  disconnectButton.text = "Disconnect";
+  disconnectButton.font = &g_sFontCm18;
+
 }
 
 void drawMainMenu(void) {
@@ -320,6 +356,10 @@ void openBTMenu(void) {
   Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_WHITE_SMOKE);
   Graphics_clearDisplay(&g_sContext);
   Graphics_drawButton(&g_sContext,&backButton);
+  Graphics_drawButton(&g_sContext,&disconnectButton);
+  Graphics_drawButton(&g_sContext,&choiceButton1);
+  Graphics_drawButton(&g_sContext,&choiceButton2);
+  Graphics_drawButton(&g_sContext,&choiceButton3);
 
 
   for(;;){
@@ -328,8 +368,24 @@ void openBTMenu(void) {
       if(Graphics_isButtonSelected(&backButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedButton(&g_sContext, &yesButton);
         break;
-      } 
-    }
+      } else if(Graphics_isButtonSelected(&disconnectButton, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext,&disconnectButton);
+        UART_transmitString("CS");
+        Graphics_drawButton(&g_sContext,&disconnectButton);
+      } else if(Graphics_isButtonSelected(&choiceButton1, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext,&choiceButton1);
+        UART_transmitString("OS 1");
+        Graphics_drawButton(&g_sContext,&choiceButton1);
+      } else if(Graphics_isButtonSelected(&choiceButton2, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext,&choiceButton2);
+        UART_transmitString("OS 2");
+        Graphics_drawButton(&g_sContext,&choiceButton2);
+      } else if(Graphics_isButtonSelected(&choiceButton3, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext,&choiceButton3);
+        UART_transmitString("OS 3");
+        Graphics_drawButton(&g_sContext,&choiceButton3);
+      }
+    } 
   }
   Graphics_clearDisplay(&g_sContext);
   drawMainMenu();
@@ -403,7 +459,7 @@ void clockInit(void) {
 
 
 void Delay(uint16_t msec){
-  uint32_t i=0;
+  volatile uint32_t i=0;
   uint32_t time=(msec/1000)*(SYSTEM_CLOCK_SPEED/15);
 
   for(i=0;i<time;i++);
@@ -473,6 +529,7 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
+      Delay(100);
     }
     for(ulIdx = 256; ulIdx >= 1; ulIdx--) {
       // Red Color
@@ -482,6 +539,7 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
+      Delay(100);
     }
     // Clear Red Color
     * ((uint16_t*) (&color)+1)  = 0;
@@ -491,6 +549,7 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
+      Delay(100);
     }
     for(ulIdx = 256; ulIdx >= 1; ulIdx--) {
       // Blue and Green Colors
@@ -498,7 +557,15 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
+      Delay(100);
     }
   }
 }
 
+
+void UART_transmitString(char* s) {
+  uint16_t i;
+  for(i = 0;s[i]!=0;i++)
+    UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, s[i]);
+  UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 0x00);
+}

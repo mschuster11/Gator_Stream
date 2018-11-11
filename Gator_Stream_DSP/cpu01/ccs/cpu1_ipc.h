@@ -12,25 +12,19 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //###########################################################################
 
-#ifndef _SCI_UTILS_H_
-#define _SCI_UTILS_H_
+#ifndef _CPU1_IPC_H_
+#define _CPU1_IPC_H_
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Defines~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+#define MMC_SAMPLE_PING_PONG_BUFF_SIZE      2048
+
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-Function Prototypes-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-interrupt void mspUartRx_ISR(void);
-interrupt void remoteUartRx_ISR(void);
-void init_scib(void);
-void init_scic(void);
-void scia_txChar(char c);
-void scib_txChar(char c);
-void scic_txChar(char c);
-typedef struct node {
-  char uartString[50];
-  struct node* next;
-}node;
+interrupt void CPU02toCPU01IPC0IntHandler(void);
+interrupt void CPU02toCPU01IPC1IntHandler(void);
+
 #endif
