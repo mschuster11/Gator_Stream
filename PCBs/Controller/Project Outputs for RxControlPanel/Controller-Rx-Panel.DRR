@@ -1,0 +1,24 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: Controller-Rx-Panel.PcbDoc   11/8/2018  8:04:19 PM
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : Controller-Rx-Panel.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      15mil (0.381mm)                                           Round             66        PTH        21.99inch (558.51mm)
+T2      25mil (0.635mm)                                           Round             20        PTH        2.28inch (58.00mm)
+T3      28mil (0.7mm)                                             Round             13        PTH        3.40inch (86.23mm)
+T4      28mil (0.711mm)                                           Round             2         PTH        0.19inch (4.71mm)
+T5      30mil (0.762mm)                                           Round             16        PTH        4.95inch (125.73mm)
+T6      33mil (0.85mm)                                            Round             6         PTH        3.33inch (84.71mm)
+T7      35mil (0.9mm)                                             Round             111       PTH        19.59inch (497.68mm)
+T8      39mil (1.001mm)                                           Round             12        PTH        3.86inch (98.01mm)
+T9      43mil (1.1mm)                                             Round             2         PTH        0.20inch (5.08mm)
+T10     67mil (1.689mm)                                           Round             5         PTH        0.56inch (14.14mm)
+T11     79mil (2mm)                                               Round             2         PTH        0.29inch (7.30mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              255
+
+Total Processing Time (hh:mm:ss) : 00:00:00

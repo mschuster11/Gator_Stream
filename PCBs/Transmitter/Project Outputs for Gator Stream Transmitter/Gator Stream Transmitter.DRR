@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------------------------------------
-NCDrill File Report For: Gator Stream Transmitter.PcbDoc   10/29/2018  4:05:30 PM
+NCDrill File Report For: Gator Stream Transmitter.PcbDoc   11/12/2018  3:52:46 PM
 ----------------------------------------------------------------------------------------------------------------------------------
 
 Layer Pair : Top Layer to Bottom Layer
@@ -7,13 +7,15 @@ ASCII RoundHoles File : Gator Stream Transmitter.TXT
 
 Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
 ----------------------------------------------------------------------------------------------------------------------------------
-T1      10mil (0.254mm)                                           Round             86        PTH        12.80inch (325.10mm)
-T2      15mil (0.381mm)                                           Round             34        PTH        10.30inch (261.64mm)
-T3      25mil (0.635mm)                                           Round             20        PTH        2.28inch (58.00mm)
-T4      28mil (0.7mm)                                             Round             8         PTH        2.38inch (60.43mm)
-T5      30mil (0.762mm)                                           Round             4         PTH        0.70inch (17.78mm)
-T6      35mil (0.9mm)                                             Round             89        PTH        13.04inch (331.17mm)
+T1      12mil (0.305mm)                                           Round             143       PTH        26.71inch (678.48mm)
+T2      15mil (0.381mm)                                           Round             7         PTH        5.23inch (132.88mm)
+T3      25mil (0.635mm)                                           Round             20        PTH        3.23inch (82.00mm)
+T4      28mil (0.7mm)                                             Round             6         PTH        1.17inch (29.74mm)
+T5      28mil (0.711mm)                                           Round             25        PTH        4.25inch (107.96mm)
+T6      30mil (0.762mm)                                           Round             4         PTH        0.70inch (17.78mm)
+T7      32mil (0.8mm)                                             Round             2         PTH        0.19inch (4.88mm)
+T8      35mil (0.9mm)                                             Round             106       PTH        22.88inch (581.05mm)
 ----------------------------------------------------------------------------------------------------------------------------------
-Totals                                                                              241
+Totals                                                                              313
 
-Total Processing Time (hh:mm:ss) : 00:00:01
+Total Processing Time (hh:mm:ss) : 00:00:00
