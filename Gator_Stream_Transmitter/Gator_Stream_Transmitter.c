@@ -196,6 +196,11 @@ typedef struct _tagSend_Info_t {
   DWord_t BytesSent;
 } Send_Info_t;
 
+typedef struct _tagBtDevice_t {
+    BD_ADDR_t devAddr;
+    char devName[50];
+} BtDevice_t;
+
   /* The following enumerated type represents the valid stream         */
   /* play/pause states that may be entered.                            */
 typedef enum {
@@ -307,6 +312,8 @@ static DWord_t             MaxBaudRate;             /* Variable stores the maxim
 static SByte_t              AudioVolume;             /* Variable stores the maximum     */
                                            /* HCI UART baud rate supported by */
                                            /* this platform.                  */
+
+static BtDevice_t           DeviceList[MAX_INQUIRY_RESULTS];
 
   /* The following table holds the supported Sink formats.             */
 static BTPSCONST AUD_Stream_Format_t AudioSRCSupportedFormats[] = {
@@ -927,13 +934,13 @@ static int OpenStack(HCI_DriverInformation_t *HCI_DriverInformation, BTPS_Initia
         /* and set the return value of the initialization function  */
         /* to the Bluetooth Stack ID.                               */
         BluetoothStackID = Result;
-        Display(("Bluetooth Stack ID: %d\r\n", BluetoothStackID));
+        // Display(("Bluetooth Stack ID: %d\r\n", BluetoothStackID));
 
         /* Attempt to enable the A3DP Sink Feature.                 */
-        if((Result = BSC_EnableFeature(BluetoothStackID, BSC_FEATURE_A3DP_SOURCE)) == 0)
-          Display(("A3DP Source Feature enabled.\r\n"));
-        else
-          Display(("A3DP Source Feature NOT enabled %d.\r\n", Result));
+        // if((Result = BSC_EnableFeature(BluetoothStackID, BSC_FEATURE_A3DP_SOURCE)) == 0)
+        //   Display(("A3DP Source Feature enabled.\r\n"));
+        // else
+        //   Display(("A3DP Source Feature NOT enabled %d.\r\n", Result));
 
         /* Initialize the default Secure Simple Pairing parameters. */
         IOCapability     = DEFAULT_IO_CAPABILITY;
@@ -941,24 +948,24 @@ static int OpenStack(HCI_DriverInformation_t *HCI_DriverInformation, BTPS_Initia
         MITMProtection   = DEFAULT_MITM_PROTECTION;
 
         if(!HCI_Version_Supported(BluetoothStackID, &HCIVersion)) {
-          Display(("Device Chipset: %s\r\n",
-           (HCIVersion <= NUM_SUPPORTED_HCI_VERSIONS)?HCIVersionStrings[HCIVersion]:HCIVersionStrings[NUM_SUPPORTED_HCI_VERSIONS]));
+          // Display(("Device Chipset: %s\r\n",
+          //  (HCIVersion <= NUM_SUPPORTED_HCI_VERSIONS)?HCIVersionStrings[HCIVersion]:HCIVersionStrings[NUM_SUPPORTED_HCI_VERSIONS]));
         }
         /* Printing the BTPS version                                */
-        Display(("BTPS Version  : %s \r\n", BTPS_VERSION_VERSION_STRING));
+        // Display(("BTPS Version  : %s \r\n", BTPS_VERSION_VERSION_STRING));
         /* Printing the FW version                                  */
-        DisplayFWVersion();
+        // DisplayFWVersion();
 
         /* Printing the Demo Application name and version           */
-        Display(("App Name      : %.24s \r\n", APP_DEMO_NAME));
-        Display(("App Version   : %s \r\n", DEMO_APPLICATION_VERSION_STRING));
+        // Display(("App Name      : %.24s \r\n", APP_DEMO_NAME));
+        // Display(("App Version   : %s \r\n", DEMO_APPLICATION_VERSION_STRING));
 
         /* Let's output the Bluetooth Device Address so that the    */
         /* user knows what the Device Address is.                   */
         if(!GAP_Query_Local_BD_ADDR(BluetoothStackID, &BD_ADDR)) {
           BD_ADDRToStr(BD_ADDR, BluetoothAddress);
 
-          Display(("BD_ADDR: %s\r\n", BluetoothAddress));
+          // Display(("BD_ADDR: %s\r\n", BluetoothAddress));
         }
 
         /* For the A3DP Sink board we will configure EIR data.      */
@@ -1291,7 +1298,7 @@ static int Initialize_Source(void) {
       /* Set up our stream configuration parameters.                 */
       InitializationInfoSRC.InitializationFlags          = 0;
       InitializationInfoSRC.NumberConcurrentStreams      = 1;
-      InitializationInfoSRC.EndpointSDPDescription       = "A3DP Source";
+      InitializationInfoSRC.EndpointSDPDescription       = "Gator Stream Transmitter";
       InitializationInfoSRC.NumberSupportedStreamFormats = NUM_SRC_SUPPORTED_FORMATS;
 
       /* Initialize the stream configuration supported format list.  */
@@ -1299,8 +1306,8 @@ static int Initialize_Source(void) {
 
       /* Set up the remote control role configuration.               */
       RemoteControlRoleInfo.SupportedFeaturesFlags       = SDP_AVRCP_SUPPORTED_FEATURES_CONTROLLER_CATEGORY_1;
-      RemoteControlRoleInfo.ProviderName                 = "Texas Instruments";
-      RemoteControlRoleInfo.ServiceName                  = "A3DP Source";
+      RemoteControlRoleInfo.ProviderName                 = "UF";
+      RemoteControlRoleInfo.ServiceName                  = "Gator Stream Transmitter";
 
       /* Set up the remaining AVRCP Controller configuration.        */
       InitializationInfoAVR.InitializationFlags          = 0;
@@ -1357,14 +1364,14 @@ static int ReconfigureA3DPStream(AUD_Stream_Format_t *Format) {
   AudioFormat = 0;
   AudioVolume = 0;
 
-  Display(("Initialize audio with sampling frequency: %lu\r\n", Format->SampleFrequency));
+  // Display(("Initialize audio with sampling frequency: %lu\r\n", Format->SampleFrequency));
 
   HAL_EnableAudioCodec(BluetoothStackID, aucA3DPSource, Format->SampleFrequency, Format->NumberChannels);
 
-  Display(("Stream Format: \r\n"));
-  Display(("   Frequency: %lu\r\n", Format->SampleFrequency));
-  Display(("   Channels:  %d\r\n", Format->NumberChannels));
-  Display(("   Flags:     %lu\r\n", Format->FormatFlags));
+  // Display(("Stream Format: \r\n"));
+  // Display(("   Frequency: %lu\r\n", Format->SampleFrequency));
+  // Display(("   Channels:  %d\r\n", Format->NumberChannels));
+  // Display(("   Flags:     %lu\r\n", Format->FormatFlags));
 
   /* Determine the incoming SBC frequency.                             */
   switch(Format->SampleFrequency) {
@@ -2606,7 +2613,7 @@ static void ProcessInquiryEntry(BD_ADDR_t BD_ADDR, unsigned long InquiryReason, 
   /* First, convert the BD_ADDR to a string for later.                 */
   BD_ADDRToStr(BD_ADDR, Callback_BoardStr);
 
-  Display(("\r\n"));
+  // Display(("\r\n"));
 
   if(InquiryReason == INQUIRY_REASON_AUTO_CONNECT) {
     /* Flag that we have not determined if the device should be added */
@@ -2949,7 +2956,7 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
               /* performing the inquiry.                         */
               for(Index=0;(Index<GAP_Inquiry_Event_Data->Number_Devices) && (Index<MAX_INQUIRY_RESULTS);Index++) {
                 InquiryResultList[Index] = GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR;
-                // BD_ADDRToStr(GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR, Callback_BoardStr);
+                 BD_ADDRToStr(GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR, Callback_BoardStr);
 
                 // Display(("  Result: %d,%s.\r\n", (Index+1), Callback_BoardStr));
                 /* Query each discovered device's name            */
@@ -3193,14 +3200,29 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
         if(GAP_Remote_Name_Event_Data) {
           /* Inform the user of the Result.                        */
           BD_ADDRToStr(GAP_Remote_Name_Event_Data->Remote_Device, Callback_BoardStr);
-
+          uint16_t i;
+          static uint16_t n = 0;
+          for(i=0;i<NumberofValidResponses;i++){
+              if(COMPARE_BD_ADDR(InquiryResultList[i], GAP_Remote_Name_Event_Data->Remote_Device)){
+                  DeviceList[i].devAddr = GAP_Remote_Name_Event_Data->Remote_Device;
+                  BTPS_MemCopy(DeviceList[i].devName, GAP_Remote_Name_Event_Data->Remote_Name, 50);
+                  n++;
+                  break;
+              }
+          }
+          if(n == NumberofValidResponses){
+            uint16_t j;
+            for(j=0;j<NumberofValidResponses;j++)
+              Display(("%d. %s\r\n", j+1, DeviceList[j].devName));
+            n=0;
+          }
           // Display(("\r\n"));
-          Display(("BD_ADDR: %s.\r\n", Callback_BoardStr));
+          Display(("Addr: %s\r\n", Callback_BoardStr));
 
           if(GAP_Remote_Name_Event_Data->Remote_Name)
-            Display(("Name: %s.\r\n", GAP_Remote_Name_Event_Data->Remote_Name));
+            Display(("Name: %s\r\n", DeviceList[i].devName));
           else
-            Display(("Name: %s.\r\n", "NULL"));
+            Display(("Name: Name not given\r\n", "NULL"));
         }
         break;
       case etEncryption_Change_Result:

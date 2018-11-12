@@ -20,6 +20,7 @@
 #include "driverlib/sysctl.h"
 #include "personal/headers/sci_utils.h"
 #include "fatfs/src/integer.h"
+#include "stdlib.h"
 
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -31,13 +32,14 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-char uartRemoteRxBuf[100];
+node* currentMspUartCmd = NULL;
+node* newMspUartCmd = NULL;
 bool_t newRemoteCmd = FALSE;
 static uint16_t uartRemoteRxBufIndex = 0;
 
-char uartMspRxBuf[100];
+char uartRemoteRxBuf[100];
 bool_t newMspCmd = FALSE;
-static uint16_t uartMspRxBufIndex = 0;
+ uint16_t uartMspRxBufIndex = 0;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -45,10 +47,20 @@ static uint16_t uartMspRxBufIndex = 0;
 
 interrupt void mspUartRx_ISR (void) {
   while(ScicRegs.SCIFFRX.bit.RXFFST > 0) {
-    uartMspRxBuf[uartMspRxBufIndex++] = ScicRegs.SCIRXBUF.all;
-    if(uartMspRxBuf[uartMspRxBufIndex-2] == '\r' && uartMspRxBuf[uartMspRxBufIndex-1] == '\n'){
-        newMspCmd = TRUE;
-        uartMspRxBufIndex =0;
+    if(!newMspUartCmd){
+      newMspUartCmd = malloc(sizeof(node));
+      newMspUartCmd->next = NULL;
+      uartMspRxBufIndex = 0;
+
+    }
+    newMspUartCmd->uartString[uartMspRxBufIndex++] = ScicRegs.SCIRXBUF.all;
+    if(newMspUartCmd->uartString[uartMspRxBufIndex-2] == '\r' && newMspUartCmd->uartString[uartMspRxBufIndex-1] == '\n'){
+        newMspUartCmd->uartString[uartMspRxBufIndex] = NULL;
+        if(!currentMspUartCmd)
+            currentMspUartCmd = newMspUartCmd;
+        newMspUartCmd = newMspUartCmd->next;
+    }else{
+        newMspCmd = FALSE;
     }
   }
   if(uartMspRxBufIndex >= 100) {
@@ -72,15 +84,20 @@ interrupt void remoteUartRx_ISR (void) {
   ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
 
-void scib_txChar (int a) {
+void scia_txChar (char c) {
+  while (SciaRegs.SCICTL2.bit.TXRDY != 1);
+  SciaRegs.SCITXBUF.all =c;
+}
+
+void scib_txChar (char c) {
   while (ScibRegs.SCICTL2.bit.TXRDY != 1);
-  ScibRegs.SCITXBUF.all =a;
+  ScibRegs.SCITXBUF.all = c;
 }
 
 
-void scic_txChar (int a) {
+void scic_txChar (char c) {
   while (ScicRegs.SCICTL2.bit.TXRDY != 1);
-  ScicRegs.SCITXBUF.all =a;
+  ScicRegs.SCITXBUF.all = c;
 }
 
 void init_scib (void) {
@@ -99,7 +116,7 @@ void init_scib (void) {
                                         // Disable RX ERR, SLEEP, TXWAKE
   ScibRegs.SCICTL2.all = 0x0003;        // Enable the interrupts for both TX and RX. 
 
-  // SCIA at 9600 baud
+  // SCIB at 9600 baud
   ScibRegs.SCIHBAUD.all = 0x0002;
   ScibRegs.SCILBAUD.all = 0x008B;
   ScibRegs.SCIFFRX.all  = 0x2044;       // Relinquish RX FIFO from Reset,
