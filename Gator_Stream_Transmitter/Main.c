@@ -56,39 +56,31 @@ static void PollErrorFlags(void);
 
    /* The following function is responsible for retrieving commands from*/
    /* the user console.                                                 */
-static void ProcessCharactersTask(void *UserParameter)
-{
+static void ProcessCharactersTask(void *UserParameter) {
    static Boolean_t initialCmd = TRUE;
    char      Char;
    Boolean_t CompleteLine;
 
-   if(initialCmd)
-   {
-      BTPS_StringCopy(Input, "I\r\n\0\0");
-      ProcessCommandLine(Input);
+   if(initialCmd) {
+      BTPS_StringCopy(Input, "I\r\n");
+      InputIndex = 3;
+      CompleteLine = TRUE;
       initialCmd = FALSE;
-   }
-   else
-   {
+   } else {
       /* Initialize the variable indicating a complete line has been parsed*/
       /* to false.                                                         */
       CompleteLine = FALSE;
 
       /* Attempt to read data from the console.                            */
-      while((!CompleteLine) && (HAL_ConsoleRead(1, &Char)))
-      {
-         switch(Char)
-         {
+      while((!CompleteLine) && (HAL_ConsoleRead(1, &Char))) {
+         switch(Char) {
             case '\r':
             case '\n':
-               if(InputIndex > 0)
-               {
+               if(InputIndex > 0) {
                   /* We have received an end of line character, set the    */
                   /* complete line variable to true.                       */
                   CompleteLine = TRUE;
-               }
-               else
-               {
+               } else {
                   /* The user pressed 'Enter' without typing a command,    */
                   /* display the application's prompt.                     */
                   DisplayPrompt();
@@ -98,24 +90,21 @@ static void ProcessCharactersTask(void *UserParameter)
                /* Backspace has been pressed, so now decrement the number  */
                /* of bytes in the buffer (if there are bytes in the        */
                /* buffer).                                                 */
-               if(InputIndex)
-               {
+               if(InputIndex) {
                   InputIndex--;
                   HAL_ConsoleWrite(3, "\b \b");
                }
                break;
             default:
                /* Accept any other printable characters.                   */
-               if((Char >= ' ') && (Char <= '~'))
-               {
+               if((Char >= ' ') && (Char <= '~')) {
                   /* Add the Data Byte to the Input Buffer, and make sure  */
                   /* that we do not overwrite the Input Buffer.            */
                   Input[InputIndex++] = Char;
                   HAL_ConsoleWrite(1, &Char);
 
                   /* Check to see if we have reached the end of the buffer.*/
-                  if(InputIndex >= MAX_COMMAND_LENGTH)
-                  {
+                  if(InputIndex >= MAX_COMMAND_LENGTH) {
                      /* We have received all of the data that we can       */
                      /* handle, set the complete line variable to true.    */
                      CompleteLine = TRUE;
@@ -127,8 +116,7 @@ static void ProcessCharactersTask(void *UserParameter)
    }
 
    /* Check if we have received a complete line.                        */
-   if(CompleteLine)
-   {
+   if(CompleteLine) {
       /* We have received a complete line, null-terminate the string,   */
       /* adding an extra null character for interopability with the     */
       /* command line processing performed in the application.          */
@@ -145,16 +133,13 @@ static void ProcessCharactersTask(void *UserParameter)
 
    /* The following function is responsible for checking the idle state */
    /* and possibly entering LPM3 mode.                                  */
-static void IdleTask(void *UserParameter)
-{
+static void IdleTask(void *UserParameter) {
    /* If the stack is idle and we are in HCILL sleep, then we may enter */
    /* a Low Power Mode (with Timer Interrupts disabled).                */
-   if((BSC_QueryStackIdle(BluetoothStackID)) && (SleepAllowed))
-   {
+   if((BSC_QueryStackIdle(BluetoothStackID)) && (SleepAllowed)) {
       /* The stack is idle and we are in HCILL sleep, attempt to suspend*/
       /* the UART.                                                      */
-      if(!HCITR_COMSuspend())
-      {
+      if(!HCITR_COMSuspend()) {
          /* Check to see if a wakeup is in progress (by the controller).*/
          /* If so we will disable sleep mode so that we complete the    */
          /* process.                                                    */
@@ -164,44 +149,35 @@ static void IdleTask(void *UserParameter)
          /* Go ahead and process any characters we may have received on */
          /* the console UART.                                           */
          ProcessCharactersTask(NULL);
-      }
-      else
-      {
+      } else {
          /* Failed to suspend the UART which must mean that the         */
          /* controller is attempting to do a wakeup.  Therefore we will */
          /* flag that sleep mode is disabled.                           */
          SleepAllowed = FALSE;
       }
-   }
-   else
-   {
+   } else {
       /* Poll the error flags.                                          */
       PollErrorFlags();
    }
 }
 
    /* The following function is responsible for toggling the LED.       */
-static void ToggleLEDTask(void *UserParameter)
-{
+static void ToggleLEDTask(void *UserParameter) {
    HAL_ToggleLED();
 }
 
    /* The following is the HCI Sleep Callback.  This is registered with */
    /* the stack to note when the Host processor may enter into a sleep  */
    /* mode.                                                             */
-static void BTPSAPI HCI_Sleep_Callback(Boolean_t _SleepAllowed, unsigned long CallbackParameter)
-{
+static void BTPSAPI HCI_Sleep_Callback(Boolean_t _SleepAllowed, unsigned long CallbackParameter) {
    /* Simply store the state internally.                                */
    SleepAllowed = _SleepAllowed;
 
    /* Check if sleep is allowed.                                        */
-   if(SleepAllowed)
-   {
+   if(SleepAllowed) {
       /* Sleep is allowed, set the LED color to blue to notify the user.*/
       HAL_SetLEDColor(hlcBlue);
-   }
-   else
-   {
+   } else {
       /* Sleep is not allowed, set the LED color to green to notify the */
       /* user.                                                          */
       HAL_SetLEDColor(hlcGreen);
@@ -210,8 +186,7 @@ static void BTPSAPI HCI_Sleep_Callback(Boolean_t _SleepAllowed, unsigned long Ca
 
    /* The following function polls all error flags and displays an      */
    /* appropriate message if any error flags are set.                   */
-static void PollErrorFlags(void)
-{
+static void PollErrorFlags(void) {
    unsigned int ErrorFlags;
 
    /* Query the HCI transport error flags to determine if any errors    */
@@ -232,8 +207,7 @@ static void PollErrorFlags(void)
    /* The following is the main application entry point.  This function */
    /* will configure the hardware and initialize the OS Abstraction     */
    /* layer, create the main application thread and start the scheduler.*/
-int main(void)
-{
+int main(void) {
    int                           Result;
    BTPS_Initialization_t         BTPS_Initialization;
    HCI_DriverInformation_t       HCI_DriverInformation;
@@ -254,14 +228,12 @@ int main(void)
    BTPS_Initialization.MessageOutputCallback = HAL_ConsoleWrite;
 
    /* Initialize the application.                                       */
-   if((Result = InitializeApplication(&HCI_DriverInformation, &BTPS_Initialization)) > 0)
-   {
+   if((Result = InitializeApplication(&HCI_DriverInformation, &BTPS_Initialization)) > 0) {
       /* Save the Bluetooth Stack ID.                                   */
       BluetoothStackID = (unsigned int)Result;
 
       /* Register a sleep mode callback if we are using HCILL Mode.     */
-      if((HCI_DriverInformation.DriverInformation.COMMDriverInformation.Protocol == cpHCILL) || (HCI_DriverInformation.DriverInformation.COMMDriverInformation.Protocol == cpHCILL_RTS_CTS))
-      {
+      if((HCI_DriverInformation.DriverInformation.COMMDriverInformation.Protocol == cpHCILL) || (HCI_DriverInformation.DriverInformation.COMMDriverInformation.Protocol == cpHCILL_RTS_CTS)) {
          HCILLConfig.SleepCallbackFunction        = HCI_Sleep_Callback;
          HCILLConfig.SleepCallbackParameter       = 0;
          DriverReconfigureData.ReconfigureCommand = HCI_COMM_DRIVER_RECONFIGURE_DATA_COMMAND_CHANGE_HCILL_PARAMETERS;
@@ -271,8 +243,7 @@ int main(void)
          /* function returns greater than 0 then sleep is currently     */
          /* enabled.                                                    */
          Result = HCI_Reconfigure_Driver(BluetoothStackID, FALSE, &DriverReconfigureData);
-         if(Result > 0)
-         {
+         if(Result > 0) {
             Display(("Sleep is allowed.\r\n"));
 
             /* Flag that it is safe to go into sleep mode.              */
@@ -282,22 +253,16 @@ int main(void)
 
       /* We need to execute Add a function to process the command line  */
       /* to the BTPS Scheduler.                                         */
-      if(BTPS_AddFunctionToScheduler(ProcessCharactersTask, NULL, 100))
-      {
+      if(BTPS_AddFunctionToScheduler(ProcessCharactersTask, NULL, 100)) {
          /* Add the idle task (which determines if LPM3 may be entered) */
          /* to the scheduler.                                           */
-         if(BTPS_AddFunctionToScheduler(IdleTask, NULL, 100))
-         {
-            if(BTPS_AddFunctionToScheduler(ToggleLEDTask, NULL, 750))
-            {
-               if(BTPS_AddFunctionToScheduler(InquiryTask, NULL, 100000))
-               {
-                  HAL_SetLEDColor(hlcGreen);
+         if(BTPS_AddFunctionToScheduler(IdleTask, NULL, 100)) {
+            if(BTPS_AddFunctionToScheduler(ToggleLEDTask, NULL, 750)) {
+               HAL_SetLEDColor(hlcGreen);
 
-                  /* Execute the scheduler, note that this function does   */
-                  /* not return.                                           */
-                  BTPS_ExecuteScheduler();
-               }
+               /* Execute the scheduler, note that this function does   */
+               /* not return.                                           */
+               BTPS_ExecuteScheduler();
             }
          }
       }
@@ -313,8 +278,7 @@ int main(void)
 
    /* Scheduler above should run continuously, if it exits an error     */
    /* occurred.                                                         */
-   while(1)
-   {
+   while(1) {
       HAL_ToggleLED();
 
       BTPS_Delay(100);

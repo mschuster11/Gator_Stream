@@ -137,6 +137,7 @@
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.DEFINE.2014026560" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="CPU2"/>
+									<listOptionValue builtIn="false" value="__BSD_VISIBLE"/>
 									<listOptionValue builtIn="false" value="WAVE_ENDIAN_LITTLE"/>
 									<listOptionValue builtIn="false" value="_LAUNCHXL_F28379D"/>
 									<listOptionValue builtIn="false" value="_FLASH"/>

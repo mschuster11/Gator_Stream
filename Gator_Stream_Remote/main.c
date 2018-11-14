@@ -66,6 +66,12 @@
 #define HRDWCFG_DEBUG_UART_RX_PORT_NUM    GPIO_PORT_P9
 #define HRDWCFG_DEBUG_UART_RX_PIN_NUM     GPIO_PIN6
 #define UART_RX_CMD_BUF_SIZE    100
+
+enum side {
+  PLAY,
+  PAUSE
+} playPauseFlag;
+
 //Touch screen context
 touch_context g_sTouchContext;
 Graphics_ImageButton audioOptionsButton;
@@ -77,12 +83,14 @@ Graphics_Button choiceButton1;
 Graphics_Button choiceButton2;
 Graphics_Button choiceButton3;
 Graphics_Button disconnectButton;
-
+Graphics_Button playButton;
+Graphics_Button pauseButton;
 // Graphic library context
 Graphics_Context g_sContext;
 uint16_t bufIndex = 0;
 //Flag to know if a demo was run
 bool g_ranDemo = false;
+
 char uartRxCmdBuf[UART_RX_CMD_BUF_SIZE];
 void Delay(uint16_t msec);
 void boardInit(void);
@@ -234,8 +242,8 @@ void initializeDemoButtons(void) {
   choiceButton1.selectedColor = GRAPHICS_COLOR_BLACK;
   choiceButton1.textColor = GRAPHICS_COLOR_BLACK;
   choiceButton1.selectedTextColor = GRAPHICS_COLOR_RED;
-  choiceButton1.textXPos = 160;
-  choiceButton1.textYPos = 75;
+  choiceButton1.textXPos = 157;
+  choiceButton1.textYPos = 70;
   choiceButton1.text = "1";
   choiceButton1.font = &g_sFontCm18;
 
@@ -250,8 +258,8 @@ void initializeDemoButtons(void) {
   choiceButton2.selectedColor = GRAPHICS_COLOR_BLACK;
   choiceButton2.textColor = GRAPHICS_COLOR_BLACK;
   choiceButton2.selectedTextColor = GRAPHICS_COLOR_RED;
-  choiceButton2.textXPos = 160;
-  choiceButton2.textYPos = 120;
+  choiceButton2.textXPos = 157;
+  choiceButton2.textYPos = 115;
   choiceButton2.text = "2";
   choiceButton2.font = &g_sFontCm18;
 
@@ -266,13 +274,13 @@ void initializeDemoButtons(void) {
   choiceButton3.selectedColor = GRAPHICS_COLOR_BLACK;
   choiceButton3.textColor = GRAPHICS_COLOR_BLACK;
   choiceButton3.selectedTextColor = GRAPHICS_COLOR_RED;
-  choiceButton3.textXPos = 160;
-  choiceButton3.textYPos = 180;
+  choiceButton3.textXPos = 157;
+  choiceButton3.textYPos = 160;
   choiceButton3.text = "3";
   choiceButton3.font = &g_sFontCm18;
 
   disconnectButton.xMin = 0;
-  disconnectButton.xMax = 70;
+  disconnectButton.xMax = 90;
   disconnectButton.yMin = 0;
   disconnectButton.yMax = 40;
   disconnectButton.borderWidth = 1;
@@ -282,10 +290,44 @@ void initializeDemoButtons(void) {
   disconnectButton.selectedColor = GRAPHICS_COLOR_BLACK;
   disconnectButton.textColor = GRAPHICS_COLOR_BLACK;
   disconnectButton.selectedTextColor = GRAPHICS_COLOR_RED;
-  disconnectButton.textXPos = 10;
+  disconnectButton.textXPos = 5;
   disconnectButton.textYPos = 10;
   disconnectButton.text = "Disconnect";
   disconnectButton.font = &g_sFontCm18;
+
+  playButton.xMin = 140;
+  playButton.xMax = 180;
+  playButton.yMin = 0;
+  playButton.yMax = 40;
+  playButton.borderWidth = 1;
+  playButton.selected = false;
+  playButton.fillColor = GRAPHICS_COLOR_BLUE;
+  playButton.borderColor = GRAPHICS_COLOR_ORANGE;
+  playButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  playButton.textColor = GRAPHICS_COLOR_BLACK;
+  playButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  playButton.textXPos = 150;
+  playButton.textYPos = 10;
+  playButton.text = "Play";
+  playButton.font = &g_sFontCm18;
+
+  pauseButton.xMin = 140;
+  pauseButton.xMax = 180;
+  pauseButton.yMin = 0;
+  pauseButton.yMax = 40;
+  pauseButton.borderWidth = 1;
+  pauseButton.selected = false;
+  pauseButton.fillColor = GRAPHICS_COLOR_BLUE;
+  pauseButton.borderColor = GRAPHICS_COLOR_ORANGE;
+  pauseButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  pauseButton.textColor = GRAPHICS_COLOR_BLACK;
+  pauseButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  pauseButton.textXPos = 145;
+  pauseButton.textYPos = 10;
+  pauseButton.text = "Pause";
+  pauseButton.font = &g_sFontCm18;
+
+
 
 }
 
@@ -360,6 +402,8 @@ void openBTMenu(void) {
   Graphics_drawButton(&g_sContext,&choiceButton1);
   Graphics_drawButton(&g_sContext,&choiceButton2);
   Graphics_drawButton(&g_sContext,&choiceButton3);
+  Graphics_drawButton(&g_sContext,&playButton);
+  playPauseFlag = PLAY;
 
 
   for(;;){
@@ -370,20 +414,36 @@ void openBTMenu(void) {
         break;
       } else if(Graphics_isButtonSelected(&disconnectButton, g_sTouchContext.x,  g_sTouchContext.y)) {
         Graphics_drawSelectedButton(&g_sContext,&disconnectButton);
-        UART_transmitString("CS");
+        UART_transmitString("CS  \n\r");
+        Delay(10000);
         Graphics_drawButton(&g_sContext,&disconnectButton);
       } else if(Graphics_isButtonSelected(&choiceButton1, g_sTouchContext.x,  g_sTouchContext.y)) {
         Graphics_drawSelectedButton(&g_sContext,&choiceButton1);
-        UART_transmitString("OS 1");
+        UART_transmitString("OS 1\n\r");
+        Delay(10000);
         Graphics_drawButton(&g_sContext,&choiceButton1);
       } else if(Graphics_isButtonSelected(&choiceButton2, g_sTouchContext.x,  g_sTouchContext.y)) {
         Graphics_drawSelectedButton(&g_sContext,&choiceButton2);
-        UART_transmitString("OS 2");
+        UART_transmitString("OS 2\n\r");
+        Delay(10000);
         Graphics_drawButton(&g_sContext,&choiceButton2);
       } else if(Graphics_isButtonSelected(&choiceButton3, g_sTouchContext.x,  g_sTouchContext.y)) {
         Graphics_drawSelectedButton(&g_sContext,&choiceButton3);
-        UART_transmitString("OS 3");
+        UART_transmitString("OS 3\n\r");
+        Delay(10000);
         Graphics_drawButton(&g_sContext,&choiceButton3);
+      } else if(Graphics_isButtonSelected(&playButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PLAY)) {
+        Graphics_drawSelectedButton(&g_sContext,&playButton);
+        UART_transmitString("PL\n\r");
+        playPauseFlag = PAUSE;
+        Delay(10000);
+        Graphics_drawButton(&g_sContext,&pauseButton);
+      } else if(Graphics_isButtonSelected(&pauseButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PAUSE)) {
+        Graphics_drawSelectedButton(&g_sContext,&pauseButton);
+        UART_transmitString("PA\n\r");
+        playPauseFlag = PLAY;
+        Delay(10000);
+        Graphics_drawButton(&g_sContext,&playButton);
       }
     } 
   }
@@ -458,9 +518,9 @@ void clockInit(void) {
 }
 
 
-void Delay(uint16_t msec){
+void Delay(uint16_t usec){
   volatile uint32_t i=0;
-  uint32_t time=(msec/1000)*(SYSTEM_CLOCK_SPEED/15);
+  volatile uint32_t time= usec*48;
 
   for(i=0;i<time;i++);
 }
@@ -529,7 +589,7 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
-      Delay(100);
+      Delay(45);
     }
     for(ulIdx = 256; ulIdx >= 1; ulIdx--) {
       // Red Color
@@ -539,7 +599,7 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
-      Delay(100);
+      Delay(45);
     }
     // Clear Red Color
     * ((uint16_t*) (&color)+1)  = 0;
@@ -549,7 +609,7 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
-      Delay(100);
+      Delay(45);
     }
     for(ulIdx = 256; ulIdx >= 1; ulIdx--) {
       // Blue and Green Colors
@@ -557,7 +617,17 @@ void drawLoadingAnimation(uint16_t seconds) {
 
       Graphics_setForegroundColor(&g_sContext, color);
       Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
-      Delay(100);
+      Delay(45);
+    }
+    for(ulIdx = 256; ulIdx >= 1; ulIdx--) {
+      // Red color
+       * ((uint16_t*) (&color)+1)  = (((128 - ulIdx/2) * 255) >> 7);
+      // Blue and Green Colors
+      * ((uint16_t*) (&color))  = (((127 + ulIdx/2) * 255) >> 7) << ClrGreenShift;
+
+      Graphics_setForegroundColor(&g_sContext, color);
+      Graphics_drawLine(&g_sContext, 160, 120, (160 + (int16_t) (12.5f * cosf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))), (120 + (int16_t) (12.5f * sinf((float)ulIdx * ((M_PI * 2.0f) / 256.0f)))));
+      Delay(45);
     }
   }
 }

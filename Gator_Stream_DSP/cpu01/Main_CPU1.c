@@ -73,7 +73,7 @@ extern node* newMspUartCmd;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 void init_ints(void);
 void printString(char* s);
-
+void sendMspString(char* s);
 
 //
 // Main
@@ -169,13 +169,15 @@ void main(void) {
     if(newRemoteCmd == TRUE) {
      // UARTprintf("%s\n", uartRemoteRxBuf);
      printString(uartRemoteRxBuf);
-     scic_txChar(uartRemoteRxBuf[0]);
-     scic_txChar(uartRemoteRxBuf[1]);
-     scic_txChar(uartRemoteRxBuf[2]);
-     scic_txChar(uartRemoteRxBuf[3]);
-     scic_txChar('\r');
-     scic_txChar('\n');
-     scic_txChar(0x00);
+     if(uartRemoteRxBuf[0] == 'C' && uartRemoteRxBuf[1] == 'S'){
+       sendMspString("CS\n\r");
+     } else if(uartRemoteRxBuf[0] == 'O' && uartRemoteRxBuf[1] == 'S'){
+       sendMspString(uartRemoteRxBuf);
+     } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'L'){
+       sendMspString("PL\n\r");
+     } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'A'){
+       sendMspString("PA\n\r");
+     }
       newRemoteCmd = FALSE;
     }
 
@@ -191,4 +193,10 @@ void main(void) {
 void printString(char* s) {
   for(uint16_t i=0;s[i]!=NULL;i++)
     scia_txChar(s[i]);
+}
+
+void sendMspString(char* s) {
+  for(uint16_t i=0;s[i]!=NULL;i++)
+    scic_txChar(s[i]);
+  scic_txChar('\0');
 }

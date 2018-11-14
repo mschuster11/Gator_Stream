@@ -30,7 +30,7 @@ void scia_txChar(char c);
 void scib_txChar(char c);
 void scic_txChar(char c);
 typedef struct node {
-  char uartString[50];
+  char uartString[100];
   struct node* next;
 }node;
 #endif

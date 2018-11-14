@@ -15,6 +15,9 @@
 #ifndef _AUDIO_EFFECTS_H_
 #define _AUDIO_EFFECTS_H_
 
+#define EFFECT_BUFFER_SIZE           200
+#define FLANGER_DELAY_SIZE           132
+
 #define NO_AUDIO_EFFECT              0
 #define TREMELO_AUDIO_EFFECT         1
 
@@ -35,5 +38,5 @@ enum buffer {
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-Function Prototypes-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 interrupt void audio_ISR(void);
-
+int16 flangerEffect(float sample, enum side channel);
 #endif

@@ -934,13 +934,13 @@ static int OpenStack(HCI_DriverInformation_t *HCI_DriverInformation, BTPS_Initia
         /* and set the return value of the initialization function  */
         /* to the Bluetooth Stack ID.                               */
         BluetoothStackID = Result;
-        // Display(("Bluetooth Stack ID: %d\r\n", BluetoothStackID));
+        Display(("Bluetooth Stack ID: %d\r\n", BluetoothStackID));
 
         /* Attempt to enable the A3DP Sink Feature.                 */
-        // if((Result = BSC_EnableFeature(BluetoothStackID, BSC_FEATURE_A3DP_SOURCE)) == 0)
-        //   Display(("A3DP Source Feature enabled.\r\n"));
-        // else
-        //   Display(("A3DP Source Feature NOT enabled %d.\r\n", Result));
+         if((Result = BSC_EnableFeature(BluetoothStackID, BSC_FEATURE_A3DP_SOURCE)) == 0)
+           Display(("A3DP Source Feature enabled.\r\n"));
+         else
+           Display(("A3DP Source Feature NOT enabled %d.\r\n", Result));
 
         /* Initialize the default Secure Simple Pairing parameters. */
         IOCapability     = DEFAULT_IO_CAPABILITY;
@@ -948,24 +948,24 @@ static int OpenStack(HCI_DriverInformation_t *HCI_DriverInformation, BTPS_Initia
         MITMProtection   = DEFAULT_MITM_PROTECTION;
 
         if(!HCI_Version_Supported(BluetoothStackID, &HCIVersion)) {
-          // Display(("Device Chipset: %s\r\n",
-          //  (HCIVersion <= NUM_SUPPORTED_HCI_VERSIONS)?HCIVersionStrings[HCIVersion]:HCIVersionStrings[NUM_SUPPORTED_HCI_VERSIONS]));
+           Display(("Device Chipset: %s\r\n",
+            (HCIVersion <= NUM_SUPPORTED_HCI_VERSIONS)?HCIVersionStrings[HCIVersion]:HCIVersionStrings[NUM_SUPPORTED_HCI_VERSIONS]));
         }
         /* Printing the BTPS version                                */
-        // Display(("BTPS Version  : %s \r\n", BTPS_VERSION_VERSION_STRING));
+         Display(("BTPS Version  : %s \r\n", BTPS_VERSION_VERSION_STRING));
         /* Printing the FW version                                  */
-        // DisplayFWVersion();
+         DisplayFWVersion();
 
         /* Printing the Demo Application name and version           */
-        // Display(("App Name      : %.24s \r\n", APP_DEMO_NAME));
-        // Display(("App Version   : %s \r\n", DEMO_APPLICATION_VERSION_STRING));
+         Display(("App Name      : %.24s \r\n", APP_DEMO_NAME));
+         Display(("App Version   : %s \r\n", DEMO_APPLICATION_VERSION_STRING));
 
         /* Let's output the Bluetooth Device Address so that the    */
         /* user knows what the Device Address is.                   */
         if(!GAP_Query_Local_BD_ADDR(BluetoothStackID, &BD_ADDR)) {
           BD_ADDRToStr(BD_ADDR, BluetoothAddress);
 
-          // Display(("BD_ADDR: %s\r\n", BluetoothAddress));
+           Display(("BD_ADDR: %s\r\n", BluetoothAddress));
         }
 
         /* For the A3DP Sink board we will configure EIR data.      */
@@ -1552,7 +1552,7 @@ static int Inquiry(ParameterList_t *TempParam) {
     /* The Inquiry will last 10 seconds or until 1 Bluetooth Device is*/
     /* found.  When the Inquiry Results become available the          */
     /* GAP_Event_Callback is called.                                  */
-    Result = GAP_Perform_Inquiry(BluetoothStackID, itGeneralInquiry, 0, 0, 10, MAX_INQUIRY_RESULTS, GAP_Event_Callback, (unsigned long)INQUIRY_REASON_LOCAL_COMMAND);
+    Result = GAP_Perform_Inquiry(BluetoothStackID, itGeneralInquiry, 7, 10, 3, MAX_INQUIRY_RESULTS, GAP_Event_Callback, (unsigned long)INQUIRY_REASON_LOCAL_COMMAND);
 
     /* Next, check to see if the GAP_Perform_Inquiry() function was   */
     /* successful.                                                    */
@@ -3210,19 +3210,20 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
                   break;
               }
           }
+
+          // Display(("Addr: %s\r\n", Callback_BoardStr));
+
+          // if(GAP_Remote_Name_Event_Data->Remote_Name)
+          //   Display(("Name: %s\r\n", DeviceList[i].devName));
+          // else
+          //   Display(("Name: Name not given\r\n", "NULL"));
+
           if(n == NumberofValidResponses){
             uint16_t j;
             for(j=0;j<NumberofValidResponses;j++)
               Display(("%d. %s\r\n", j+1, DeviceList[j].devName));
             n=0;
           }
-          // Display(("\r\n"));
-          Display(("Addr: %s\r\n", Callback_BoardStr));
-
-          if(GAP_Remote_Name_Event_Data->Remote_Name)
-            Display(("Name: %s\r\n", DeviceList[i].devName));
-          else
-            Display(("Name: Name not given\r\n", "NULL"));
         }
         break;
       case etEncryption_Change_Result:
@@ -3334,38 +3335,5 @@ void PlayPause(void) {
       Pause(NULL);
     else
       Play(NULL);
-  }
-}
-
-
-  /* The following function is responsible for performing a General    */
-  /* Inquiry for discovering Bluetooth Devices.  This function requires*/
-  /* that a valid Bluetooth Stack ID exists before running.  This      */
-  /* function returns zero is successful or a negative value if there  */
-  /* was an error.                                                     */
-void InquiryTask(void *UserParameter) {
-  int Result;
-
-  /* First, check that valid Bluetooth Stack ID exists.                */
-  if(BluetoothStackID) {
-    /* Use the GAP_Perform_Inquiry() function to perform an Inquiry.  */
-    /* The Inquiry will last 10 seconds or until 1 Bluetooth Device is*/
-    /* found.  When the Inquiry Results become available the          */
-    /* GAP_Event_Callback is called.                                  */
-    Result = GAP_Perform_Inquiry(BluetoothStackID, itGeneralInquiry, 0, 0, 10, MAX_INQUIRY_RESULTS, GAP_Event_Callback, (unsigned long)INQUIRY_REASON_LOCAL_COMMAND);
-
-    /* Next, check to see if the GAP_Perform_Inquiry() function was   */
-    /* successful.                                                    */
-    if(!Result) {
-      /* The Inquiry appears to have been sent successfully.         */
-      /* Processing of the results returned from this command occurs */
-      /* within the GAP_Event_Callback() function.                   */
-
-      /* Flag that we have found NO Bluetooth Devices.               */
-      NumberofValidResponses = 0;
-    } else {
-      /* A error occurred while performing the Inquiry.              */
-      DisplayFunctionError("Inquiry", Result);
-    }
   }
 }
