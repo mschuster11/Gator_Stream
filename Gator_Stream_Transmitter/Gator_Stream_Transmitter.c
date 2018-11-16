@@ -2425,6 +2425,7 @@ static int OpenRemoteEndpoint(ParameterList_t *TempParam) {
 
     if(!Result) {
       DisplayFunctionSuccess("AUD_Open_Remote_Stream");
+      GAP_Cancel_Inquiry(BluetoothStackID);
       ret_val = 0;
     } else {
       DisplayFunctionError("AUD_Open_Remote_Stream", Result);
@@ -2449,7 +2450,7 @@ static int CloseRemoteEndpoint(ParameterList_t *TempParam) {
 
   if(!Result) {
     CloseA3DPStream();
-
+    GAP_Perform_Inquiry(BluetoothStackID, itGeneralInquiry, 7, 10, 3, MAX_INQUIRY_RESULTS, GAP_Event_Callback, (unsigned long)INQUIRY_REASON_LOCAL_COMMAND);
     DisplayFunctionSuccess("AUD_Close_Stream");
     ret_val = 0;
   } else {
