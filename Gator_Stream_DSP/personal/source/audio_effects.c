@@ -47,9 +47,10 @@ extern volatile tIpcController g_sIpcController1;
 interrupt void audio_ISR(void) {
   if (channel == LEFT) {
     currentLeftSample = McbspbRegs.DRR1.all;
-    effectLeftBuff[effectLeftBuffIndex++] = McbspbRegs.DRR1.all;
+    effectLeftBuff[effectLeftBuffIndex++] = currentLeftSample;
     switch(activeEffect) {
       case NO_AUDIO_EFFECT:
+          currentLeftSample = vibratoEffect((float)currentLeftSample, channel);
         break;
     }
 
@@ -63,9 +64,10 @@ interrupt void audio_ISR(void) {
     McbspbRegs.DXR1.all = currentLeftSample;
   } else if (channel == RIGHT) {
     currentRightSample = McbspbRegs.DRR1.all;
-    effectRightBuff[effectRightBuffIndex++] = McbspbRegs.DRR1.all;
+    effectRightBuff[effectRightBuffIndex++] = currentRightSample;
     switch(activeEffect) {
       case NO_AUDIO_EFFECT:
+          currentRightSample = vibratoEffect((float)currentRightSample, channel);
         break; 
     }
 
@@ -83,22 +85,60 @@ interrupt void audio_ISR(void) {
   PieCtrlRegs.PIEACK.all = PIEACK_GROUP6;
 }
 
+
 int16 flangerEffect(float sample, enum side channel) {
   int16 modifiedSample;
   static Uint16 oscillationIndex = 0;
-  Uint16 oscillationDelay = (Uint16)ceilf(fabsf(sinf(2.0f * (float)M_PI * (float)oscillationIndex / 44100.0f)));
+  Uint16 oscillationDelay = (Uint16)ceilf(132.0f * fabsf(sinf(2.0f * (float)M_PI * (float)oscillationIndex / 44100.0f)));
   if(oscillationIndex >= 44100)
     oscillationIndex = 0;
   else
     oscillationIndex++;
 
   if(channel == LEFT) {
-    Uint16 delayIndex = (effectLeftBuffIndex > oscillationDelay ? effectLeftBuffIndex - oscillationDelay : (EFFECT_BUFFER_SIZE - (oscillationDelay - effectLeftBuffIndex)));
-    modifiedSample = (0.7 * sample) + (0.7 * effectLeftBuff[delayIndex]);
+    Uint16 delayIndex = ((effectLeftBuffIndex-1) > oscillationDelay ? (effectLeftBuffIndex-1) - oscillationDelay : (EFFECT_BUFFER_SIZE - (oscillationDelay - (effectLeftBuffIndex-1))));
+    modifiedSample = (0.5 * sample) + (0.5 * effectLeftBuff[delayIndex]);
   }
   else {
-    Uint16 delayIndex = (effectRightBuffIndex > oscillationDelay ? effectRightBuffIndex - oscillationDelay : (EFFECT_BUFFER_SIZE - (oscillationDelay - effectRightBuffIndex)));
-    modifiedSample = (0.7 * sample) + (0.7 * effectRightBuff[delayIndex]);
+    Uint16 delayIndex = ((effectRightBuffIndex-1) > oscillationDelay ? (effectRightBuffIndex-1) - oscillationDelay : (EFFECT_BUFFER_SIZE - (oscillationDelay - (effectRightBuffIndex-1))));
+    modifiedSample = (0.5 * sample) + (0.5 * effectRightBuff[delayIndex]);
   }
   return modifiedSample;
+}
+
+
+int16 overDriveEffect(float sample, enum side channel) {
+  float modifiedSample;
+  float logit = sample / 327678.0f;
+  int16 sign = logit / fabsf(logit);
+  modifiedSample = 327678.0f * (sign * (1 - expf(20.0f * (sign * logit))));
+  modifiedSample = 0.1f * modifiedSample + (0.9) * sample;
+  return (int16)modifiedSample;
+}
+
+
+
+int16 vibratoEffect(float sample, enum side channel) {
+  float modifiedSample;
+  static Uint16 oscillationIndex = 0;
+  float oscillationDelay = sinf(2.0f * (float)M_PI * (float)oscillationIndex * 5.0f / 44100.0f);
+
+  if(oscillationIndex >= 44100)
+    oscillationIndex = 0;
+  else
+    oscillationIndex++;
+
+  float zeiger = 1 + 309.0f + 309.0f * oscillationDelay;
+  Uint16 oscillationDelayOffset = (Uint16)roundf(309.0f * (0.5f + 0.5f * oscillationDelay));
+  float frac = zeiger - floorf(zeiger);
+  if(channel == LEFT) {
+    Uint16 delayIndex = ((effectLeftBuffIndex-1) > oscillationDelayOffset ? (effectLeftBuffIndex-1) - oscillationDelayOffset : (EFFECT_BUFFER_SIZE - (oscillationDelayOffset - (effectLeftBuffIndex-1))));
+    modifiedSample = frac * (effectLeftBuff[delayIndex]) + (1 - frac) * (effectLeftBuff[(delayIndex == 0 ? EFFECT_BUFFER_SIZE -1 : delayIndex)]);
+  }
+  else {
+    Uint16 delayIndex = ((effectRightBuffIndex-1) > oscillationDelayOffset ? (effectRightBuffIndex-1) - oscillationDelayOffset : (EFFECT_BUFFER_SIZE - (oscillationDelayOffset - (effectRightBuffIndex-1))));
+    modifiedSample = frac * (effectRightBuff[delayIndex]) + (1 - frac) * (effectRightBuff[(delayIndex == 0 ? EFFECT_BUFFER_SIZE -1 : delayIndex)]);
+  }
+
+  return (int16) modifiedSample;
 }

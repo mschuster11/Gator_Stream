@@ -15,8 +15,9 @@
 #ifndef _AUDIO_EFFECTS_H_
 #define _AUDIO_EFFECTS_H_
 
-#define EFFECT_BUFFER_SIZE           200
+#define EFFECT_BUFFER_SIZE           1000
 #define FLANGER_DELAY_SIZE           132
+#define VIBRATO_DELAY_SIZE           309
 
 #define NO_AUDIO_EFFECT              0
 #define TREMELO_AUDIO_EFFECT         1
@@ -39,4 +40,6 @@ enum buffer {
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 interrupt void audio_ISR(void);
 int16 flangerEffect(float sample, enum side channel);
+int16 overDriveEffect(float sample, enum side channel);
+int16 vibratoEffect(float sample, enum side channel);
 #endif

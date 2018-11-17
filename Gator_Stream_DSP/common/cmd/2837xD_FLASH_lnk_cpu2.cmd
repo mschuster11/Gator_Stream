@@ -9,9 +9,9 @@ PAGE 0 :
    RAMD0           	: origin = 0x00B000, length = 0x000800
    RAMLS0          	: origin = 0x008000, length = 0x000800
    RAMLS1          	: origin = 0x008800, length = 0x000800
-   RAMLS2      		: origin = 0x009000, length = 0x000800
-   RAMLS3      		: origin = 0x009800, length = 0x000800
-   RAMLS4      		: origin = 0x00A000, length = 0x000800
+   RAMLS234      		: origin = 0x009000, length = 0x001800
+   //RAMLS3      		: origin = 0x009800, length = 0x000800
+   //RAMLS4      		: origin = 0x00A000, length = 0x000800
    RAMGS14          : origin = 0x01A000, length = 0x001000     /* Only Available on F28379D, F28377D, F28375D devices. Remove line on other devices. */
    RAMGS15          : origin = 0x01B000, length = 0x001000     /* Only Available on F28379D, F28377D, F28375D devices. Remove line on other devices. */
    RESET       		: origin = 0x3FFFC0, length = 0x000002
@@ -56,7 +56,7 @@ SECTIONS
 
    /* Allocate uninitalized data sections: */
    .stack              : > RAMM1        PAGE = 1
-   .ebss               : > RAMLS5       PAGE = 1
+   .ebss               : > RAMLS234     PAGE = 0
    .esysmem            : > RAMLS5       PAGE = 1
 
    /* Initalized sections go in Flash */
@@ -70,7 +70,7 @@ SECTIONS
 #ifdef __TI_COMPILER_VERSION__
    #if __TI_COMPILER_VERSION__ >= 15009000
     .TI.ramfunc : {} LOAD = FLASHD,
-                         RUN = RAMLS0 | RAMLS1 | RAMLS2 |RAMLS3,
+                         RUN = RAMLS0 | RAMLS1,
                          LOAD_START(_RamfuncsLoadStart),
                          LOAD_SIZE(_RamfuncsLoadSize),
                          LOAD_END(_RamfuncsLoadEnd),
