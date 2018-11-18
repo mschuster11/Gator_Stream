@@ -14,8 +14,10 @@
 
 #ifndef _AUDIO_EFFECTS_H_
 #define _AUDIO_EFFECTS_H_
-
-#define EFFECT_BUFFER_SIZE           1000
+#define MAX_VAL                      (327678.0f * 2.0f)
+#define FS_INT                       44100
+#define FS_FLOAT                     44100.0f
+#define EFFECT_BUFFER_SIZE           2200
 #define FLANGER_DELAY_SIZE           132
 #define VIBRATO_DELAY_SIZE           309
 
@@ -42,4 +44,8 @@ interrupt void audio_ISR(void);
 int16 flangerEffect(float sample, enum side channel);
 int16 overDriveEffect(float sample, enum side channel);
 int16 vibratoEffect(float sample, enum side channel);
+int16 wahwahEffect(float sample, enum side channel);
+int16 ringModulationEffect(float sample, enum side channel);
+int16 chorusEffect(float sample, enum side channel);
+int16 bassBoostEffect(float sample, enum side channel);
 #endif
