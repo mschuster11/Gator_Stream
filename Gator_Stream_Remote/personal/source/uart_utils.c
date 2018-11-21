@@ -86,9 +86,21 @@ void UART_rxIsr(void) {
 }
 
 
+void UART_transmitChar(char c) {
+  UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, c);
+}
+
+
 void UART_transmitString(char* s) {
   uint16_t i;
   for(i = 0;s[i]!=0;i++)
     UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, s[i]);
-  UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, 0x00);
+}
+
+
+void UART_transmitStringNullTerm(char* s) {
+  uint16_t i;
+  for(i = 0;s[i]!=0;i++)
+    UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, s[i]);
+  UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, '\0');
 }

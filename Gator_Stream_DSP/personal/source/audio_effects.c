@@ -51,7 +51,32 @@ interrupt void audio_ISR(void) {
     effectLeftBuff[effectLeftBuffIndex++] = currentLeftSample;
     switch(activeEffect) {
       case NO_AUDIO_EFFECT:
-          currentLeftSample = bassBoostEffect((float)currentLeftSample, channel);
+        break;
+      case FLANGER_AUDIO_EFFECT:
+        currentLeftSample = flangerEffect((float)currentLeftSample, channel);
+        break;
+      case OVERDRIVE_AUDIO_EFFECT:
+        currentLeftSample = overDriveEffect((float)currentLeftSample, channel);
+        break;
+      case VIBRATO_AUDIO_EFFECT:
+        currentLeftSample = vibratoEffect((float)currentLeftSample, channel);
+        break;
+      case WAHWAH_AUDIO_EFFECT:
+        currentLeftSample = wahwahEffect((float)currentLeftSample, channel);
+        break;
+      case RINGMODULATION_AUDIO_EFFECT:
+        currentLeftSample = ringModulationEffect((float)currentLeftSample, channel);
+        break;
+      case CHORUS_AUDIO_EFFECT:
+        currentLeftSample = chorusEffect((float)currentLeftSample, channel);
+        break;
+      case BASSBOOST_AUDIO_EFFECT:
+        currentLeftSample = bassBoostEffect((float)currentLeftSample, channel);
+        break;
+      case TREBBOOST_AUDIO_EFFECT:
+        currentLeftSample = trebBoostEffect((float)currentLeftSample, channel);
+        break;
+      default:
         break;
     }
 
@@ -68,8 +93,33 @@ interrupt void audio_ISR(void) {
     effectRightBuff[effectRightBuffIndex++] = currentRightSample;
     switch(activeEffect) {
       case NO_AUDIO_EFFECT:
-          currentRightSample = bassBoostEffect((float)currentRightSample, channel);
-        break; 
+        break;
+      case FLANGER_AUDIO_EFFECT:
+        currentRightSample = flangerEffect((float)currentRightSample, channel);
+        break;
+      case OVERDRIVE_AUDIO_EFFECT:
+        currentRightSample = overDriveEffect((float)currentRightSample, channel);
+        break;
+      case VIBRATO_AUDIO_EFFECT:
+        currentRightSample = vibratoEffect((float)currentRightSample, channel);
+        break;
+      case WAHWAH_AUDIO_EFFECT:
+        currentRightSample = wahwahEffect((float)currentRightSample, channel);
+        break;
+      case RINGMODULATION_AUDIO_EFFECT:
+        currentRightSample = ringModulationEffect((float)currentRightSample, channel);
+        break;
+      case CHORUS_AUDIO_EFFECT:
+        currentRightSample = chorusEffect((float)currentRightSample, channel);
+        break;
+      case BASSBOOST_AUDIO_EFFECT:
+        currentRightSample = bassBoostEffect((float)currentRightSample, channel);
+        break;
+      case TREBBOOST_AUDIO_EFFECT:
+        currentRightSample = trebBoostEffect((float)currentRightSample, channel);
+        break;
+      default:
+        break;
     }
 
     // If the IPC flag is set, send right sample to CPU1 to be written to the MMC.
@@ -154,7 +204,7 @@ int16 wahwahEffect(float sample, enum side channel) {
   static Uint16 firstIndexR = 0;
   static Uint16 secondIndexR = 1;
   float modifiedSample; 
-  float cutoffFrequency = 0.02f + (0.1f * fabsf(sinf(2.0f * (float)M_PI * (float)cutoffFrequencyIndex / (16.0f * FS_FLOAT))));
+  float cutoffFrequency =  0.4f * fabsf(sinf(2.0f * (float)M_PI * (float)cutoffFrequencyIndex / (16.0f * FS_FLOAT)));
   if(cutoffFrequencyIndex >= (FS_INT * 16) - 1)
     cutoffFrequencyIndex = 0;
   else
@@ -223,19 +273,19 @@ int16 chorusEffect(float sample, enum side channel) {
 }
 
 
-const float a[3] = { 1.000000000000000,  -1.982859743037343,   0.984922370590001 };
-const float b[3] = { 1.004379783748927,  -1.981582232862108,   0.981820097016308 };
-float yL[3] = {0,0,0};
-float yR[3] = {0,0,0};
-float xL[3] = {0,0,0};
-float xR[3] = {0,0,0};
+const float aBassBoost[3] = { 1.000000000000000,  -1.982859743037343,   0.984922370590001 };
+const float bBassBoost[3] = { 1.004379783748927,  -1.981582232862108,   0.981820097016308 };
 int16 bassBoostEffect(float sample, enum side channel) {
   float modifiedSample;
+  static float yL[3] = {0,0,0};
+  static float yR[3] = {0,0,0};
+  static float xL[3] = {0,0,0};
+  static float xR[3] = {0,0,0};
   Uint16 x1DelayIndex, x2DelayIndex;
   if(channel == LEFT) {
     // x1DelayIndex = (effectLeftBuffIndex-2 < EFFECT_BUFFER_SIZE ? effectLeftBuffIndex-2 : EFFECT_BUFFER_SIZE-2);
     // x2DelayIndex = (effectLeftBuffIndex-3 < EFFECT_BUFFER_SIZE ? effectLeftBuffIndex-3 : EFFECT_BUFFER_SIZE-3);
-    yL[0] = (b[0]*xL[0]) + (b[1]*xL[1]) + (b[2]*xL[2]) - (a[1]*yL[1]) - (a[2]*yL[2]);
+    yL[0] = (bBassBoost[0]*xL[0]) + (bBassBoost[1]*xL[1]) + (bBassBoost[2]*xL[2]) - (aBassBoost[1]*yL[1]) - (aBassBoost[2]*yL[2]);
     yL[2] = yL[1];
     yL[1] = yL[0];
     modifiedSample = yL[0];
@@ -245,7 +295,7 @@ int16 bassBoostEffect(float sample, enum side channel) {
   } else {
     // x1DelayIndex = (effectRightBuffIndex-2 < EFFECT_BUFFER_SIZE ? effectRightBuffIndex-2 : EFFECT_BUFFER_SIZE-2);
     // x2DelayIndex = (effectRightBuffIndex-3 < EFFECT_BUFFER_SIZE ? effectRightBuffIndex-3 : EFFECT_BUFFER_SIZE-3);
-    yR[0] = (b[0]*xR[0]) + (b[1]*xR[1]) + (b[2]*xR[2])- (a[1]*yR[1]) - (a[2]*yR[2]);
+    yR[0] = (bBassBoost[0]*xR[0]) + (bBassBoost[1]*xR[1]) + (bBassBoost[2]*xR[2])- (aBassBoost[1]*yR[1]) - (aBassBoost[2]*yR[2]);
     yR[2] = yR[1];
     yR[1] = yR[0];
     modifiedSample = yR[0];
@@ -256,3 +306,37 @@ int16 bassBoostEffect(float sample, enum side channel) {
   return (int16)(modifiedSample * MAX_VAL);
 }
 
+
+const float aTrebBoost[3] = { 1.000000000000000,  -1.933966242630648,   0.953762797356399 };
+const float bTrebBoost[3] = { 1.574462555772803,  -3.070919367441550,   1.516253366394498 };
+
+int16 trebBoostEffect(float sample, enum side channel) {
+  float modifiedSample;
+  static float yL[3] = {0,0,0};
+  static float yR[3] = {0,0,0};
+  static float xL[3] = {0,0,0};
+  static float xR[3] = {0,0,0};
+  Uint16 x1DelayIndex, x2DelayIndex;
+  if(channel == LEFT) {
+    // x1DelayIndex = (effectLeftBuffIndex-2 < EFFECT_BUFFER_SIZE ? effectLeftBuffIndex-2 : EFFECT_BUFFER_SIZE-2);
+    // x2DelayIndex = (effectLeftBuffIndex-3 < EFFECT_BUFFER_SIZE ? effectLeftBuffIndex-3 : EFFECT_BUFFER_SIZE-3);
+    yL[0] = (bTrebBoost[0]*xL[0]) + (bTrebBoost[1]*xL[1]) + (bTrebBoost[2]*xL[2]) - (aTrebBoost[1]*yL[1]) - (aTrebBoost[2]*yL[2]);
+    yL[2] = yL[1];
+    yL[1] = yL[0];
+    modifiedSample = yL[0];
+    xL[2] = xL[1];
+    xL[1] = xL[0];
+    xL[0] = sample/MAX_VAL;
+  } else {
+    // x1DelayIndex = (effectRightBuffIndex-2 < EFFECT_BUFFER_SIZE ? effectRightBuffIndex-2 : EFFECT_BUFFER_SIZE-2);
+    // x2DelayIndex = (effectRightBuffIndex-3 < EFFECT_BUFFER_SIZE ? effectRightBuffIndex-3 : EFFECT_BUFFER_SIZE-3);
+    yR[0] = (bTrebBoost[0]*xR[0]) + (bTrebBoost[1]*xR[1]) + (bTrebBoost[2]*xR[2])- (aTrebBoost[1]*yR[1]) - (aTrebBoost[2]*yR[2]);
+    yR[2] = yR[1];
+    yR[1] = yR[0];
+    modifiedSample = yR[0];
+    xR[2] = xR[1];
+    xR[1] = xR[0];
+    xR[0] = sample/MAX_VAL;
+  }
+  return (int16)(modifiedSample * MAX_VAL);
+}

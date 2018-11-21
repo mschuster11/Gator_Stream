@@ -37,6 +37,7 @@
 
 void Remote_EnableUART(uint32_t ModuleInstance, uint32_t InterruptNumber, unsigned long BaudRate);
 void UART_rxIsr(void);
+void UART_transmitChar(char c);
 void UART_transmitString(char* s);
-
+void UART_transmitStringNullTerm(char* s);
 #endif

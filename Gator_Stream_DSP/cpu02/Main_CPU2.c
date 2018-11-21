@@ -240,6 +240,7 @@ interrupt void CPU01toCPU02IPC0IntHandler (void) {
                 break;
             case IPC_DATA_WRITE:
                 IPCRtoLDataWrite(&sMessage);
+                activeEffect = (uint16_t)sMessage.uldataw2;
                 break;
             case IPC_DATA_READ:
                 IPCRtoLDataRead(&g_sIpcController1, &sMessage,

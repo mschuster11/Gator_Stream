@@ -22,7 +22,14 @@
 #define VIBRATO_DELAY_SIZE           309
 
 #define NO_AUDIO_EFFECT              0
-#define TREMELO_AUDIO_EFFECT         1
+#define FLANGER_AUDIO_EFFECT         1
+#define OVERDRIVE_AUDIO_EFFECT       2
+#define VIBRATO_AUDIO_EFFECT         3
+#define WAHWAH_AUDIO_EFFECT          4
+#define RINGMODULATION_AUDIO_EFFECT  5
+#define CHORUS_AUDIO_EFFECT          6
+#define BASSBOOST_AUDIO_EFFECT       7
+#define TREBBOOST_AUDIO_EFFECT       8
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-Enums~-~-~-~--~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -48,4 +55,5 @@ int16 wahwahEffect(float sample, enum side channel);
 int16 ringModulationEffect(float sample, enum side channel);
 int16 chorusEffect(float sample, enum side channel);
 int16 bassBoostEffect(float sample, enum side channel);
+int16 trebBoostEffect(float sample, enum side channel);
 #endif

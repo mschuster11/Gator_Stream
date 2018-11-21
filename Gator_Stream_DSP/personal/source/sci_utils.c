@@ -73,7 +73,7 @@ interrupt void mspUartRx_ISR (void) {
 interrupt void remoteUartRx_ISR (void) {
   while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
     uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
-    if(uartRemoteRxBuf[uartRemoteRxBufIndex-1] == 0x00){
+    if(uartRemoteRxBuf[uartRemoteRxBufIndex-3] == '\r' && uartRemoteRxBuf[uartRemoteRxBufIndex-2] == '\n' && uartRemoteRxBuf[uartRemoteRxBufIndex-1] == '\0'){
         newRemoteCmd = TRUE;
         uartRemoteRxBufIndex = 0;
     }

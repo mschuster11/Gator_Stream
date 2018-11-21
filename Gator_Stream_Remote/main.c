@@ -49,6 +49,7 @@
 #include "personal/headers/uart_utils.h"
 #include "personal/headers/main_menu_ui.h"
 #include "personal/headers/bluetooth_ui.h"
+#include "personal/headers/audio_ui.h"
 
   /* The following constants specifies the debug UART's baud rate.     */
 
@@ -80,9 +81,9 @@ void main(void) {
   sysInit();
   Remote_EnableUART(HRDWCFG_DEBUG_UART_MODULE, HRDWCFG_DEBUG_UART_INT_NUM, DEBUG_UART_BAUD_RATE);
   initMainMenuButtons();
+  initAudioMenuButtons();
   initBTMenuButtons();
   drawMainMenu();
-
 
   // Loop to detect touch
   for(;;) {
@@ -91,11 +92,12 @@ void main(void) {
     if(g_sTouchContext.touch) {
       if(Graphics_isImageButtonSelected(&audioOptionsButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedImageButton(&g_sContext,&audioOptionsButton);
-        runPrimitivesDemo();
+        openAudioMenu();
+        UART_transmitString("This is a test YEET");
       } else if(Graphics_isImageButtonSelected(&btConnectivityButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedImageButton(&g_sContext,&btConnectivityButton);
         openBTMenu();
-        UART_transmitString("This is a test");
+        UART_transmitString("This is a test BOI");
       }
 
        if(g_ranDemo == true) {

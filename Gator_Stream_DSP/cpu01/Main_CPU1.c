@@ -25,6 +25,7 @@
 #include "personal/headers/cpu1_ipc.h"
 #include "personal/headers/sci_utils.h"
 #include "stdlib.h"
+// #include "string.h"
 
 // Defines
 #define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
@@ -74,7 +75,7 @@ extern node* newMspUartCmd;
 void init_ints(void);
 void printString(char* s);
 void sendMspString(char* s);
-
+bool_t strcmp(char* s1, char* s2, uint16_t n);
 //
 // Main
 //
@@ -167,17 +168,19 @@ void main(void) {
     }
 
     if(newRemoteCmd == TRUE) {
-     // UARTprintf("%s\n", uartRemoteRxBuf);
-     printString(uartRemoteRxBuf);
-     if(uartRemoteRxBuf[0] == 'C' && uartRemoteRxBuf[1] == 'S'){
-       sendMspString("CS\n\r");
-     } else if(uartRemoteRxBuf[0] == 'O' && uartRemoteRxBuf[1] == 'S'){
+      // UARTprintf("%s\n", uartRemoteRxBuf);
+      printString(uartRemoteRxBuf);
+      if(uartRemoteRxBuf[0] == 'C' && uartRemoteRxBuf[1] == 'S'){
+       sendMspString("CS\r\n");
+      } else if(uartRemoteRxBuf[0] == 'O' && uartRemoteRxBuf[1] == 'S'){
        sendMspString(uartRemoteRxBuf);
-     } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'L'){
-       sendMspString("PL\n\r");
-     } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'A'){
-       sendMspString("PA\n\r");
-     }
+      } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'L'){
+       sendMspString("PL\r\n");
+      } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'A'){
+       sendMspString("PA\r\n");
+      } else if(strcmp(uartRemoteRxBuf, "EFFECT: ", 8)) {
+        IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[2],uartRemoteRxBuf[8], IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+      }
       newRemoteCmd = FALSE;
     }
 
@@ -199,4 +202,11 @@ void sendMspString(char* s) {
   for(uint16_t i=0;s[i]!=NULL;i++)
     scic_txChar(s[i]);
   scic_txChar('\0');
+}
+
+bool_t strcmp(char* s1, char* s2, uint16_t n) {
+  for(uint16_t i=0;i<n;i++)
+    if(s1[i] != s2[i])
+      return FALSE;
+  return TRUE;
 }
