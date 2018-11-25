@@ -185,7 +185,7 @@ void adcInit(void) {
   adcRegWrite(ADC_REG_L_IN_SEL_L_PGA2, 0x3C);
   // P1, R52, b7-6        Differential pair of IN2R(P) & IN3R(M) = Not routed (11)
   // P1, R52, b5-4        IN3R-Right_MICPGA = Not routed (11)
-  // P1, R52, b3-2        IN2R-Right_MICPGA = 0dB IN2R(P) left channel input (00)
+  // P1, R52, b3-2        IN2R-Right_MICPGA = 0dB IN2R(P) right channel input (00)
   adcRegWrite(ADC_REG_R_IN_SEL_R_PGA1, 0xF0);
   // P1, R54, b7          Bypass right PGA = Bypass diabled (0)
   // P1, R54, b6          Right ADC channel unselected inputs weakly biased = Not biased (0)
@@ -209,7 +209,11 @@ void adcInit(void) {
   // P0, R82, b6-4        Left_ADC Fine Gain = 0dB (000)
   // P0, R82, b3          Right_ADC = Un-muted (0)
   // P0, R82, b2-0        Right_ADC Fine Gain = 0dB (000)
+#ifndef CUSTOM_HW
   adcRegWrite(ADC_REG_FINE_VOLUME_CTRL, 0x40);
+#else
+  adcRegWrite(ADC_REG_FINE_VOLUME_CTRL, 0x00);
+#endif
 }
 
 //******************************************************************************

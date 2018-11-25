@@ -44,7 +44,7 @@ bool_t newMspCmd = FALSE;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-
+#ifndef CUSTOM_HW
 interrupt void mspUartRx_ISR (void) {
   while(ScicRegs.SCIFFRX.bit.RXFFST > 0) {
     if(!newMspUartCmd){
@@ -68,6 +68,31 @@ interrupt void mspUartRx_ISR (void) {
   }
   ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
+#else
+interrupt void mspUartRx_ISR (void) {
+  while(SciaRegs.SCIFFRX.bit.RXFFST > 0) {
+    if(!newMspUartCmd){
+      newMspUartCmd = malloc(sizeof(node));
+      newMspUartCmd->next = NULL;
+      uartMspRxBufIndex = 0;
+
+    }
+    newMspUartCmd->uartString[uartMspRxBufIndex++] = SciaRegs.SCIRXBUF.all;
+    if(newMspUartCmd->uartString[uartMspRxBufIndex-2] == '\r' && newMspUartCmd->uartString[uartMspRxBufIndex-1] == '\n'){
+        newMspUartCmd->uartString[uartMspRxBufIndex] = NULL;
+        if(!currentMspUartCmd)
+            currentMspUartCmd = newMspUartCmd;
+        newMspUartCmd = newMspUartCmd->next;
+    }else{
+        newMspCmd = FALSE;
+    }
+  }
+  if(uartMspRxBufIndex >= 100) {
+      uartMspRxBufIndex =0;
+  }
+  SciaRegs.SCIFFRX.bit.RXFFINTCLR = 1;
+}
+#endif
 
 
 interrupt void remoteUartRx_ISR (void) {
@@ -99,6 +124,40 @@ void scic_txChar (char c) {
   while (ScicRegs.SCICTL2.bit.TXRDY != 1);
   ScicRegs.SCITXBUF.all = c;
 }
+
+
+void init_scia () {
+
+  // Assign GPIO43 to CPU-1 as the RX of SCI-A.
+  GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
+
+  // Assign GPIO42 to CPU-1 as the TX of SCI-A.
+  GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
+
+  SciaRegs.SCICCR.all = 0x0007;         // 1 stop bit,  No loopback
+                                        // No parity,8 char bits,
+                                        // async mode, idle-line protocol
+  SciaRegs.SCICTL1.all = 0x0003;        // enable TX, RX, internal SCICLK,
+                                        // Disable RX ERR, SLEEP, TXWAKE
+  SciaRegs.SCICTL2.all = 0x0003;        // Enable the interrupts for both TX and RX. 
+
+  // SCIC at 9600 baud
+  SciaRegs.SCIHBAUD.all = 0x0002;
+  SciaRegs.SCILBAUD.all = 0x008B;
+  SciaRegs.SCIFFRX.all  = 0x2044;       // Relinquish RX FIFO from Reset,
+                                        // enable the interrupt with priority 4.
+  SciaRegs.SCIFFTX.bit.SCIFFENA = 1;    // Enable the FIFO.
+  SciaRegs.SCIFFRX.bit.RXFFIENA = 1;    // Enable the RX FIFO's interrup.
+
+  // Relinquish SCI from Reset
+  SciaRegs.SCICTL1.all = 0x0023;  
+
+  // Enable SCI-A's peripheral clock.
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI1);
+}
+
 
 void init_scib (void) {
   // Assign GPIO19 to CPU-1 as the RX of SCI-B.
@@ -133,6 +192,9 @@ void init_scib (void) {
 
 
 void init_scic () {
+
+#ifndef CUSTOM_HW
+  // Launchpad HW
   // Assign GPIO139 to CPU-1 as the RX of SCI-C.
   GPIO_SetupPinMux(139, GPIO_MUX_CPU1, 6);
   GPIO_SetupPinOptions(139, GPIO_INPUT, GPIO_PUSHPULL);
@@ -140,6 +202,18 @@ void init_scic () {
   // Assign GPIO56 to CPU-1 as the TX of SCI-C.
   GPIO_SetupPinMux(56, GPIO_MUX_CPU1, 6);
   GPIO_SetupPinOptions(56, GPIO_OUTPUT, GPIO_ASYNC);
+
+#else
+  // Custom HW
+  // Assign GPIO43 to CPU-1 as the RX of SCI-C.
+  GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
+
+  // Assign GPIO42 to CPU-1 as the TX of SCI-C.
+  GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
+#endif
+
 
   ScicRegs.SCICCR.all = 0x0007;         // 1 stop bit,  No loopback
                                         // No parity,8 char bits,

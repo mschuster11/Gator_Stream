@@ -479,16 +479,30 @@ int Cmd_pwd(int argc, char *argv[]) {
 // ConfigureUART - Configure the UART and its pins.  This must be called
 //        before UARTprintf().
 void ConfigureUART(void) {
+#ifndef CUSTOM_HW
   // Enable UART0
   SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI1);
 
-//   Configure GPIO Pins for UART mode.
-   GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
-   GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
-   GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
-   GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
+  // Configure GPIO Pins for UART mode.
+  // Launchpad HW
+  GPIO_SetupPinMux(43, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(43, GPIO_INPUT, GPIO_PUSHPULL);
+  GPIO_SetupPinMux(42, GPIO_MUX_CPU1, 15);
+  GPIO_SetupPinOptions(42, GPIO_OUTPUT, GPIO_ASYNC);
+  UARTStdioConfig(0, 115200, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
+#else
+  // Enable UART0
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
 
-   UARTStdioConfig(0, 115200, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
+  // Configure GPIO Pins for UART mode.
+  // Launchpad HW
+  // Custom HW
+  GPIO_SetupPinMux(62, GPIO_MUX_CPU1, 1);
+  GPIO_SetupPinOptions(62, GPIO_INPUT, GPIO_PUSHPULL);
+  GPIO_SetupPinMux(63, GPIO_MUX_CPU1, 1);
+  GPIO_SetupPinOptions(63, GPIO_OUTPUT, GPIO_ASYNC);
+  UARTStdioConfig(2, 115200, SysCtlLowSpeedClockGet(SYSTEM_CLOCK_SPEED));
+#endif
 }
 
 
@@ -524,7 +538,7 @@ FRESULT initMMC(void) {
 
   // Configure UART0 for debug output.
   ConfigureUART();
-
+//  UARTprintf("Hello word!");
   // Initialize the connection to the SD card.
   disk_initialize(0);
   // Mount the file system, using logical disk 0.

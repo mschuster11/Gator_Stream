@@ -111,13 +111,13 @@ void openAudioMenu(void) {
         }
         if(Graphics_isButtonSelected(&playButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PLAY)) {
           Graphics_drawSelectedButton(&g_sContext,&playButton);
-          UART_transmitStringNullTerm("PL\r\n");
+          UART_transmitStringNullTerm("AUDIO: PL\r\n");
           playPauseFlag = PAUSE;
           Delay(10000);
           Graphics_drawButton(&g_sContext,&pauseButton);
         } else if(Graphics_isButtonSelected(&pauseButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PAUSE)) {
           Graphics_drawSelectedButton(&g_sContext,&pauseButton);
-          UART_transmitStringNullTerm("PA\r\n");
+          UART_transmitStringNullTerm("AUDIO: PA\r\n");
           playPauseFlag = PLAY;
           Delay(10000);
           Graphics_drawButton(&g_sContext,&playButton);

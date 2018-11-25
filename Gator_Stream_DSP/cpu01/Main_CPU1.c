@@ -75,7 +75,7 @@ extern node* newMspUartCmd;
 void init_ints(void);
 void printString(char* s);
 void sendMspString(char* s);
-bool_t strcmp(char* s1, char* s2, uint16_t n);
+static bool_t simple_strcmp(char* s1, char* s2, uint16_t n);
 //
 // Main
 //
@@ -113,11 +113,18 @@ void main(void) {
   PieCtrlRegs.PIEIER9.bit.INTx3 = 1;
   IER |= M_INT9;
 
+#ifndef CUSTOM_HW
   // Enable the SCI-C (MSP Comms) interrupt and point to its ISR (PIE: 8.5).
   PieVectTable.SCIC_RX_INT = mspUartRx_ISR;
   PieCtrlRegs.PIEIER8.bit.INTx5 = 1;
   IER |= M_INT8;
+#else
+  // Enable the SCI-C (MSP Comms) interrupt and point to its ISR (PIE: 8.5).
+  PieVectTable.SCIA_RX_INT = mspUartRx_ISR;
+  PieCtrlRegs.PIEIER9.bit.INTx1 = 1;
+#endif
   EDIS;    // This is needed to disable write to EALLOW protected registers
+
 
 #ifdef _STANDALONE
   //  Send boot command to allow the CPU02 application to begin execution
@@ -145,10 +152,20 @@ void main(void) {
   crossCoreMemory[1] = (uint32_t)&rightSample;
   crossCoreMemory[2] = (uint32_t)&activeEffect;
   count = 0;
-
+#ifdef CUSTOM_HW
+  // Assign GPIO19 to CPU-1 as the RX of SCI-B.
+  GPIO_SetupPinMux(75, GPIO_MUX_CPU1, 0);
+  GPIO_SetupPinOptions(75, GPIO_OUTPUT, GPIO_OUTPUT);
+  GPIO_WritePin(75, 0);
+  GPIO_WritePin(75, 1);
+#endif
   initMMC();
   init_scib();
+#ifndef CUSTOM_HW
   init_scic();
+#else
+  init_scia();  
+#endif
   IpcRegs.IPCSET.bit.IPC17 = 1;
   IpcRegs.IPCSET.bit.IPC11 = 1;
   f_unlink("/New_Song.wav");
@@ -174,12 +191,10 @@ void main(void) {
        sendMspString("CS\r\n");
       } else if(uartRemoteRxBuf[0] == 'O' && uartRemoteRxBuf[1] == 'S'){
        sendMspString(uartRemoteRxBuf);
-      } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'L'){
-       sendMspString("PL\r\n");
-      } else if(uartRemoteRxBuf[0] == 'P' && uartRemoteRxBuf[1] == 'A'){
-       sendMspString("PA\r\n");
-      } else if(strcmp(uartRemoteRxBuf, "EFFECT: ", 8)) {
+      } else if(simple_strcmp(uartRemoteRxBuf, "EFFECT: ", 8)) {
         IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[2],uartRemoteRxBuf[8], IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+      } else if(simple_strcmp(uartRemoteRxBuf, "AUDIO: ", 7)) {
+        sendMspString((uartRemoteRxBuf+7));
       }
       newRemoteCmd = FALSE;
     }
@@ -193,6 +208,9 @@ void main(void) {
   }
 }
 
+
+
+#ifndef CUSTOM_HW
 void printString(char* s) {
   for(uint16_t i=0;s[i]!=NULL;i++)
     scia_txChar(s[i]);
@@ -203,8 +221,20 @@ void sendMspString(char* s) {
     scic_txChar(s[i]);
   scic_txChar('\0');
 }
+#else
+void printString(char* s) {
+  for(uint16_t i=0;s[i]!=NULL;i++)
+    scic_txChar(s[i]);
+}
 
-bool_t strcmp(char* s1, char* s2, uint16_t n) {
+void sendMspString(char* s) {
+  for(uint16_t i=0;s[i]!=NULL;i++)
+    scia_txChar(s[i]);
+  scia_txChar('\0');
+}
+#endif
+
+static bool_t simple_strcmp(char* s1, char* s2, uint16_t n) {
   for(uint16_t i=0;i<n;i++)
     if(s1[i] != s2[i])
       return FALSE;

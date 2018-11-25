@@ -24,6 +24,7 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 interrupt void mspUartRx_ISR(void);
 interrupt void remoteUartRx_ISR(void);
+void init_scia(void);
 void init_scib(void);
 void init_scic(void);
 void scia_txChar(char c);

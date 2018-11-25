@@ -203,14 +203,14 @@ int16 wahwahEffect(float sample, enum side channel) {
   static Uint16 secondIndexL = 1;
   static Uint16 firstIndexR = 0;
   static Uint16 secondIndexR = 1;
-  float modifiedSample; 
-  float cutoffFrequency =  0.4f * fabsf(sinf(2.0f * (float)M_PI * (float)cutoffFrequencyIndex / (16.0f * FS_FLOAT)));
-  if(cutoffFrequencyIndex >= (FS_INT * 16) - 1)
+  float modifiedSample;
+  float cutoffFrequency =  500.0f + 2500.0f * fabsf(sinf((float)M_PI * (float)cutoffFrequencyIndex / (4.0f * FS_FLOAT)));
+  if(cutoffFrequencyIndex >= (FS_INT * 8) - 1)
     cutoffFrequencyIndex = 0;
   else
     cutoffFrequencyIndex++;
 
-  float fl = cutoffFrequency;
+  float fl = fabsf(sinf((float)M_PI * cutoffFrequency / FS_FLOAT));
   float ql = 2.0f * 0.05f;
   float normalizedSample = sample / MAX_VAL;
 

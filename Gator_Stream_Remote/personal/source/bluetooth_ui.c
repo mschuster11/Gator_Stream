@@ -96,13 +96,13 @@ void openBTMenu(void) {
         Graphics_drawButton(&g_sContext,&bt_choiceButton3);
       } else if(Graphics_isButtonSelected(&bt_playButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PLAY)) {
         Graphics_drawSelectedButton(&g_sContext,&bt_playButton);
-        UART_transmitStringNullTerm("PL\r\n");
+        UART_transmitStringNullTerm("AUDIO: PL\r\n");
         playPauseFlag = PAUSE;
         Delay(10000);
         Graphics_drawButton(&g_sContext,&bt_pauseButton);
       } else if(Graphics_isButtonSelected(&bt_pauseButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PAUSE)) {
         Graphics_drawSelectedButton(&g_sContext,&bt_pauseButton);
-        UART_transmitStringNullTerm("PA\r\n");
+        UART_transmitStringNullTerm("AUDIO: PA\r\n");
         playPauseFlag = PLAY;
         Delay(10000);
         Graphics_drawButton(&g_sContext,&bt_playButton);
