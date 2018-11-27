@@ -29,6 +29,7 @@
 #include "Gator_Stream_Receiver.h"    /* Application Header.                  */
 #include "HAL.h"                      /* Hardware Abstraction Layer Header.   */
 #include "SS1BTVS.h"                  /* Vendor Specific Prototypes/Constants.*/
+#include "HRDWCFG.h"             /* Hardware Configuration Header.            */
 
 #define MAX_SUPPORTED_COMMANDS                     (30)  /* Maximum number of */
                                                          /* user commands that*/
@@ -4020,3 +4021,19 @@ Boolean_t ProcessCommandLine(char *String)
 {
    return(CommandLineInterpreter(String));
 }
+
+void ServiceGPIO(void) {
+  if(AUDInitialized && A3DPOpened) {
+    if(GPIO_getInputPinValue(HRDWCFG_PREVIOUS_TRACK_PORT_NUM, HRDWCFG_PREVIOUS_TRACK_PIN_NUM) == 1)
+      SendRemoteControlCommand(rcBack);
+    if(GPIO_getInputPinValue(HRDWCFG_NEXT_TRACK_PORT_NUM, HRDWCFG_NEXT_TRACK_PIN_NUM) == 1)
+      SendRemoteControlCommand(rcNext);
+    if(GPIO_getInputPinValue(HRDWCFG_PLAY_PAUSE_PORT_NUM, HRDWCFG_PLAY_PAUSE_PIN_NUM) == 0)
+        SendRemoteControlCommand(rcPlayPause);
+    if(GPIO_getInputPinValue(HRDWCFG_DISCONNECT_PORT_NUM, HRDWCFG_DISCONNECT_PIN_NUM) == 0) {
+      CloseA3DPEndpoint(NULL);
+      OpenA3DPEndpoint(NULL);
+    }
+  }
+}
+

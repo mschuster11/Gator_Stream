@@ -108,4 +108,23 @@
 #define HRDWCFG_LED_BLUE_PORT_NUM         GPIO_PORT_P2
 #define HRDWCFG_LED_BLUE_PIN_NUM          GPIO_PIN2
 
+#ifdef CUSTOM_HW
+   /*********************************************************************/
+   /* Custom HW Buttons                                                 */
+   /*********************************************************************/
+
+#define HRDWCFG_PREVIOUS_TRACK_PORT_NUM   GPIO_PORT_P7
+#define HRDWCFG_PREVIOUS_TRACK_PIN_NUM    GPIO_PIN1
+
+#define HRDWCFG_NEXT_TRACK_PORT_NUM       GPIO_PORT_P7
+#define HRDWCFG_NEXT_TRACK_PIN_NUM        GPIO_PIN2
+
+#define HRDWCFG_PLAY_PAUSE_PORT_NUM       GPIO_PORT_P9
+#define HRDWCFG_PLAY_PAUSE_PIN_NUM        GPIO_PIN2
+
+#define HRDWCFG_DISCONNECT_PORT_NUM       GPIO_PORT_P9
+#define HRDWCFG_DISCONNECT_PIN_NUM        GPIO_PIN3
+
+
+#endif
 #endif

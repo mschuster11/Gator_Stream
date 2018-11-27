@@ -47,12 +47,12 @@
 #define HFXTCLK_FREQUENCY           48000000
 
    /* The following constants specify information about MCLK.           */
-#define MCLK_SOURCE                 CS_HFXTCLK_SELECT
+#define MCLK_SOURCE                 CS_DCOCLK_SELECT
 #define MCLK_DIVIDER                1
 #define MCLK_FREQUENCY              (HFXTCLK_FREQUENCY / MCLK_DIVIDER)
 
    /* The following constants specify information about HSMCLK.         */
-#define HSMCLK_SOURCE               CS_HFXTCLK_SELECT
+#define HSMCLK_SOURCE               CS_DCOCLK_SELECT
 #define HSMCLK_DIVIDER              2
 #define HSMCLK_FREQUENCY            (HFXTCLK_FREQUENCY / HSMCLK_DIVIDER)
 
@@ -169,25 +169,14 @@ static void ConfigureControllerAudioCodec(unsigned int BluetoothStackID, unsigne
    /* The following function configures the system clocks.              */
 static void ConfigureClocks(void)
 {
-   /* Configure the HFXT external oscillator pins.                      */
-   GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_PJ, GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
-
-   /* Set the external clock source frequencies for LFXTCLK and HFXTCLK.*/
-   /* Note that we haven't configured LFXTCLK so we set it to 0 here.   */
-   CS_setExternalClockSourceFrequency(0, HFXTCLK_FREQUENCY);
-
-   /* Starting HFXT in non-bypass mode without a timeout.  Before we    */
-   /* start we have to change VCORE to 1 to support the 48 MHz          */
-   /* frequency.                                                        */
-   PCM_setCoreVoltageLevel(PCM_VCORE1);
-   FlashCtl_setWaitState(FLASH_BANK0, 2);
-   FlashCtl_setWaitState(FLASH_BANK1, 2);
-   CS_startHFXT(false);
-
-   /* Initialize the clock sources.                                     */
-   CS_initClockSignal(CS_MCLK, MCLK_SOURCE, CONCAT(CS_CLOCK_DIVIDER_,MCLK_DIVIDER));
-   CS_initClockSignal(CS_HSMCLK, HSMCLK_SOURCE, CONCAT(CS_CLOCK_DIVIDER_,HSMCLK_DIVIDER));
-   CS_initClockSignal(CS_SMCLK, SMCLK_SOURCE, CONCAT(CS_CLOCK_DIVIDER_,SMCLK_DIVIDER));
+    FlashCtl_setWaitState( FLASH_BANK0, 2);
+    FlashCtl_setWaitState( FLASH_BANK1, 2);
+    PCM_setPowerState( PCM_AM_DCDC_VCORE1 );
+    CS_setDCOCenteredFrequency( CS_DCO_FREQUENCY_48 );
+    CS_setDCOFrequency(48000000);
+    CS_initClockSignal(CS_MCLK, MCLK_SOURCE, CONCAT(CS_CLOCK_DIVIDER_,MCLK_DIVIDER));
+    CS_initClockSignal(CS_HSMCLK, HSMCLK_SOURCE, CONCAT(CS_CLOCK_DIVIDER_,HSMCLK_DIVIDER));
+    CS_initClockSignal(CS_SMCLK, SMCLK_SOURCE, CONCAT(CS_CLOCK_DIVIDER_,SMCLK_DIVIDER));
 }
 
    /*********************************************************************/
@@ -245,6 +234,13 @@ void HAL_ConfigureHardware(void)
    GPIO_setAsOutputPin(HRDWCFG_LED_RED_PORT_NUM, HRDWCFG_LED_RED_PIN_NUM);
    GPIO_setAsOutputPin(HRDWCFG_LED_GREEN_PORT_NUM, HRDWCFG_LED_GREEN_PIN_NUM);
    GPIO_setAsOutputPin(HRDWCFG_LED_BLUE_PORT_NUM, HRDWCFG_LED_BLUE_PIN_NUM);
+
+#ifdef CUSTOM_HW
+   GPIO_setAsInputPin(HRDWCFG_PREVIOUS_TRACK_PORT_NUM, HRDWCFG_PREVIOUS_TRACK_PIN_NUM);
+   GPIO_setAsInputPin(HRDWCFG_NEXT_TRACK_PORT_NUM, HRDWCFG_NEXT_TRACK_PIN_NUM);
+   GPIO_setAsInputPin(HRDWCFG_PLAY_PAUSE_PORT_NUM, HRDWCFG_PLAY_PAUSE_PIN_NUM);
+   GPIO_setAsInputPin(HRDWCFG_DISCONNECT_PORT_NUM, HRDWCFG_DISCONNECT_PIN_NUM);
+#endif
 
    /* Enable interrupts.                                                */
    Interrupt_enableMaster();

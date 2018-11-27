@@ -62,7 +62,7 @@ extern uint16_t uartMspRxBufIndex ;
 char btDeviceList[15][100];
 uint16_t btActiceDevices = 0;
 uint16_t btCurrentReceivedDevice = 0;
-
+WaveFile* wf;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -80,6 +80,8 @@ void sendMspString(char* s);
 void sendRemoteString(char* s);
 uint16_t parseStringResult(char* s);
 static bool_t simple_strcmp(char* s1, char* s2, uint16_t n);
+bool_t mmcPresent(void);
+void initNewWavFile(void);
 //
 // Main
 //
@@ -171,21 +173,14 @@ void main(void) {
   init_scia();  
 #endif
   IpcRegs.IPCSET.bit.IPC17 = 1;
-  IpcRegs.IPCSET.bit.IPC11 = 1;
-  f_unlink("/New_Song.wav");
-  WaveFile* wf = wave_open("/New_Song.wav", "w");
+
   mmcSampleBuffer[0] = leftSamplesBuffer2;
   mmcSampleBuffer[1] = rightSamplesBuffer2;
   for(;;) {
     if(fileReady && mmcReady) {
-      if(count < 200){
-        mmcReady = FALSE;
-        wave_write((void **)mmcSampleBuffer, MMC_SAMPLE_PING_PONG_BUFF_SIZE, wf);
-        count++;
-      } else {
-        fileReady = FALSE;
-        wave_close(wf);
-      }
+      mmcReady = FALSE;
+      wave_write((void **)mmcSampleBuffer, MMC_SAMPLE_PING_PONG_BUFF_SIZE, wf);
+      count++;
     }
 
     if(newRemoteCmd == TRUE) {
@@ -202,6 +197,24 @@ void main(void) {
           sendMspString("PL\r\n");
         else if(simple_strcmp((uartRemoteRxBuf+7), "PA", 2))
           sendMspString("PA\r\n");
+        else if(simple_strcmp((uartRemoteRxBuf+7), "MMC START", 9)){
+            if(mmcPresent()) {
+              sendRemoteString("AUDIO: MMC STARTED\r\n");
+              initNewWavFile();
+              IpcRegs.IPCSET.bit.IPC11 = 1;
+            } else {
+              sendRemoteString("AUDIO: NO MMC\r\n");
+            }
+        } else if(simple_strcmp((uartRemoteRxBuf+7), "MMC STOP", 8)){
+            if(IpcRegs.IPCSET.bit.IPC11 == 1) {
+              sendRemoteString("AUDIO: MMC STOPED\r\n");
+              IpcRegs.IPCSET.bit.IPC11 = 0;
+              wave_close(wf);
+            } else {
+              sendRemoteString("AUDIO: MMC NOT REC\r\n");
+            }
+        }
+
       }
       newRemoteCmd = FALSE;
     }
@@ -275,4 +288,14 @@ uint16_t parseStringResult(char* s) {
     }
   }
   return 0xFFFF;
+}
+
+
+bool_t mmcPresent(void) {
+  return GpioDataRegs.GPCDAT.bit.GPIO66;
+}
+
+void initNewWavFile(void) {
+  f_unlink("/New_Song.wav");
+  wf = wave_open("/New_Song.wav", "w");
 }
