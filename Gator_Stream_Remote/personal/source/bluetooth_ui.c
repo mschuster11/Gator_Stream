@@ -17,6 +17,8 @@
 /* Includes */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 #include "grlib.h"
+#include "stdlib.h"
+#include "string.h"
 #include "button.h"
 #include "imageButton.h"
 #include "images/images.h"
@@ -43,58 +45,55 @@ extern touch_context g_sTouchContext;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Globals */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-Graphics_Button bt_backButton;
-Graphics_Button bt_choiceButton1;
-Graphics_Button bt_choiceButton2;
-Graphics_Button bt_choiceButton3;
-Graphics_Button bt_disconnectButton;
-Graphics_Button bt_playButton;
-Graphics_Button bt_pauseButton;
-
+static Graphics_Button bt_backButton;
+static Graphics_Button availableDeviceButtons[15];
+static Graphics_Button bt_scrollUpButton;
+static Graphics_Button bt_scrollDownButton;
+static Graphics_Button bt_disconnectButton;
+static Graphics_Button bt_playButton;
+static Graphics_Button bt_pauseButton;
+static uint8_t bt_scrollOffset;
+static char bt_deviceNames[15][100]; 
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Function Definitions */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 void openBTMenu(void) {
-  drawLoadingAnimation(2);
+  // drawLoadingAnimation(2);
   Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE_SMOKE);
   Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_WHITE_SMOKE);
   Graphics_clearDisplay(&g_sContext);
   Graphics_drawButton(&g_sContext,&bt_backButton);
   Graphics_drawButton(&g_sContext,&bt_disconnectButton);
-  Graphics_drawButton(&g_sContext,&bt_choiceButton1);
-  Graphics_drawButton(&g_sContext,&bt_choiceButton2);
-  Graphics_drawButton(&g_sContext,&bt_choiceButton3);
+  drawAvailableDeviceButtons();
   Graphics_drawButton(&g_sContext,&bt_playButton);
-
+  Graphics_drawButton(&g_sContext,&bt_scrollUpButton);
+  Graphics_drawButton(&g_sContext,&bt_scrollDownButton);
 
   for(;;){
     touch_updateCurrentTouch(&g_sTouchContext);
     if(g_sTouchContext.touch) {
-      if(Graphics_isButtonSelected(&bt_backButton, g_sTouchContext.x,  g_sTouchContext.y)){
+      if(Graphics_isButtonSelected(&bt_scrollUpButton, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext, &bt_scrollUpButton);
+        if(scrollDownAvailableDeviceButtons()){
+          drawAvailableDeviceButtons();
+        }
+        Graphics_drawButton(&g_sContext, &bt_scrollUpButton);
+      } else if(Graphics_isButtonSelected(&bt_scrollDownButton, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext, &bt_scrollDownButton);
+        if(scrollUpAvailableDeviceButtons()){
+          drawAvailableDeviceButtons();
+        }
+        Graphics_drawButton(&g_sContext, &bt_scrollDownButton);
+      } else if(Graphics_isButtonSelected(&bt_backButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedButton(&g_sContext, &bt_backButton);
         break;
       } else if(Graphics_isButtonSelected(&bt_disconnectButton, g_sTouchContext.x,  g_sTouchContext.y)) {
         Graphics_drawSelectedButton(&g_sContext,&bt_disconnectButton);
-        UART_transmitStringNullTerm("CS  \r\n");
+        UART_transmitStringNullTerm("BT: CS\r\n");
         Delay(10000);
         Graphics_drawButton(&g_sContext,&bt_disconnectButton);
-      } else if(Graphics_isButtonSelected(&bt_choiceButton1, g_sTouchContext.x,  g_sTouchContext.y)) {
-        Graphics_drawSelectedButton(&g_sContext,&bt_choiceButton1);
-        UART_transmitStringNullTerm("OS 1\r\n");
-        Delay(10000);
-        Graphics_drawButton(&g_sContext,&bt_choiceButton1);
-      } else if(Graphics_isButtonSelected(&bt_choiceButton2, g_sTouchContext.x,  g_sTouchContext.y)) {
-        Graphics_drawSelectedButton(&g_sContext,&bt_choiceButton2);
-        UART_transmitStringNullTerm("OS 2\r\n");
-        Delay(10000);
-        Graphics_drawButton(&g_sContext,&bt_choiceButton2);
-      } else if(Graphics_isButtonSelected(&bt_choiceButton3, g_sTouchContext.x,  g_sTouchContext.y)) {
-        Graphics_drawSelectedButton(&g_sContext,&bt_choiceButton3);
-        UART_transmitStringNullTerm("OS 3\r\n");
-        Delay(10000);
-        Graphics_drawButton(&g_sContext,&bt_choiceButton3);
-      } else if(Graphics_isButtonSelected(&bt_playButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PLAY)) {
+      }else if(Graphics_isButtonSelected(&bt_playButton, g_sTouchContext.x,  g_sTouchContext.y) && (playPauseFlag == PLAY)) {
         Graphics_drawSelectedButton(&g_sContext,&bt_playButton);
         UART_transmitStringNullTerm("AUDIO: PL\r\n");
         playPauseFlag = PAUSE;
@@ -106,6 +105,19 @@ void openBTMenu(void) {
         playPauseFlag = PLAY;
         Delay(10000);
         Graphics_drawButton(&g_sContext,&bt_playButton);
+      } else {
+        for(uint16_t i = 0;i<NUMBER_OF_DEVICES;i++) {
+          if((int16_t)availableDeviceButtons[i].yMin >= 55 && (int16_t)availableDeviceButtons[i].yMax <= 215 && Graphics_isButtonSelected(&availableDeviceButtons[i], g_sTouchContext.x,  g_sTouchContext.y)) {
+            Graphics_drawSelectedButton(&g_sContext, &availableDeviceButtons[i]);
+            UART_transmitString("BT: OS ");
+            char temp[3];
+            ltoa((i+1), temp); 
+            UART_transmitString(temp);
+            UART_transmitStringNullTerm("\r\n");
+            Delay(10000);
+            Graphics_drawButton(&g_sContext,&availableDeviceButtons[i]);
+          }
+        }
       }
     } 
   }
@@ -131,53 +143,33 @@ void initBTMenuButtons(void) {
   bt_backButton.text = "BACK";
   bt_backButton.font = &g_sFontCm18;
 
-  bt_choiceButton1.xMin = 145;
-  bt_choiceButton1.xMax = 175;
-  bt_choiceButton1.yMin = 55;
-  bt_choiceButton1.yMax = 95;
-  bt_choiceButton1.borderWidth = 1;
-  bt_choiceButton1.selected = false;
-  bt_choiceButton1.fillColor = GRAPHICS_COLOR_ORANGE;
-  bt_choiceButton1.borderColor = GRAPHICS_COLOR_BLUE;
-  bt_choiceButton1.selectedColor = GRAPHICS_COLOR_BLACK;
-  bt_choiceButton1.textColor = GRAPHICS_COLOR_BLACK;
-  bt_choiceButton1.selectedTextColor = GRAPHICS_COLOR_RED;
-  bt_choiceButton1.textXPos = 157;
-  bt_choiceButton1.textYPos = 70;
-  bt_choiceButton1.text = "1";
-  bt_choiceButton1.font = &g_sFontCm18;
+  for(uint16_t i = 0; i<NUMBER_OF_DEVICES; i++) {
+    availableDeviceButtons[i].xMin = 65;
+    availableDeviceButtons[i].xMax = 255;
+    availableDeviceButtons[i].yMin = (55 + 40 * i) + 1;
+    availableDeviceButtons[i].yMax = (95 + 40 * i) - 1;
+    availableDeviceButtons[i].borderWidth = 1;
+    availableDeviceButtons[i].selected = false;
+    if(i & 0x0001) {
+    availableDeviceButtons[i].fillColor = GRAPHICS_COLOR_WHITE;
+    availableDeviceButtons[i].borderColor = GRAPHICS_COLOR_BLUE;
+    availableDeviceButtons[i].selectedColor = GRAPHICS_COLOR_BLACK;
+    availableDeviceButtons[i].textColor = GRAPHICS_COLOR_BLACK;
+    availableDeviceButtons[i].selectedTextColor = GRAPHICS_COLOR_RED;
+    } else {
+      availableDeviceButtons[i].fillColor = GRAPHICS_COLOR_BLUE;
+      availableDeviceButtons[i].borderColor = GRAPHICS_COLOR_WHITE;
+      availableDeviceButtons[i].selectedColor = GRAPHICS_COLOR_BLACK;
+      availableDeviceButtons[i].textColor = GRAPHICS_COLOR_BLACK;
+      availableDeviceButtons[i].selectedTextColor = GRAPHICS_COLOR_RED;
+    }
+    availableDeviceButtons[i].textXPos = 137;
+    availableDeviceButtons[i].textYPos = 70 + 40 * i;
+    ltoa((i+1), bt_deviceNames[i]);
+    availableDeviceButtons[i].text = bt_deviceNames[i];
+    availableDeviceButtons[i].font = &g_sFontCm18;
 
-  bt_choiceButton2.xMin = 145;
-  bt_choiceButton2.xMax = 175;
-  bt_choiceButton2.yMin = 100;
-  bt_choiceButton2.yMax = 140;
-  bt_choiceButton2.borderWidth = 1;
-  bt_choiceButton2.selected = false;
-  bt_choiceButton2.fillColor = GRAPHICS_COLOR_BLUE;
-  bt_choiceButton2.borderColor = GRAPHICS_COLOR_ORANGE;
-  bt_choiceButton2.selectedColor = GRAPHICS_COLOR_BLACK;
-  bt_choiceButton2.textColor = GRAPHICS_COLOR_BLACK;
-  bt_choiceButton2.selectedTextColor = GRAPHICS_COLOR_RED;
-  bt_choiceButton2.textXPos = 157;
-  bt_choiceButton2.textYPos = 115;
-  bt_choiceButton2.text = "2";
-  bt_choiceButton2.font = &g_sFontCm18;
-
-  bt_choiceButton3.xMin = 145;
-  bt_choiceButton3.xMax = 175;
-  bt_choiceButton3.yMin = 145;
-  bt_choiceButton3.yMax = 185;
-  bt_choiceButton3.borderWidth = 1;
-  bt_choiceButton3.selected = false;
-  bt_choiceButton3.fillColor = GRAPHICS_COLOR_ORANGE;
-  bt_choiceButton3.borderColor = GRAPHICS_COLOR_BLUE;
-  bt_choiceButton3.selectedColor = GRAPHICS_COLOR_BLACK;
-  bt_choiceButton3.textColor = GRAPHICS_COLOR_BLACK;
-  bt_choiceButton3.selectedTextColor = GRAPHICS_COLOR_RED;
-  bt_choiceButton3.textXPos = 157;
-  bt_choiceButton3.textYPos = 160;
-  bt_choiceButton3.text = "3";
-  bt_choiceButton3.font = &g_sFontCm18;
+  }
 
   bt_disconnectButton.xMin = 0;
   bt_disconnectButton.xMax = 90;
@@ -226,4 +218,72 @@ void initBTMenuButtons(void) {
   bt_pauseButton.textYPos = 10;
   bt_pauseButton.text = "Pause";
   bt_pauseButton.font = &g_sFontCm18;
+
+  bt_scrollUpButton.xMin = 280;
+  bt_scrollUpButton.xMax = 320;
+  bt_scrollUpButton.yMin = 60;
+  bt_scrollUpButton.yMax = 120;
+  bt_scrollUpButton.borderWidth = 1;
+  bt_scrollUpButton.selected = false;
+  bt_scrollUpButton.fillColor = GRAPHICS_COLOR_WHITE;
+  bt_scrollUpButton.borderColor = GRAPHICS_COLOR_BLUE;
+  bt_scrollUpButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  bt_scrollUpButton.textColor = GRAPHICS_COLOR_BLACK;
+  bt_scrollUpButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  bt_scrollUpButton.textXPos = 285;
+  bt_scrollUpButton.textYPos = 90;
+  bt_scrollUpButton.text = "UP";
+  bt_scrollUpButton.font = &g_sFontCm18;
+
+  bt_scrollDownButton.xMin = 280;
+  bt_scrollDownButton.xMax = 320;
+  bt_scrollDownButton.yMin = 120;
+  bt_scrollDownButton.yMax = 180;
+  bt_scrollDownButton.borderWidth = 1;
+  bt_scrollDownButton.selected = false;
+  bt_scrollDownButton.fillColor = GRAPHICS_COLOR_WHITE;
+  bt_scrollDownButton.borderColor = GRAPHICS_COLOR_BLUE;
+  bt_scrollDownButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  bt_scrollDownButton.textColor = GRAPHICS_COLOR_BLACK;
+  bt_scrollDownButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  bt_scrollDownButton.textXPos = 285;
+  bt_scrollDownButton.textYPos = 150;
+  bt_scrollDownButton.text = "DOWN";
+  bt_scrollDownButton.font = &g_sFontCm18;
+}
+
+
+void drawAvailableDeviceButtons(void) {
+  for(uint16_t i = 0;i<NUMBER_OF_DEVICES;i++){
+    if((int16_t)availableDeviceButtons[i].yMin >= 55 && (int16_t)availableDeviceButtons[i].yMax <= 215)
+      Graphics_drawButton(&g_sContext,&availableDeviceButtons[i]);
+  }
+}
+
+
+uint8_t scrollUpAvailableDeviceButtons(void) {
+  if(bt_scrollOffset < 12 ) {
+    for(uint16_t i = 0;i<NUMBER_OF_DEVICES;i++){
+      availableDeviceButtons[i].yMin -= 40;
+      availableDeviceButtons[i].yMax -= 40;
+      availableDeviceButtons[i].textYPos -= 40;
+    }
+    bt_scrollOffset++;
+    return 1;
+  }
+  return 0;
+}
+
+
+uint8_t scrollDownAvailableDeviceButtons(void) {
+  if(bt_scrollOffset > 0) {
+    for(uint16_t i = 0;i<NUMBER_OF_DEVICES;i++){
+      availableDeviceButtons[i].yMin += 40;
+      availableDeviceButtons[i].yMax += 40;
+      availableDeviceButtons[i].textYPos += 40;
+    }
+    bt_scrollOffset--;
+    return 1;
+  }
+  return 0;
 }

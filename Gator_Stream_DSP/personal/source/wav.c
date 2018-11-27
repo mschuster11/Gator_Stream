@@ -118,7 +118,7 @@ void wave_write_header(WaveFile* self) {
     self->chunk.size += WAVE_RIFF_HEADER_SIZE + self->chunk.fact_chunk.size;
   }
 
-  if (self->chunk.size % 2 != 0) {
+  if (self->chunk.size & 1) {
     self->chunk.size++;
   }
 

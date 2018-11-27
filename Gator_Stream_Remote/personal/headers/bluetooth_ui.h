@@ -14,6 +14,9 @@
 
 #ifndef _BLUETOOTH_UI_H_
 #define _BLUETOOTH_UI_H_
+
+#define NUMBER_OF_DEVICES   15
+
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Enums */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -28,5 +31,7 @@ enum streamState {
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 void openBTMenu(void);
 void initBTMenuButtons(void);
-
+void drawAvailableDeviceButtons(void);
+uint8_t scrollUpAvailableDeviceButtons(void);
+uint8_t scrollDownAvailableDeviceButtons(void);
 #endif

@@ -61,13 +61,13 @@ static int8_t* effectNames[NUMBER_OF_EFFECTS] = {
   "Bass Boost",
   "Treb Boost"
 };
-static uint8_t scollOffset;
+static uint8_t scrollOffset;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Function Definitions */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 void openAudioMenu(void) {
-  scollOffset = 0;
+  scrollOffset = 0;
   drawLoadingAnimation(2);
   initAudioMenuButtons();
   Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE_SMOKE);
@@ -237,8 +237,6 @@ void initAudioMenuButtons(void) {
   scrollDownButton.textYPos = 150;
   scrollDownButton.text = "DOWN";
   scrollDownButton.font = &g_sFontCm18;
-
-
 }
 
 
@@ -251,13 +249,13 @@ void drawEffectButtons(void) {
 
 
 uint8_t scrollUpEffectButtons(void) {
-  if(scollOffset < 4 ) {
+  if(scrollOffset < 4 ) {
     for(uint16_t i = 0;i<NUMBER_OF_EFFECTS;i++){
       effectButtons[i].yMin -= 40;
       effectButtons[i].yMax -= 40;
       effectButtons[i].textYPos -= 40;
     }
-    scollOffset++;
+    scrollOffset++;
     return 1;
   }
   return 0;
@@ -265,13 +263,13 @@ uint8_t scrollUpEffectButtons(void) {
 
 
 uint8_t scrollDownEffectButtons(void) {
-  if(scollOffset > 0) {
+  if(scrollOffset > 0) {
     for(uint16_t i = 0;i<NUMBER_OF_EFFECTS;i++){
       effectButtons[i].yMin += 40;
       effectButtons[i].yMax += 40;
       effectButtons[i].textYPos += 40;
     }
-    scollOffset--;
+    scrollOffset--;
     return 1;
   }
   return 0;

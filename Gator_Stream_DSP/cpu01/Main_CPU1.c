@@ -25,7 +25,7 @@
 #include "personal/headers/cpu1_ipc.h"
 #include "personal/headers/sci_utils.h"
 #include "stdlib.h"
-// #include "string.h"
+ #include "string.h"
 
 // Defines
 #define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
@@ -59,7 +59,9 @@ uint16_t rightSample;
 uint16_t activeEffect;
 uint16_t count;
 extern uint16_t uartMspRxBufIndex ;
-
+char btDeviceList[15][100];
+uint16_t btActiceDevices = 0;
+uint16_t btCurrentReceivedDevice = 0;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Externs~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -75,6 +77,8 @@ extern node* newMspUartCmd;
 void init_ints(void);
 void printString(char* s);
 void sendMspString(char* s);
+void sendRemoteString(char* s);
+uint16_t parseStringResult(char* s);
 static bool_t simple_strcmp(char* s1, char* s2, uint16_t n);
 //
 // Main
@@ -185,16 +189,19 @@ void main(void) {
     }
 
     if(newRemoteCmd == TRUE) {
-      // UARTprintf("%s\n", uartRemoteRxBuf);
       printString(uartRemoteRxBuf);
-      if(uartRemoteRxBuf[0] == 'C' && uartRemoteRxBuf[1] == 'S'){
-       sendMspString("CS\r\n");
-      } else if(uartRemoteRxBuf[0] == 'O' && uartRemoteRxBuf[1] == 'S'){
-       sendMspString(uartRemoteRxBuf);
+      if(simple_strcmp(uartRemoteRxBuf, "BT: ", 4)){
+        if(simple_strcmp((uartRemoteRxBuf+4), "CS", 2))
+          sendMspString("CS\r\n");
+        else if(simple_strcmp((uartRemoteRxBuf+4), "OS ", 3))
+          sendMspString((uartRemoteRxBuf+4));
       } else if(simple_strcmp(uartRemoteRxBuf, "EFFECT: ", 8)) {
         IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[2],uartRemoteRxBuf[8], IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
       } else if(simple_strcmp(uartRemoteRxBuf, "AUDIO: ", 7)) {
-        sendMspString((uartRemoteRxBuf+7));
+        if(simple_strcmp((uartRemoteRxBuf+7), "PL", 2))
+          sendMspString("PL\r\n");
+        else if(simple_strcmp((uartRemoteRxBuf+7), "PA", 2))
+          sendMspString("PA\r\n");
       }
       newRemoteCmd = FALSE;
     }
@@ -202,6 +209,17 @@ void main(void) {
     while(currentMspUartCmd != NULL){
       node* temp = currentMspUartCmd;
       printString(currentMspUartCmd->uartString);
+      if(simple_strcmp(currentMspUartCmd->uartString, "DEVICE LIST: #", 14)) {
+        btActiceDevices = parseStringResult(currentMspUartCmd->uartString+14);
+      } else if(simple_strcmp(currentMspUartCmd->uartString, "DL: ", 4)) {
+        if(btCurrentReceivedDevice < btActiceDevices){
+          strcpy(btDeviceList[btCurrentReceivedDevice++], currentMspUartCmd->uartString);
+        }
+        if (btCurrentReceivedDevice == btActiceDevices) {
+          for(uint16_t i=0;i<btActiceDevices;i++)
+            sendRemoteString(btDeviceList[i]);
+        }
+      }
       currentMspUartCmd = currentMspUartCmd->next;
       free(temp);
     }
@@ -234,9 +252,27 @@ void sendMspString(char* s) {
 }
 #endif
 
+void sendRemoteString(char* s) {
+  for(uint16_t i=0;s[i]!=NULL;i++)
+    scib_txChar(s[i]);
+  scib_txChar('\0');
+}
+
 static bool_t simple_strcmp(char* s1, char* s2, uint16_t n) {
   for(uint16_t i=0;i<n;i++)
     if(s1[i] != s2[i])
       return FALSE;
   return TRUE;
+}
+
+
+uint16_t parseStringResult(char* s) {
+  if(s) {
+    if((s[0] >= '0' && s[0] <= '9') && !(s[1] >= '0' && s[1] <= '9')) {
+      return s[0] - '0';
+    } else if((s[0] >= '0' && s[0] <= '9') && (s[1] >= '0' && s[1] <= '9')) {
+      return 10 * (s[0] - '0') + (s[1] - '0');
+    }
+  }
+  return 0xFFFF;
 }

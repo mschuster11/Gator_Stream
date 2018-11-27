@@ -3220,9 +3220,10 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
           //   Display(("Name: Name not given\r\n", "NULL"));
 
           if(n == NumberofValidResponses){
+            Display(("DEVICE LIST: #%d\r\n", NumberofValidResponses));
             uint16_t j;
             for(j=0;j<NumberofValidResponses;j++)
-              Display(("%d. %s\r\n", j+1, DeviceList[j].devName));
+              Display(("DL: %s\r\n", DeviceList[j].devName));
             n=0;
           }
         }

@@ -70,7 +70,7 @@ static BYTE PowerFlag = 0;                    // indicates if "power" is on
    Module Private Functions
 
 ---------------------------------------------------------------------------*/
-
+#ifndef CUSTOM_HW
 // asserts the CS pin to the card
 static void SELECT (void) {
   // Select the SD card.
@@ -83,6 +83,21 @@ static void SELECT (void) {
 static void DESELECT (void) {
   GpioDataRegs.GPESET.bit.GPIO130 = 1;
 }
+
+#else
+// asserts the CS pin to the card
+static void SELECT (void) {
+  // Select the SD card.
+  GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
+
+}
+
+
+// De-asserts the CS pin to the card.
+static void DESELECT (void) {
+  GpioDataRegs.GPCSET.bit.GPIO67 = 1;
+}
+#endif
 
 
 /*-----------------------------------------------------------------------*/
@@ -208,10 +223,20 @@ static void power_on (void) {
   GpioCtrlRegs.GPBLOCK.bit.GPIO63   = 0;
   GpioCtrlRegs.GPCLOCK.bit.GPIO64   = 0;
   GpioCtrlRegs.GPCLOCK.bit.GPIO65   = 0;
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPELOCK.bit.GPIO130  = 0;
+#else
+  GpioCtrlRegs.GPCLOCK.bit.GPIO66 = 0;
+  GpioCtrlRegs.GPCLOCK.bit.GPIO67 = 0;
+#endif
 
   //Set up  MUX & DIR
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPEMUX1.bit.GPIO130  = 0;    //Leave as GPIO for manual CS control
+#else
+  GpioCtrlRegs.GPCMUX1.bit.GPIO66  = 0;    //Leave as GPIO for MMC present signal
+  GpioCtrlRegs.GPCMUX1.bit.GPIO67  = 0;    //Leave as GPIO for manual CS control
+#endif
 
   GpioCtrlRegs.GPBGMUX2.bit.GPIO63  = 3;
   GpioCtrlRegs.GPCGMUX1.bit.GPIO64  = 3;
@@ -221,31 +246,57 @@ static void power_on (void) {
   GpioCtrlRegs.GPCMUX1.bit.GPIO64   = 3;
   GpioCtrlRegs.GPCMUX1.bit.GPIO65   = 3;
 
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPEDIR.bit.GPIO130   = 1;
+#else
+  GpioCtrlRegs.GPCDIR.bit.GPIO66   = 0;
+  GpioCtrlRegs.GPCDIR.bit.GPIO67   = 1;
+#endif
 
   //Set up GPIO Pull-up disables/enables
   GpioCtrlRegs.GPBPUD.bit.GPIO63    = 0;    //Needs to be normally pulled high
   GpioCtrlRegs.GPCPUD.bit.GPIO64    = 0;    //Needs to be normally pulled high
   GpioCtrlRegs.GPCPUD.bit.GPIO65    = 1;
+
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPEPUD.bit.GPIO130   = 1;
+#else
+  GpioCtrlRegs.GPCPUD.bit.GPIO66 = 0;
+  GpioCtrlRegs.GPCPUD.bit.GPIO67 = 1;
+#endif
 
   //Set up GPIOs in asynch mode
   GpioCtrlRegs.GPBQSEL2.bit.GPIO63  = 3; // Asynch input
   GpioCtrlRegs.GPCQSEL1.bit.GPIO64  = 3;
   GpioCtrlRegs.GPCQSEL1.bit.GPIO65  = 3;
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPEQSEL1.bit.GPIO130 = 3;
+#else
+  GpioCtrlRegs.GPCQSEL1.bit.GPIO66 = 3;
+  GpioCtrlRegs.GPCQSEL1.bit.GPIO67 = 3;
+#endif
 
   //Configure GPIOs for CPU1
   GpioCtrlRegs.GPBCSEL4.bit.GPIO63  = 0;
   GpioCtrlRegs.GPCCSEL1.bit.GPIO64  = 0;
   GpioCtrlRegs.GPCCSEL1.bit.GPIO65  = 0;
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPECSEL1.bit.GPIO130 = 0;
+#else
+  GpioCtrlRegs.GPCCSEL1.bit.GPIO66 = 0;
+  GpioCtrlRegs.GPCCSEL1.bit.GPIO67 = 0;
+#endif
 
   //Lock the SD-Card SPI GPIOs
   GpioCtrlRegs.GPBLOCK.bit.GPIO63   = 1;
   GpioCtrlRegs.GPCLOCK.bit.GPIO64   = 1;
   GpioCtrlRegs.GPCLOCK.bit.GPIO65   = 1;
+#ifndef CUSTOM_HW
   GpioCtrlRegs.GPELOCK.bit.GPIO130  = 1;
+#else
+  GpioCtrlRegs.GPCLOCK.bit.GPIO66  = 1;
+  GpioCtrlRegs.GPCLOCK.bit.GPIO67  = 1;
+#endif
   EDIS;
 
 
