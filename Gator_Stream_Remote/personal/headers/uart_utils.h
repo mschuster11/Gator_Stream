@@ -40,4 +40,5 @@ void UART_rxIsr(void);
 void UART_transmitChar(char c);
 void UART_transmitString(char* s);
 void UART_transmitStringNullTerm(char* s);
+void UART_initQueue(void);
 #endif

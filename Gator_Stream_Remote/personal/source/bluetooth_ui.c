@@ -28,6 +28,7 @@
 #include "personal/headers/uart_utils.h"
 #include "personal/headers/main_menu_ui.h"
 #include "personal/headers/bluetooth_ui.h"
+#include "personal/headers/queue.h"
 
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -40,7 +41,7 @@ enum streamState playPauseFlag = PLAY;
 /* Externs */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 extern touch_context g_sTouchContext;
-
+extern queue* rxUartCmdQueue;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Globals */
@@ -54,7 +55,8 @@ static Graphics_Button bt_playButton;
 static Graphics_Button bt_pauseButton;
 static uint8_t bt_scrollOffset;
 static char bt_deviceNames[15][100]; 
-
+static uint8_t bt_ActiceDevices = 0;
+static uint8_t bt_CurrentReceivedDevice = 0;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Function Definitions */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -70,7 +72,7 @@ void openBTMenu(void) {
   Graphics_drawButton(&g_sContext,&bt_scrollUpButton);
   Graphics_drawButton(&g_sContext,&bt_scrollDownButton);
 
-  for(;;){
+  for(;;) {
     touch_updateCurrentTouch(&g_sTouchContext);
     if(g_sTouchContext.touch) {
       if(Graphics_isButtonSelected(&bt_scrollUpButton, g_sTouchContext.x,  g_sTouchContext.y)) {
@@ -119,7 +121,23 @@ void openBTMenu(void) {
           }
         }
       }
-    } 
+    }
+    if(queue_head(rxUartCmdQueue) != NULL && queue_head(rxUartCmdQueue)->isComplete) {
+      node* currentRxUartCmd = queue_head(rxUartCmdQueue);
+      if(!currentRxUartCmd->isConsumed){
+        if(simple_strcmp(currentRxUartCmd->uartString, "DEVICE LIST: #", 14))
+          bt_ActiceDevices = *(currentRxUartCmd->uartString+14);
+        else if(simple_strcmp(currentRxUartCmd->uartString, "DL: ", 4)) {
+          if(bt_CurrentReceivedDevice < bt_ActiceDevices)
+            strcpy(bt_deviceNames[bt_CurrentReceivedDevice++], currentRxUartCmd->uartString);
+          if(bt_CurrentReceivedDevice >= bt_ActiceDevices) {
+            bt_CurrentReceivedDevice = 0;
+          }
+        }
+        currentRxUartCmd->isConsumed = true;
+      } else
+        queue_pop(rxUartCmdQueue);
+    }
   }
   Graphics_clearDisplay(&g_sContext);
   drawMainMenu();

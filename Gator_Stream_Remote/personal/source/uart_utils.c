@@ -17,16 +17,15 @@
 /* Includes */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 #include "driverlib.h"
+#include "stdlib.h"
 #include "personal/headers/general.h"
 #include "personal/headers/uart_utils.h"
-
+#include "personal/headers/queue.h"
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Globals */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-uint16_t bufIndex = 0;
-char uartRxCmdBuf[UART_RX_CMD_BUF_SIZE];
-
+queue* rxUartCmdQueue;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Function Definitions */
@@ -65,10 +64,11 @@ void Remote_EnableUART(uint32_t ModuleInstance, uint32_t InterruptNumber, unsign
 
   /* Enable the receive interrupt.                                     */
   UART_enableInterrupt(ModuleInstance, EUSCI_A_UART_RECEIVE_INTERRUPT);
-
+  UART_registerInterrupt(ModuleInstance, UART_rxIsr);
   /* Enable the eUSCI interrupt.                                       */
   Interrupt_enableInterrupt(InterruptNumber);
   Interrupt_setPriority(HRDWCFG_DEBUG_UART_INT_NUM, PRIORITY_NORMAL);
+
 }
 
 /* The following function disables a UART.                           */
@@ -78,11 +78,21 @@ void HAL_DisableUART(uint32_t ModuleInstance, uint32_t InterruptNumber) {
 }
 
 void UART_rxIsr(void) {
-  uartRxCmdBuf[bufIndex] = UART_receiveData(EUSCI_A3_BASE);
-  if(bufIndex >= UART_RX_CMD_BUF_SIZE || uartRxCmdBuf[bufIndex] == 0x00) {
-    bufIndex = 0;
-  } else
-    bufIndex++;
+  if(queue_tail(rxUartCmdQueue) == NULL || queue_tail(rxUartCmdQueue)->isComplete){
+    node* newRxUartCmd = malloc(sizeof(node));
+    newRxUartCmd->length = 0;
+    newRxUartCmd->isComplete = false;
+    newRxUartCmd->isConsumed = false;
+    queue_push(rxUartCmdQueue, newRxUartCmd);
+  }
+  node* rxUartCmd = queue_tail(rxUartCmdQueue);
+  rxUartCmd->uartString[rxUartCmd->length++] = UART_receiveData(EUSCI_A3_BASE);
+  if(rxUartCmd->uartString[rxUartCmd->length-3] == '\r' && rxUartCmd->uartString[rxUartCmd->length-2] == '\n' && rxUartCmd->uartString[rxUartCmd->length-1] == '\0'){
+//    rxUartCmd->uartString[rxUartCmd->length] = '\0';
+    rxUartCmd->isComplete = true;
+  }
+  if(queue_tail(rxUartCmdQueue)->length >= 100) 
+    queue_tail(rxUartCmdQueue)->length = 0;
 }
 
 
@@ -103,4 +113,9 @@ void UART_transmitStringNullTerm(char* s) {
   for(i = 0;s[i]!=0;i++)
     UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, s[i]);
   UART_transmitData(HRDWCFG_DEBUG_UART_MODULE, '\0');
+}
+
+
+void UART_initQueue(void) {
+  rxUartCmdQueue = queue_InitQueue();
 }

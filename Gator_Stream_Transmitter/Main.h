@@ -89,7 +89,6 @@ void PlayPause(void);
    /* auto-connection behavior.                                         */
 Boolean_t GetAutoConnectOverride(void);
 
-void InquiryTask(void *UserParameter);
 
 #endif
 

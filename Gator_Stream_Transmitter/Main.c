@@ -53,7 +53,6 @@ static void IdleTask(void *UserParameter);
 static void ToggleLEDTask(void *UserParameter);
 static void BTPSAPI HCI_Sleep_Callback(Boolean_t _SleepAllowed, unsigned long CallbackParameter);
 static void PollErrorFlags(void);
-
    /* The following function is responsible for retrieving commands from*/
    /* the user console.                                                 */
 static void ProcessCharactersTask(void *UserParameter) {
@@ -166,6 +165,11 @@ static void ToggleLEDTask(void *UserParameter) {
    HAL_ToggleLED();
 }
 
+
+static void InquiryTask(void *UserParameter) {
+   ServiceInquiryTask();
+}
+
    /* The following is the HCI Sleep Callback.  This is registered with */
    /* the stack to note when the Host processor may enter into a sleep  */
    /* mode.                                                             */
@@ -258,11 +262,13 @@ int main(void) {
          /* to the scheduler.                                           */
          if(BTPS_AddFunctionToScheduler(IdleTask, NULL, 100)) {
             if(BTPS_AddFunctionToScheduler(ToggleLEDTask, NULL, 750)) {
-               HAL_SetLEDColor(hlcGreen);
+              if(BTPS_AddFunctionToScheduler(InquiryTask, NULL, 11000)) {
+              HAL_SetLEDColor(hlcGreen);
 
-               /* Execute the scheduler, note that this function does   */
-               /* not return.                                           */
-               BTPS_ExecuteScheduler();
+              /* Execute the scheduler, note that this function does   */
+              /* not return.                                           */
+              BTPS_ExecuteScheduler();
+              }
             }
          }
       }

@@ -12,23 +12,31 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //###########################################################################
 
-#ifndef _SCI_UTILS_H_
-#define _SCI_UTILS_H_
+#ifndef _QUEUE_H_
+#define _QUEUE_H_
+#include <stdbool.h>
+#include <stdint.h>
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* Structs                                                                       */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
+typedef struct node {
+  char uartString[100];
+  struct node* next;
+  uint16_t length;
+  bool isComplete;
+  bool isConsumed;
+}node;
+typedef struct queue {
+  node* _head;
+  node* _tail;
+}queue;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Defines~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* Function Prototypes                                                           */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-Function Prototypes-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-interrupt void mspUartRx_ISR(void);
-interrupt void remoteUartRx_ISR(void);
-void init_scia(void);
-void init_scib(void);
-void init_scic(void);
-void scia_txChar(char c);
-void scib_txChar(char c);
-void scic_txChar(char c);
-void init_messageQueues(void);
+queue* queue_InitQueue(void);
+void queue_push(queue* q, node* n);
+void queue_pop(queue* q);
+node* queue_head(queue* q);
+node* queue_tail(queue* q);
 #endif

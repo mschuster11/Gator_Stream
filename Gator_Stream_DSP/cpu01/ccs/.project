@@ -116,6 +116,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/fatfs/port/mmc_F2837x.c</locationURI>
 		</link>
 		<link>
+			<name>queue.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/personal/source/queue.c</locationURI>
+		</link>
+		<link>
 			<name>sci_utils.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/personal/source/sci_utils.c</locationURI>

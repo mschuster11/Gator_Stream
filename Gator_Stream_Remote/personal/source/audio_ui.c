@@ -45,6 +45,9 @@ static Graphics_Button playButton;
 static Graphics_Button pauseButton;
 static Graphics_Button scrollUpButton;
 static Graphics_Button scrollDownButton;
+static Graphics_Button recordButton;
+static Graphics_Button volumeUpButton;
+static Graphics_Button volumeDownButton;
 static const Graphics_Rectangle bottomCover = {
   65,
   215,
@@ -66,6 +69,7 @@ static uint8_t scrollOffset;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* Function Definitions */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+  static bool isRecording = false;
 void openAudioMenu(void) {
   scrollOffset = 0;
   drawLoadingAnimation(2);
@@ -76,8 +80,14 @@ void openAudioMenu(void) {
   Graphics_drawButton(&g_sContext,&backButton);
   drawEffectButtons();
   Graphics_drawButton(&g_sContext,&playButton);
+  if(isRecording)
+    Graphics_drawButton(&g_sContext,&recordButton);
+  else
+    Graphics_drawSelectedButton(&g_sContext,&recordButton);
   Graphics_drawButton(&g_sContext,&scrollUpButton);
   Graphics_drawButton(&g_sContext,&scrollDownButton);
+  Graphics_drawButton(&g_sContext,&volumeUpButton);
+  Graphics_drawButton(&g_sContext,&volumeDownButton);
 
 
   for(;;){
@@ -98,6 +108,29 @@ void openAudioMenu(void) {
       } else if(Graphics_isButtonSelected(&backButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedButton(&g_sContext, &backButton);
         break;
+      } else if(Graphics_isButtonSelected(&recordButton, g_sTouchContext.x,  g_sTouchContext.y)){
+        if(!isRecording) {
+          Graphics_drawSelectedButton(&g_sContext, &recordButton);
+          UART_transmitStringNullTerm("AUDIO: MMC START\r\n");
+          isRecording = true;
+          Delay(20000);
+        } else {
+          Graphics_drawButton(&g_sContext,&recordButton);
+          UART_transmitStringNullTerm("AUDIO: MMC STOP\r\n");
+          isRecording = false;
+          Delay(20000);
+        }
+
+      } else if(Graphics_isButtonSelected(&volumeUpButton, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext, &volumeUpButton);
+        UART_transmitStringNullTerm("AUDIO: VOL+\r\n");
+        Delay(10000);
+        Graphics_drawButton(&g_sContext,&volumeUpButton);
+      } else if(Graphics_isButtonSelected(&volumeDownButton, g_sTouchContext.x,  g_sTouchContext.y)) {
+        Graphics_drawSelectedButton(&g_sContext, &volumeDownButton);
+        UART_transmitStringNullTerm("AUDIO: VOL-\r\n");
+        Delay(10000);
+        Graphics_drawButton(&g_sContext,&volumeDownButton);
       } else {
         for(uint16_t i = 0;i<NUMBER_OF_EFFECTS;i++) {
           if((int16_t)effectButtons[i].yMin >= 55 && (int16_t)effectButtons[i].yMax <= 215 && Graphics_isButtonSelected(&effectButtons[i], g_sTouchContext.x,  g_sTouchContext.y)) {
@@ -237,6 +270,54 @@ void initAudioMenuButtons(void) {
   scrollDownButton.textYPos = 150;
   scrollDownButton.text = "DOWN";
   scrollDownButton.font = &g_sFontCm18;
+
+  recordButton.xMin = 0;
+  recordButton.xMax = 70;
+  recordButton.yMin = 0;
+  recordButton.yMax = 40;
+  recordButton.borderWidth = 1;
+  recordButton.selected = false;
+  recordButton.fillColor = GRAPHICS_COLOR_BLUE;
+  recordButton.borderColor = GRAPHICS_COLOR_ORANGE;
+  recordButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  recordButton.textColor = GRAPHICS_COLOR_BLACK;
+  recordButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  recordButton.textXPos = 20;
+  recordButton.textYPos = 10;
+  recordButton.text = "MMC";
+  recordButton.font = &g_sFontCm18;
+
+  volumeUpButton.xMin = 0;
+  volumeUpButton.xMax = 40;
+  volumeUpButton.yMin = 60;
+  volumeUpButton.yMax = 120;
+  volumeUpButton.borderWidth = 1;
+  volumeUpButton.selected = false;
+  volumeUpButton.fillColor = GRAPHICS_COLOR_BLUE;
+  volumeUpButton.borderColor = GRAPHICS_COLOR_ORANGE;
+  volumeUpButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  volumeUpButton.textColor = GRAPHICS_COLOR_BLACK;
+  volumeUpButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  volumeUpButton.textXPos = 15;
+  volumeUpButton.textYPos = 90;
+  volumeUpButton.text = "+";
+  volumeUpButton.font = &g_sFontCm18;
+
+  volumeDownButton.xMin = 0;
+  volumeDownButton.xMax = 40;
+  volumeDownButton.yMin = 120;
+  volumeDownButton.yMax = 180;
+  volumeDownButton.borderWidth = 1;
+  volumeDownButton.selected = false;
+  volumeDownButton.fillColor = GRAPHICS_COLOR_BLUE;
+  volumeDownButton.borderColor = GRAPHICS_COLOR_ORANGE;
+  volumeDownButton.selectedColor = GRAPHICS_COLOR_BLACK;
+  volumeDownButton.textColor = GRAPHICS_COLOR_BLACK;
+  volumeDownButton.selectedTextColor = GRAPHICS_COLOR_GREEN;
+  volumeDownButton.textXPos = 15;
+  volumeDownButton.textYPos = 150;
+  volumeDownButton.text = "-";
+  volumeDownButton.font = &g_sFontCm18;
 }
 
 

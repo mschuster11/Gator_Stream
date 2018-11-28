@@ -110,6 +110,8 @@ void HAL_EnableAudioCodec(unsigned int BluetoothStackID, HAL_Audio_Use_Case_t Au
    /* communicate with the audio codec.                                 */
 void HAL_DisableAudioCodec(void);
 
+
+void ServiceInquiryTask(void);
 #endif
 
 #endif

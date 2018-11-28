@@ -1231,7 +1231,7 @@ static int SetPairable(void)
    if(BluetoothStackID)
    {
       /* Attempt to set the attached device to be pairable.             */
-      Result = GAP_Set_Pairability_Mode(BluetoothStackID, pmPairableMode_EnableSecureSimplePairing);
+      Result = GAP_Set_Pairability_Mode(BluetoothStackID, pmPairableMode);
 
       /* Next, check the return value of the GAP Set Pairability Mode   */
       /* command for successful execution.                              */

@@ -20,5 +20,6 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 void Delay(uint16_t msec);
 void sysInit(void);
-
+bool simple_strcmp(char* s1, char* s2, uint16_t n);
+uint8_t parseStringResult(char* s);
 #endif

@@ -1126,7 +1126,7 @@ static int SetPairable(void) {
   /* First, check that a valid Bluetooth Stack ID exists.              */
   if(BluetoothStackID) {
     /* Attempt to set the attached device to be pairable.             */
-    Result = GAP_Set_Pairability_Mode(BluetoothStackID, pmPairableMode_EnableSecureSimplePairing);
+    Result = GAP_Set_Pairability_Mode(BluetoothStackID, pmPairableMode);
 
     /* Next, check the return value of the GAP Set Pairability mode   */
     /* command for successful execution.                              */
@@ -2959,7 +2959,7 @@ static void BTPSAPI GAP_Event_Callback(unsigned int BluetoothStackID, GAP_Event_
                 InquiryResultList[Index] = GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR;
                  BD_ADDRToStr(GAP_Inquiry_Event_Data->GAP_Inquiry_Data[Index].BD_ADDR, Callback_BoardStr);
 
-                // Display(("  Result: %d,%s.\r\n", (Index+1), Callback_BoardStr));
+                Display(("  Result: %d,%s.\r\n", (Index+1), Callback_BoardStr));
                 /* Query each discovered device's name            */
                 GAP_Query_Remote_Device_Name(BluetoothStackID, InquiryResultList[Index], GAP_Event_Callback, (unsigned long)0);
               }
@@ -3337,5 +3337,12 @@ void PlayPause(void) {
       Pause(NULL);
     else
       Play(NULL);
+  }
+}
+
+void ServiceInquiryTask(void) {
+  if(!A3DPOpened && BluetoothStackID) {
+    Display(("Performing Inquiry\r\n"));
+    GAP_Perform_Inquiry(BluetoothStackID, itGeneralInquiry, 0, 0, 10, MAX_INQUIRY_RESULTS, GAP_Event_Callback, (unsigned long)INQUIRY_REASON_LOCAL_COMMAND);
   }
 }

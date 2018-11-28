@@ -237,7 +237,8 @@
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.ADVICE__PERFORMANCE.1735877023" name="Provide advice on optimization techniques (--advice:performance)" superClass="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.ADVICE__PERFORMANCE" value="--advice:performance=all" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.DEFINE.816067356" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="CPU1"/>
-									<listOptionValue builtIn="false" value="CUSTOM_HW"/>
+									<listOptionValue builtIn="false" value="REMOTE_QUEUE"/>
+									<listOptionValue builtIn="false" value="CUSTOM_HWx"/>
 									<listOptionValue builtIn="false" value="_LAUNCHXL_F28379D"/>
 									<listOptionValue builtIn="false" value="WAVE_ENDIAN_LITTLE"/>
 									<listOptionValue builtIn="false" value="_STANDALONE"/>

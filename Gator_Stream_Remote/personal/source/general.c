@@ -78,3 +78,22 @@ void Delay(uint16_t usec){
 
   for(i=0;i<time;i++);
 }
+
+bool simple_strcmp(char* s1, char* s2, uint16_t n) {
+  for(uint16_t i=0;i<n;i++)
+    if(s1[i] != s2[i])
+      return false;
+  return true;
+}
+
+uint8_t parseStringResult(char* s) {
+  if(s) {
+    if((s[0] >= '0' && s[0] <= '9') && !(s[1] >= '0' && s[1] <= '9')) {
+      return s[0] - '0';
+    } else if((s[0] >= '0' && s[0] <= '9') && (s[1] >= '0' && s[1] <= '9')) {
+      return 10 * (s[0] - '0') + (s[1] - '0');
+    }
+  }
+  return 0xFF;
+}
+

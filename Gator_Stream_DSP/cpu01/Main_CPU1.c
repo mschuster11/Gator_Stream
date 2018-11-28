@@ -24,8 +24,12 @@
 #include "personal/headers/wav_priv.h"
 #include "personal/headers/cpu1_ipc.h"
 #include "personal/headers/sci_utils.h"
+#include "personal/headers/queue.h"
 #include "stdlib.h"
  #include "string.h"
+#include "utils/ustdlib.h"
+#include "fatfs/src/ff.h"
+#include "fatfs/src/diskio.h"
 
 // Defines
 #define CPU01TOCPU02_PASSMSG  0x0003FFF4     // CPU01 to CPU02 MSG RAM offsets
@@ -57,6 +61,7 @@ extern bool_t newMspCmd;
 uint16_t leftSample;
 uint16_t rightSample;
 uint16_t activeEffect;
+uint16_t volume;
 uint16_t count;
 extern uint16_t uartMspRxBufIndex ;
 char btDeviceList[15][100];
@@ -68,9 +73,9 @@ WaveFile* wf;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 extern char g_cCwdBuf[CMD_BUF_SIZE];
 extern char g_cCmdBuf[CMD_BUF_SIZE];
-extern node* currentMspUartCmd;
-extern node* newMspUartCmd;
-
+extern queue* mspUartCmdQueue;
+extern queue* remoteUartCmdQueue;
+extern FATFS g_sFatFs;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-Prototypes~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -78,6 +83,7 @@ void init_ints(void);
 void printString(char* s);
 void sendMspString(char* s);
 void sendRemoteString(char* s);
+void sendRemoteStringWONullTerm(char* s);
 uint16_t parseStringResult(char* s);
 static bool_t simple_strcmp(char* s1, char* s2, uint16_t n);
 bool_t mmcPresent(void);
@@ -157,6 +163,7 @@ void main(void) {
   crossCoreMemory[0] = (uint32_t)&leftSample;
   crossCoreMemory[1] = (uint32_t)&rightSample;
   crossCoreMemory[2] = (uint32_t)&activeEffect;
+  crossCoreMemory[3] = (uint32_t)&volume;
   count = 0;
 #ifdef CUSTOM_HW
   // Assign GPIO19 to CPU-1 as the RX of SCI-B.
@@ -165,6 +172,7 @@ void main(void) {
   GPIO_WritePin(75, 0);
   GPIO_WritePin(75, 1);
 #endif
+  init_messageQueues();
   initMMC();
   init_scib();
 #ifndef CUSTOM_HW
@@ -183,58 +191,69 @@ void main(void) {
       count++;
     }
 
-    if(newRemoteCmd == TRUE) {
-      printString(uartRemoteRxBuf);
-      if(simple_strcmp(uartRemoteRxBuf, "BT: ", 4)){
-        if(simple_strcmp((uartRemoteRxBuf+4), "CS", 2))
+    if(queue_head(remoteUartCmdQueue) != NULL && queue_head(remoteUartCmdQueue)->isComplete) {
+      node* currentRemoteUartCmd = queue_head(remoteUartCmdQueue);
+      printString(currentRemoteUartCmd->uartString);
+      if(simple_strcmp(currentRemoteUartCmd->uartString, "BT: ", 4)){
+        if(simple_strcmp((currentRemoteUartCmd->uartString+4), "CS", 2))
           sendMspString("CS\r\n");
-        else if(simple_strcmp((uartRemoteRxBuf+4), "OS ", 3))
-          sendMspString((uartRemoteRxBuf+4));
-      } else if(simple_strcmp(uartRemoteRxBuf, "EFFECT: ", 8)) {
-        IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[2],uartRemoteRxBuf[8], IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
-      } else if(simple_strcmp(uartRemoteRxBuf, "AUDIO: ", 7)) {
-        if(simple_strcmp((uartRemoteRxBuf+7), "PL", 2))
+        else if(simple_strcmp((currentRemoteUartCmd->uartString+4), "OS ", 3))
+          sendMspString((currentRemoteUartCmd->uartString+4));
+      } else if(simple_strcmp(currentRemoteUartCmd->uartString, "EFFECT: ", 8)) {
+        IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[2], currentRemoteUartCmd->uartString[8], IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+      } else if(simple_strcmp(currentRemoteUartCmd->uartString, "AUDIO: ", 7)) {
+        if(simple_strcmp((currentRemoteUartCmd->uartString+7), "PL", 2))
           sendMspString("PL\r\n");
-        else if(simple_strcmp((uartRemoteRxBuf+7), "PA", 2))
+        else if(simple_strcmp((currentRemoteUartCmd->uartString+7), "PA", 2))
           sendMspString("PA\r\n");
-        else if(simple_strcmp((uartRemoteRxBuf+7), "MMC START", 9)){
+        else if(simple_strcmp((currentRemoteUartCmd->uartString+7), "MMC START", 9)){
             if(mmcPresent()) {
               sendRemoteString("AUDIO: MMC STARTED\r\n");
               initNewWavFile();
               IpcRegs.IPCSET.bit.IPC11 = 1;
-            } else {
+            } else 
               sendRemoteString("AUDIO: NO MMC\r\n");
-            }
-        } else if(simple_strcmp((uartRemoteRxBuf+7), "MMC STOP", 8)){
-            if(IpcRegs.IPCSET.bit.IPC11 == 1) {
+        } else if(simple_strcmp((currentRemoteUartCmd->uartString+7), "MMC STOP", 8)){
+            if(IpcRegs.IPCFLG.bit.IPC11 == 1) {
               sendRemoteString("AUDIO: MMC STOPED\r\n");
-              IpcRegs.IPCSET.bit.IPC11 = 0;
+              IpcRegs.IPCCLR.bit.IPC11 = 1;
               wave_close(wf);
-            } else {
+              wf = NULL;
+            } else
               sendRemoteString("AUDIO: MMC NOT REC\r\n");
-            }
+        } else if(simple_strcmp((currentRemoteUartCmd->uartString+7), "VOL+", 4)){
+          if(volume<10)
+            volume++;
+          IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[3], volume, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
+        } else if(simple_strcmp((currentRemoteUartCmd->uartString+7), "VOL-", 4)){
+          if(volume>0)
+            volume--;
+          IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[3], volume, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
         }
-
       }
-      newRemoteCmd = FALSE;
+      queue_pop(remoteUartCmdQueue);
     }
 
-    while(currentMspUartCmd != NULL){
-      node* temp = currentMspUartCmd;
-      printString(currentMspUartCmd->uartString);
-      if(simple_strcmp(currentMspUartCmd->uartString, "DEVICE LIST: #", 14)) {
-        btActiceDevices = parseStringResult(currentMspUartCmd->uartString+14);
-      } else if(simple_strcmp(currentMspUartCmd->uartString, "DL: ", 4)) {
-        if(btCurrentReceivedDevice < btActiceDevices){
-          strcpy(btDeviceList[btCurrentReceivedDevice++], currentMspUartCmd->uartString);
+    if(queue_head(mspUartCmdQueue) != NULL && queue_head(mspUartCmdQueue)->isComplete){
+      node* currentMspUartCmd = queue_head(mspUartCmdQueue);
+      if(!currentMspUartCmd->isConsumed){
+        printString(currentMspUartCmd->uartString);
+        if(simple_strcmp(currentMspUartCmd->uartString, "DEVICE LIST: #", 14))
+          btActiceDevices = parseStringResult(currentMspUartCmd->uartString+14);
+        else if(simple_strcmp(currentMspUartCmd->uartString, "DL: ", 4)) {
+          if(btCurrentReceivedDevice < btActiceDevices)
+            strcpy(btDeviceList[btCurrentReceivedDevice++], currentMspUartCmd->uartString);
+          if (btCurrentReceivedDevice == btActiceDevices) {
+              sendRemoteStringWONullTerm("DEVICE LIST: #");
+              scib_txChar(btActiceDevices);
+              sendRemoteString("\r\n");
+            for(uint16_t i=0;i<btActiceDevices;i++)
+              sendRemoteString(btDeviceList[i]);
+          }
         }
-        if (btCurrentReceivedDevice == btActiceDevices) {
-          for(uint16_t i=0;i<btActiceDevices;i++)
-            sendRemoteString(btDeviceList[i]);
-        }
-      }
-      currentMspUartCmd = currentMspUartCmd->next;
-      free(temp);
+        currentMspUartCmd->isConsumed = TRUE;
+      } else
+        queue_pop(mspUartCmdQueue);
     }
   }
 }
@@ -252,6 +271,7 @@ void sendMspString(char* s) {
     scic_txChar(s[i]);
   scic_txChar('\0');
 }
+
 #else
 void printString(char* s) {
   for(uint16_t i=0;s[i]!=NULL;i++)
@@ -270,6 +290,14 @@ void sendRemoteString(char* s) {
     scib_txChar(s[i]);
   scib_txChar('\0');
 }
+
+
+void sendRemoteStringWONullTerm(char* s) {
+  for(uint16_t i=0;s[i]!=NULL;i++)
+    scib_txChar(s[i]);
+  scib_txChar('\0');
+}
+
 
 static bool_t simple_strcmp(char* s1, char* s2, uint16_t n) {
   for(uint16_t i=0;i<n;i++)
@@ -292,10 +320,13 @@ uint16_t parseStringResult(char* s) {
 
 
 bool_t mmcPresent(void) {
-  return GpioDataRegs.GPCDAT.bit.GPIO66;
+//  return GpioDataRegs.GPCDAT.bit.GPIO66;
+    return 1;
 }
 
 void initNewWavFile(void) {
+  disk_initialize(0);
+  f_mount(0, &g_sFatFs);
   f_unlink("/New_Song.wav");
   wf = wave_open("/New_Song.wav", "w");
 }

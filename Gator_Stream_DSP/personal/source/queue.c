@@ -12,23 +12,63 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //###########################################################################
 
-#ifndef _SCI_UTILS_H_
-#define _SCI_UTILS_H_
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Defines~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Includes-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+#include "F28x_Project.h"
+#include "personal/headers/queue.h"
+#include "stdlib.h"
+
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-Function Prototypes-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
+/* -~-~-~-~-~-~-~-~-~-~-~-~-~-~Function Definitions-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-interrupt void mspUartRx_ISR(void);
-interrupt void remoteUartRx_ISR(void);
-void init_scia(void);
-void init_scib(void);
-void init_scic(void);
-void scia_txChar(char c);
-void scib_txChar(char c);
-void scic_txChar(char c);
-void init_messageQueues(void);
-#endif
+queue* queue_InitQueue(void) {
+  queue* q = malloc(sizeof(queue));
+  q->_head = NULL;
+  q->_tail = NULL;
+  return q;
+}
+
+
+void queue_push(queue* q, node* n) {
+  if(!q->_head) {
+    q->_head = n;
+    q->_tail = q->_head;
+    q->_head->next = NULL;
+  } else if(q->_tail == q->_head) {
+    q->_tail = n;
+    q->_head->next = q->_tail;
+    q->_tail->next = NULL;
+  } else {
+    q->_tail->next = n;
+    q->_tail = q->_tail->next;
+    q->_tail->next = NULL;
+  }
+}
+
+
+void queue_pop(queue* q) {
+  if(q->_head) {
+    node* temp = q->_head;
+    if(q->_head == q->_tail) {
+      q->_head = NULL;
+      q->_tail = NULL;
+    } else
+      q->_head = q->_head->next;
+    free(temp);
+  }
+}
+
+
+node* queue_head(queue* q) {
+  return q->_head;
+}
+
+node* queue_tail(queue* q) {
+  return q->_tail;
+}

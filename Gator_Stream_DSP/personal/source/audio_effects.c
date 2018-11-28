@@ -31,6 +31,7 @@ int16 effectLeftBuff[EFFECT_BUFFER_SIZE];
 int16 effectRightBuff[EFFECT_BUFFER_SIZE];
 uint16_t effectLeftBuffIndex = 0;
 uint16_t effectRightBuffIndex = 0;
+float volumeCoefficent = 1;
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -79,7 +80,7 @@ interrupt void audio_ISR(void) {
       default:
         break;
     }
-
+    currentLeftSample = (int16)(volumeCoefficent * (float)currentLeftSample);
     // If the IPC flag is set, send left sample to CPU1 to be written to the MMC.
     if(IpcRegs.IPCSTS.bit.IPC11 == 1)
       IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[0],(uint32_t)currentLeftSample, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);
@@ -121,7 +122,7 @@ interrupt void audio_ISR(void) {
       default:
         break;
     }
-
+    currentRightSample = (int16)(volumeCoefficent * (float)currentRightSample);
     // If the IPC flag is set, send right sample to CPU1 to be written to the MMC.
     if(IpcRegs.IPCSTS.bit.IPC11 == 1)
       IPCLtoRDataWrite(&g_sIpcController1, crossCoreMemory[1],(uint32_t)currentRightSample, IPC_LENGTH_16_BITS, ENABLE_BLOCKING,NO_FLAG);

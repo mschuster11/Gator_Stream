@@ -50,6 +50,7 @@
 #include "personal/headers/main_menu_ui.h"
 #include "personal/headers/bluetooth_ui.h"
 #include "personal/headers/audio_ui.h"
+#include "personal/headers/queue.h"
 
   /* The following constants specifies the debug UART's baud rate.     */
 
@@ -62,11 +63,9 @@ extern Graphics_ImageButton audioOptionsButton;
 extern Graphics_ImageButton btConnectivityButton;
 // Graphic library context
 
-// extern uint16_t bufIndex = 0;
+extern queue* rxUartCmdQueue;
 //Flag to know if a demo was run
 bool g_ranDemo = false;
-
-extern char uartRxCmdBuf[UART_RX_CMD_BUF_SIZE];
 
 void initializeDemoButtons(void);
 
@@ -80,11 +79,12 @@ void main(void) {
 
   sysInit();
   Remote_EnableUART(HRDWCFG_DEBUG_UART_MODULE, HRDWCFG_DEBUG_UART_INT_NUM, DEBUG_UART_BAUD_RATE);
+
   initMainMenuButtons();
   initAudioMenuButtons();
   initBTMenuButtons();
   drawMainMenu();
-
+  rxUartCmdQueue = queue_InitQueue();
   // Loop to detect touch
   for(;;) {
     touch_updateCurrentTouch(&g_sTouchContext);
@@ -93,18 +93,15 @@ void main(void) {
       if(Graphics_isImageButtonSelected(&audioOptionsButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedImageButton(&g_sContext,&audioOptionsButton);
         openAudioMenu();
-        UART_transmitString("This is a test YEET");
       } else if(Graphics_isImageButtonSelected(&btConnectivityButton, g_sTouchContext.x,  g_sTouchContext.y)){
         Graphics_drawSelectedImageButton(&g_sContext,&btConnectivityButton);
         openBTMenu();
-        UART_transmitString("This is a test BOI");
       }
 
        if(g_ranDemo == true) {
 
         g_ranDemo = false;
 
-        UART_transmitString("This is a test");
         drawMainMenu();
        }
     }

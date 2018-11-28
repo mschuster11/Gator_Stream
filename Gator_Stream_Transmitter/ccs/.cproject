@@ -36,7 +36,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.MSP432_18.1.compilerID.FLOAT_SUPPORT.1724771796" name="Specify floating point support (--float_support)" superClass="com.ti.ccstudio.buildDefinitions.MSP432_18.1.compilerID.FLOAT_SUPPORT" value="com.ti.ccstudio.buildDefinitions.MSP432_18.1.compilerID.FLOAT_SUPPORT.FPv4SPD16" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP432_18.1.compilerID.DEFINE.675738919" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.MSP432_18.1.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__MSP432P401R__"/>
-									<listOptionValue builtIn="false" value="CUSTOM_HW"/>
+									<listOptionValue builtIn="false" value="CUSTOM_HWxx"/>
 									<listOptionValue builtIn="false" value="TARGET_IS_MSP432P4XX"/>
 									<listOptionValue builtIn="false" value="ccs"/>
 									<listOptionValue builtIn="false" value="__SUPPORT_AUDIO_CODEC__"/>

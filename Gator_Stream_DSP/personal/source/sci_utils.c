@@ -21,7 +21,7 @@
 #include "personal/headers/sci_utils.h"
 #include "fatfs/src/integer.h"
 #include "stdlib.h"
-
+#include "personal/headers/queue.h"
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-Externs~-~-~-~--~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -32,13 +32,15 @@
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~Globals~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
-node* currentMspUartCmd = NULL;
-node* newMspUartCmd = NULL;
+queue* mspUartCmdQueue;
+#ifdef REMOTE_QUEUE
+queue* remoteUartCmdQueue;
+#else
+char* remoteUartCmdBuf[128];
+uint16_t uartRemoteRxBufIndex = 0;
 bool_t newRemoteCmd = FALSE;
-static uint16_t uartRemoteRxBufIndex = 0;
-
+#endif
 char uartRemoteRxBuf[100];
-bool_t newMspCmd = FALSE;
  uint16_t uartMspRxBufIndex = 0;
 
 /* -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~- */
@@ -47,68 +49,82 @@ bool_t newMspCmd = FALSE;
 #ifndef CUSTOM_HW
 interrupt void mspUartRx_ISR (void) {
   while(ScicRegs.SCIFFRX.bit.RXFFST > 0) {
-    if(!newMspUartCmd){
-      newMspUartCmd = malloc(sizeof(node));
-      newMspUartCmd->next = NULL;
-      uartMspRxBufIndex = 0;
-
+    if(queue_tail(mspUartCmdQueue) == NULL || queue_tail(mspUartCmdQueue)->isComplete){
+      node* newMspUartCmd = malloc(sizeof(node));
+      newMspUartCmd->length = 0;
+      newMspUartCmd->isComplete = FALSE;
+      newMspUartCmd->isConsumed = FALSE;
+      queue_push(mspUartCmdQueue, newMspUartCmd);
     }
-    newMspUartCmd->uartString[uartMspRxBufIndex++] = ScicRegs.SCIRXBUF.all;
-    if(newMspUartCmd->uartString[uartMspRxBufIndex-2] == '\r' && newMspUartCmd->uartString[uartMspRxBufIndex-1] == '\n'){
-        newMspUartCmd->uartString[uartMspRxBufIndex] = NULL;
-        if(!currentMspUartCmd)
-            currentMspUartCmd = newMspUartCmd;
-        newMspUartCmd = newMspUartCmd->next;
-    }else{
-        newMspCmd = FALSE;
+    node* mspUartCmd = queue_tail(mspUartCmdQueue);
+    mspUartCmd->uartString[mspUartCmd->length++] = ScicRegs.SCIRXBUF.all;
+    if(mspUartCmd->uartString[mspUartCmd->length-2] == '\r' && mspUartCmd->uartString[mspUartCmd->length-1] == '\n'){
+      mspUartCmd->uartString[mspUartCmd->length] = '\0';
+      mspUartCmd->isComplete = TRUE;
     }
   }
-  if(uartMspRxBufIndex >= 100) {
-      uartMspRxBufIndex =0;
-  }
+  if(queue_tail(mspUartCmdQueue)->length >= 100) 
+      queue_tail(mspUartCmdQueue)->length = 0;
   ScicRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
 #else
 interrupt void mspUartRx_ISR (void) {
   while(SciaRegs.SCIFFRX.bit.RXFFST > 0) {
-    if(!newMspUartCmd){
-      newMspUartCmd = malloc(sizeof(node));
-      newMspUartCmd->next = NULL;
-      uartMspRxBufIndex = 0;
-
+    if(queue_tail(mspUartCmdQueue) == NULL || queue_tail(mspUartCmdQueue)->isComplete){
+      node* newMspUartCmd = malloc(sizeof(node));
+      newMspUartCmd->length = 0;
+      newMspUartCmd->isComplete = FALSE;
+      newMspUartCmd->isConsumed = FALSE;
+      queue_push(mspUartCmdQueue, newMspUartCmd);
     }
-    newMspUartCmd->uartString[uartMspRxBufIndex++] = SciaRegs.SCIRXBUF.all;
-    if(newMspUartCmd->uartString[uartMspRxBufIndex-2] == '\r' && newMspUartCmd->uartString[uartMspRxBufIndex-1] == '\n'){
-        newMspUartCmd->uartString[uartMspRxBufIndex] = NULL;
-        if(!currentMspUartCmd)
-            currentMspUartCmd = newMspUartCmd;
-        newMspUartCmd = newMspUartCmd->next;
-    }else{
-        newMspCmd = FALSE;
+    node* mspUartCmd = queue_tail(mspUartCmdQueue);
+    mspUartCmd->uartString[mspUartCmd->length++] = SciaRegs.SCIRXBUF.all;
+    if(mspUartCmd->uartString[mspUartCmd->length-2] == '\r' && mspUartCmd->uartString[mspUartCmd->length-1] == '\n'){
+      mspUartCmd->uartString[mspUartCmd->length] = '\0';
+      mspUartCmd->isComplete = TRUE;
     }
   }
-  if(uartMspRxBufIndex >= 100) {
-      uartMspRxBufIndex =0;
-  }
+  if(queue_tail(mspUartCmdQueue)->length >= 100) 
+    queue_tail(mspUartCmdQueue)->length = 0;
   SciaRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
 #endif
 
-
+#ifdef REMOTE_QUEUE
 interrupt void remoteUartRx_ISR (void) {
   while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
-    uartRemoteRxBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
-    if(uartRemoteRxBuf[uartRemoteRxBufIndex-3] == '\r' && uartRemoteRxBuf[uartRemoteRxBufIndex-2] == '\n' && uartRemoteRxBuf[uartRemoteRxBufIndex-1] == '\0'){
-        newRemoteCmd = TRUE;
-        uartRemoteRxBufIndex = 0;
+    if(queue_tail(remoteUartCmdQueue) == NULL || queue_tail(remoteUartCmdQueue)->isComplete){
+      node* newRemoteUartCmd = malloc(sizeof(node));
+      newRemoteUartCmd->length = 0;
+      newRemoteUartCmd->isComplete = FALSE;
+      newRemoteUartCmd->isConsumed = FALSE;
+      queue_push(remoteUartCmdQueue, newRemoteUartCmd);
+    }
+    node* remoteUartCmd = queue_tail(remoteUartCmdQueue);
+    remoteUartCmd->uartString[remoteUartCmd->length++] = ScibRegs.SCIRXBUF.all;
+    if(remoteUartCmd->uartString[remoteUartCmd->length-3] == '\r' && remoteUartCmd->uartString[remoteUartCmd->length-2] == '\n' && remoteUartCmd->uartString[remoteUartCmd->length-1] == '\0'){
+      remoteUartCmd->uartString[remoteUartCmd->length] = '\0';
+      remoteUartCmd->isComplete = TRUE;
     }
   }
-  if(uartRemoteRxBufIndex >= 100) {
-      uartRemoteRxBufIndex = 0;
-  }
+  if(queue_tail(remoteUartCmdQueue)->length >= 100) 
+    queue_tail(remoteUartCmdQueue)->length = 0;
   ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;
 }
-
+#else
+interrupt void remoteUartRx_ISR (void) {
+    while(ScibRegs.SCIFFRX.bit.RXFFST > 0) {
+        remoteUartCmdBuf[uartRemoteRxBufIndex++] = ScibRegs.SCIRXBUF.all;
+      if(remoteUartCmdBuf[uartRemoteRxBufIndex-3] == '\r' && remoteUartCmdBuf[uartRemoteRxBufIndex-2] == '\n' && remoteUartCmdBuf[uartRemoteRxBufIndex-1] == '\0'){
+          newRemoteCmd = TRUE;
+          uartRemoteRxBufIndex = 0;
+      }
+    }
+    if(uartRemoteRxBufIndex >= 128)
+        uartRemoteRxBufIndex = 0;
+    ScibRegs.SCIFFRX.bit.RXFFINTCLR = 1;
+}
+#endif
 void scia_txChar (char c) {
   while (SciaRegs.SCICTL2.bit.TXRDY != 1);
   SciaRegs.SCITXBUF.all =c;
@@ -118,7 +134,6 @@ void scib_txChar (char c) {
   while (ScibRegs.SCICTL2.bit.TXRDY != 1);
   ScibRegs.SCITXBUF.all = c;
 }
-
 
 void scic_txChar (char c) {
   while (ScicRegs.SCICTL2.bit.TXRDY != 1);
@@ -235,4 +250,10 @@ void init_scic () {
 
   // Enable SCI-C's peripheral clock.
   SysCtlPeripheralEnable(SYSCTL_PERIPH_SCI3);
+}
+
+
+void init_messageQueues(void) {
+  mspUartCmdQueue = queue_InitQueue();
+  remoteUartCmdQueue = queue_InitQueue();
 }
