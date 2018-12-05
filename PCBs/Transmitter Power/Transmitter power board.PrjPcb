@@ -56,6 +56,23 @@ GenerateClassCluster=0
 DocumentUniqueId=WWPGUGJO
 
 [Document2]
+DocumentPath=TxPower.PcbDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=YXODPOKP
+
+[Document3]
 DocumentPath=TxPowerGerb.Cam
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -72,7 +89,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=
 
-[Document3]
+[Document4]
 DocumentPath=TxPowerDrill.Cam
 AnnotationEnabled=1
 AnnotateStartValue=1
